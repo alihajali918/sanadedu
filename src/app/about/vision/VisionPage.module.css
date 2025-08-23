@@ -1,0 +1,61 @@
+/* ==========================================================
+// ملف: VisionPage.module.css (النسخة النهائية)
+// ========================================================== */
+
+.visionPageContent {
+    padding-top: 80px;
+    padding-bottom: 80px;
+    background-color: var(--light-grey);
+}
+
+.pageTitle {
+    color: var(--primary-green);
+    font-size: 2.2em;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 60px;
+}
+
+/* الشبكة لتقسيم الصفحة */
+.grid {
+    display: grid;
+    grid-template-columns: 1fr; /* عمود واحد على الموبايل */
+    gap: 50px;
+    align-items: center;
+}
+
+/* حاوية الأيقونة */
+.visionIconContainer {
+    text-align: center;
+    color: var(--highlight-gold);
+    font-size: 10rem;
+    opacity: 0.5;
+}
+
+/* حاوية النص */
+.visionText {
+    text-align: right;
+}
+
+.visionText p {
+    font-size: 1.1em;
+    line-height: 1.8;
+    color: var(--text-black);
+    margin-bottom: 20px;
+    text-align: justify; /* تم التعديل هنا */
+}
+
+/* تعديلات الشاشات الكبيرة */
+@media (min-width: 992px) {
+    .grid {
+        grid-template-columns: 3fr 1fr; /* تم التعديل هنا لإعطاء النص مساحة أكبر */
+    }
+    
+    .orderText {
+        order: 1;
+    }
+
+    .orderIcon {
+        order: 2;
+    }
+}

@@ -1,0 +1,92 @@
+/* src/app/checkout/page.module.css */
+
+.checkoutPage {
+    padding: 60px 20px;
+    background-color: #f8f9fa;
+    min-height: 100vh;
+    direction: rtl;
+}
+
+.container {
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.pageTitle {
+    text-align: center;
+    font-size: 2.5rem;
+    color: var(--primary-green);
+    margin-bottom: 40px;
+}
+
+.checkoutLayout {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr; /* عمود أكبر لنموذج الدفع وعمود أصغر للملخص */
+    gap: 30px;
+    align-items: start;
+}
+
+.formContainer {
+    background-color: #fff;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+}
+
+.orderSummary {
+    background-color: #fff;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    position: sticky;
+    top: 20px;
+}
+
+.summaryTitle {
+    font-size: 1.8rem;
+    color: var(--primary-green);
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid var(--light-grey);
+}
+
+.summaryItems {
+    margin-bottom: 20px;
+}
+
+.summaryItem {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    font-size: 1rem;
+}
+
+.itemName {
+    color: #333;
+}
+
+.itemPrice {
+    color: #555;
+    font-weight: bold;
+}
+
+.summaryTotal {
+    padding-top: 15px;
+    border-top: 1px solid var(--light-grey);
+    display: flex;
+    justify-content: space-between;
+    font-size: 1.3rem;
+    font-weight: bold;
+    color: var(--text-black);
+}
+
+/* تصميم متجاوب للشاشات الصغيرة */
+@media (max-width: 992px) {
+    .checkoutLayout {
+        grid-template-columns: 1fr; /* عمود واحد فقط */
+    }
+    .orderSummary {
+        position: static; /* إلغاء التثبيت */
+    }
+}

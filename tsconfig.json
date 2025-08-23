@@ -1,0 +1,46 @@
+// sanad-frontend-app/tsconfig.json
+{
+  "compilerOptions": {
+    "target": "ES2017",
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": false,
+    "noEmit": true,
+    "incremental": true,
+    "module": "esnext",
+    "esModuleInterop": true,
+    "moduleResolution": "node", // يمكن تغييرها إلى "bundler" في Next.js الحديثة إذا واجهت مشاكل
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "preserve",
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    // -----------------------------------------------------
+    // **الإضافات والتعديلات لحل مشكلة المسارات (@/)**
+    // -----------------------------------------------------
+    "baseUrl": ".", // هذا يخبر TypeScript أن المسارات المطلقة تبدأ من جذر المشروع
+    "paths": {
+      // بما أن ملفاتك مثل 'app', 'components', 'context' موجودة داخل 'src',
+      // فإن '@/' يجب أن يشير إلى مجلد 'src'.
+      "@/*": ["./src/*"] // هذا يعني أن @/ يشير إلى مجلد src/
+    }
+    // -----------------------------------------------------
+  },
+  "include": [
+    "next-env.d.ts",
+    ".next/types/**/*.ts",
+    "**/*.ts",
+    "**/*.tsx"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}

@@ -1,0 +1,62 @@
+/* ==========================================================
+// ملف: FounderPage.module.css (النسخة المصححة)
+// ========================================================== */
+
+/* تم تطبيق الستايل على الصفحة الرئيسية مباشرة مثل صفحة الفريق */
+.founderPageContent {
+    padding-top: 80px;
+    padding-bottom: 80px;
+    background-color: var(--light-grey);
+}
+
+.pageTitle {
+    color: var(--primary-green);
+    font-size: 2.2em;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 60px; /* مسافة تحت العنوان الرئيسي */
+}
+
+/* شبكة من عمودين للشاشات الكبيرة */
+.grid {
+    display: grid;
+    grid-template-columns: 1fr; /* عمود واحد على الموبايل */
+    gap: 50px;
+    align-items: center;
+}
+
+/* حاوية صورة المؤسس */
+.founderImage {
+    text-align: center;
+}
+
+.founderImage img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 50%;
+    border: 5px solid var(--background-white);
+    box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+}
+
+/* حاوية النص */
+.founderTextContent p {
+    font-size: 1.1em;
+    line-height: 1.8;
+    color: var(--text-black);
+    margin-bottom: 20px;
+}
+
+/* تعديلات للشاشات الكبيرة (Desktop) */
+@media (min-width: 992px) {
+    .grid {
+        grid-template-columns: 1fr 1fr;
+    }
+    
+    .orderText {
+        order: 1; /* النص على اليسار */
+    }
+
+    .orderImage {
+        order: 2; /* الصورة على اليمين */
+    }
+}

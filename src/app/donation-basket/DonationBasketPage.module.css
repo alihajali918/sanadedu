@@ -1,0 +1,401 @@
+/* ==========================================================
+    أنماط صفحة سلة التبرعات (Donation Basket Page Styles)
+    تخطيط مرن (Responsive)
+    ========================================================== */
+
+/* --- الأنماط الأساسية (Mobile-First) --- */
+.basketContainer {
+    max-width: 1200px;
+    margin: 20px auto;
+    padding: 15px;
+    font-family: 'Changa', sans-serif;
+    direction: rtl; /* الاتجاه من اليمين لليسار */
+}
+
+.pageTitle {
+    text-align: center;
+    font-size: 2rem;
+    color: var(--primary-green);
+    margin-bottom: 25px;
+}
+
+/* --- حالة السلة الفارغة --- */
+.emptyCartMessage {
+    text-align: center;
+    padding: 40px 15px;
+    background-color: var(--background-white);
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+}
+
+.emptyCartMessage p {
+    font-size: 1rem;
+    color: #555;
+    margin-bottom: 20px;
+}
+
+.emptyCartButton {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: var(--primary-green);
+    color: var(--background-white);
+    border-radius: 5px;
+    text-decoration: none;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+}
+
+.emptyCartButton:hover {
+    background-color: var(--highlight-gold);
+}
+
+.emptyCartButtonArrow {
+    margin-right: 8px;
+    transition: transform 0.3s ease;
+}
+
+.emptyCartButton:hover .emptyCartButtonArrow {
+    transform: translateX(-5px);
+}
+
+/* --- تخطيط السلة الممتلئة (عمود واحد افتراضي على الجوال) --- */
+.cartLayout {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* --- قائمة عناصر السلة --- */
+.cartItemsList {
+    background-color: var(--background-white);
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+}
+
+.cartHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--light-grey);
+}
+
+.cartHeader h3 {
+    font-size: 1.2rem;
+    color: var(--primary-green);
+}
+
+.clearAllButton {
+    background: none;
+    border: 1px solid var(--cta-red);
+    color: var(--cta-red);
+    padding: 6px 12px;
+    font-size: 0.9rem;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.clearAllButton:hover {
+    background-color: var(--cta-red);
+    color: var(--background-white);
+}
+
+.clearAllButton i {
+    margin-left: 5px;
+}
+
+/* --- بطاقة عنصر السلة (تخطيط Flexbox محسّن للجوال) --- */
+.cartItemCard {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding: 15px 0;
+    border-bottom: 1px solid var(--light-grey);
+    position: relative;
+    gap: 15px;
+}
+
+.cartItemCard:last-child {
+    border-bottom: none;
+}
+
+/* التفاصيل الرئيسية للعنصر (الصورة + الاسم + المؤسسة) */
+.cartItemMainDetails {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.cartItemImageContainer {
+    width: 80px; /* حجم صورة مناسب للجوال */
+    height: 80px;
+    position: relative;
+    border-radius: 5px;
+    overflow: hidden;
+    background-color: #f0f0f0;
+    flex-shrink: 0;
+}
+
+.itemImage {
+    border-radius: 5px;
+}
+
+.placeholderImage {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+    color: #ccc;
+}
+
+.cartItemDetails {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.itemName {
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: var(--text-black);
+    margin-bottom: 0;
+}
+
+.itemInstitution, .itemUnitPrice {
+    font-size: 0.85rem;
+    color: #666;
+    margin-bottom: 0;
+}
+
+/* حاوية التحكم بالكمية والسعر الإجمالي */
+.cartItemControlsAndPrice {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 10px;
+}
+
+.quantityControl {
+    display: flex;
+    align-items: center;
+    border: 1px solid var(--light-grey);
+    border-radius: 5px;
+}
+
+.quantityButton {
+    background-color: #f9f9f9;
+    border: none;
+    padding: 8px 12px;
+    cursor: pointer;
+    font-size: 1.2rem;
+    line-height: 1;
+}
+.quantityButton:disabled {
+    cursor: not-allowed;
+    color: #ccc;
+}
+
+.quantityInput {
+    width: 50px;
+    text-align: center;
+    border: none;
+    border-left: 1px solid var(--light-grey);
+    border-right: 1px solid var(--light-grey);
+    padding: 8px 0;
+    font-size: 1rem;
+    -moz-appearance: textfield;
+}
+.quantityInput::-webkit-outer-spin-button,
+.quantityInput::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.itemActions {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+}
+
+.deleteButton {
+    background: none;
+    border: none;
+    color: var(--cta-red);
+    cursor: pointer;
+    font-size: 1.1rem;
+}
+
+.itemTotalPrice {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: var(--primary-green);
+    white-space: nowrap;
+}
+
+/* --- ملخص السلة (تخطيط عمود واحد) --- */
+.cartSummary {
+    background-color: var(--background-white);
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    height: fit-content;
+    position: static; /* إزالة الوضع الثابت (sticky) على الجوال */
+}
+
+.summarySection {
+    padding: 20px 0;
+    border-bottom: 1px solid var(--light-grey);
+}
+.summarySection:last-of-type {
+    border-bottom: none;
+}
+
+.summarySection h3 {
+    font-size: 1.5rem;
+    margin-bottom: 15px;
+    color: var(--primary-green);
+}
+
+.summaryRow {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    font-size: 1rem;
+}
+
+.totalRow {
+    font-size: 1.3rem;
+    font-weight: bold;
+    color: var(--text-black);
+    margin-top: 15px;
+}
+
+/* --- أنماط سياسة التبرعات الجديدة --- */
+.feesOptIn {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 15px;
+    margin-top: 10px;
+    background-color: #f8f9fa;
+    border: 1px solid var(--light-grey);
+    border-radius: 5px;
+}
+
+.feesCheckbox {
+    margin-top: 5px;
+    flex-shrink: 0;
+}
+
+.feesLabel {
+    font-size: 0.9rem;
+    color: #555;
+    cursor: pointer;
+    line-height: 1.6;
+}
+
+.policyNote {
+    font-size: 0.85rem;
+    color: #777;
+    text-align: center;
+    margin-top: 20px;
+    line-height: 1.5;
+}
+
+.policyNote a {
+    color: var(--primary-green);
+    text-decoration: underline;
+}
+
+/* --- نهاية الأنماط الجديدة --- */
+
+.summaryActions {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.checkoutButton, .continueShoppingButton {
+    display: block;
+    width: 100%;
+    padding: 15px;
+    text-align: center;
+    border-radius: 5px;
+    text-decoration: none;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+.checkoutButton {
+    background-color: var(--primary-green);
+    color: var(--background-white);
+}
+
+.checkoutButton:hover {
+    background-color: var(--highlight-gold);
+}
+
+.continueShoppingButton {
+    background-color: transparent;
+    color: var(--primary-green);
+    border: 1px solid var(--primary-green);
+}
+
+.continueShoppingButton:hover {
+    background-color: var(--primary-green);
+    color: var(--background-white);
+}
+
+
+/* --- أنماط الشاشات الكبيرة (Desktop & Tablet) --- */
+@media (min-width: 768px) {
+    .basketContainer {
+        margin: 40px auto;
+        padding: 20px;
+    }
+    .pageTitle {
+        font-size: 2.5rem;
+    }
+    .cartLayout {
+        display: grid;
+        grid-template-columns: 2fr 1fr; /* تخطيط عمودين للشاشات الأكبر */
+        gap: 30px;
+    }
+    .cartItemsList {
+        padding: 20px;
+    }
+    .cartItemCard {
+        display: grid;
+        grid-template-columns: 100px 1fr auto;
+        align-items: center;
+        padding: 15px 0;
+        gap: 15px;
+    }
+    .cartItemDetails {
+        justify-content: center;
+        align-items: flex-start;
+    }
+    .cartItemControlsAndPrice {
+        flex-direction: row;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 20px;
+    }
+    .itemActions {
+        position: static;
+    }
+    .deleteButton {
+        position: static; /* إعادة زر الحذف إلى مكانه الطبيعي */
+        font-size: 0.9rem;
+    }
+    .cartSummary {
+        position: sticky; /* إعادة تفعيل الموضع الثابت */
+        top: 20px;
+    }
+}

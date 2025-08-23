@@ -1,0 +1,166 @@
+/* src/app/dashboard/settings/settings.module.css */
+
+.settingsContainer {
+  padding: 20px;
+  background-color: var(--background-white);
+  border-radius: 10px;
+  box-shadow: 0 5px 25px rgba(0, 0, 0, 0.05);
+  direction: rtl; /* لضمان الاتجاه الصحيح للنص العربي */
+}
+
+.settingsTitle {
+  font-size: 2.2em;
+  color: var(--primary-green);
+  margin-bottom: 15px;
+  text-align: right;
+  font-weight: 700;
+}
+
+.settingsDescription {
+  font-size: 1em;
+  color: var(--text-dark);
+  margin-bottom: 30px;
+  line-height: 1.6;
+  text-align: right;
+}
+
+.settingsSection {
+  background-color: var(--light-grey);
+  padding: 30px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  border-right: 5px solid var(--primary-green);
+  margin-bottom: 30px; /* مسافة بين الأقسام */
+}
+
+.settingsSection:last-child {
+  margin-bottom: 0;
+}
+
+.sectionTitle {
+  font-size: 1.6em;
+  color: var(--text-black);
+  margin-bottom: 25px;
+  text-align: right;
+  font-weight: 600;
+  border-bottom: 1px solid var(--border-light);
+  padding-bottom: 10px;
+}
+
+.settingsForm .formGroup {
+  margin-bottom: 20px;
+  text-align: right;
+}
+
+.settingsForm label {
+  display: block;
+  font-size: 1.1em;
+  color: var(--text-dark);
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+.settingsForm .formInput {
+  width: 100%;
+  padding: 10px 15px;
+  border: none;
+  border-bottom: 2px solid var(--highlight-gold) !important;
+  border-radius: 5px;
+  font-size: 1em;
+  color: var(--text-black);
+  background-color: var(--background-white);
+  box-sizing: border-box;
+  text-align: right;
+}
+
+.settingsForm .formInput:focus {
+  border-color: var(--primary-green);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(60, 118, 61, 0.2);
+}
+
+.saveButton {
+  background-color: var(--primary-green);
+  color: var(--text-white);
+  font-family: var(--font-changa);
+  padding: 12px 25px;
+  border: none;
+  border-radius: 5px;
+  font-size: 1em;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  margin-top: 15px;
+  display: block;
+  width: fit-content;
+  margin-right: auto;
+  margin-left: auto;
+}
+
+.saveButton:hover {
+  background-color: #3b5a38;
+  transform: translateY(-1px);
+}
+
+/* ستايلات مربعات الاختيار (Checkboxes) */
+.checkboxGroup {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px;
+  cursor: pointer;
+  justify-content: flex-end; /* محاذاة لليمين */
+}
+
+.checkboxInput {
+  margin-left: 10px; /* مسافة عن الـ label */
+  /* يمكنك تخصيص مظهر مربع الاختيار إذا أردت استخدام CSS خالص */
+  transform: scale(1.2); /* تكبير مربع الاختيار قليلاً */
+}
+
+.checkboxLabel {
+  font-size: 1em;
+  color: var(--text-dark);
+  cursor: pointer;
+  user-select: none; /* لمنع تحديد النص عند النقر */
+}
+
+/* التعديلات للاستجابة على الشاشات الصغيرة */
+@media (max-width: 768px) {
+  .settingsContainer {
+    padding: 15px;
+  }
+  .settingsTitle {
+    font-size: 1.8em;
+  }
+  .settingsDescription {
+    font-size: 0.9em;
+  }
+  .settingsSection {
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+  .sectionTitle {
+    font-size: 1.4em;
+    margin-bottom: 15px;
+  }
+  .settingsForm label {
+    font-size: 1em;
+  }
+  .settingsForm .formInput {
+    padding: 8px 12px;
+    font-size: 0.95em;
+  }
+  .saveButton {
+    width: 100%;
+    padding: 10px 20px;
+    font-size: 0.95em;
+  }
+  .checkboxGroup {
+    flex-direction: row-reverse; /* لجعل الـ checkbox على اليمين والـ label على اليسار */
+    justify-content: flex-start; /* محاذاة للبداية في RTL */
+  }
+  .checkboxLabel {
+    font-size: 0.9em;
+    margin-left: 0; /* إزالة المسافة الافتراضية */
+    margin-right: 10px; /* إضافة مسافة بين الـ label والـ checkbox */
+  }
+}

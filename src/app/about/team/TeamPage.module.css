@@ -1,0 +1,91 @@
+/* ==========================================================
+// ملف: TeamPage.module.css
+// الوصف: ستايلات خاصة بصفحة "فريقنا"
+// ========================================================== */
+
+.teamPageContent {
+    padding-top: 80px;
+    padding-bottom: 80px;
+    background-color: var(--light-grey);
+}
+
+.pageTitle {
+    color: var(--primary-green);
+    font-size: 2.2em;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+.pageDescription {
+    text-align: center;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 60px;
+    line-height: 1.8;
+}
+
+.teamGrid {
+    display: grid;
+    /* أعمدة متجاوبة: سيعرض أكبر عدد ممكن من الأعمدة بعرض 220 بكسل */
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 30px;
+    margin-top: 40px;
+}
+
+.teamMember {
+    background-color: var(--background-white);
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.teamMember:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+}
+
+.teamMemberImage {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    object-fit: cover; /* لضمان عدم تشوه الصورة */
+    border: 4px solid var(--highlight-gold);
+    margin-bottom: 15px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.teamMember h3 {
+    font-size: 1.4em;
+    color: var(--primary-green);
+    margin-bottom: 5px;
+    font-weight: 700;
+}
+
+.teamMember p {
+    font-size: 0.9em;
+    margin-bottom: 15px;
+    color: var(--text-black);
+}
+
+.memberSocialIcons {
+    display: flex;
+    gap: 15px; /* زيادة المسافة قليلاً */
+    justify-content: center;
+}
+
+.memberSocialIcons a {
+    color: var(--primary-green);
+    font-size: 1.2em;
+    transition: color 0.3s ease;
+}
+
+.memberSocialIcons a:hover {
+    color: var(--highlight-gold);
+}

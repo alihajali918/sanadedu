@@ -1,0 +1,126 @@
+/* src/components/common/Footer/Footer.module.css */
+
+/* ==========================================================
+    أنماط الفوتر (Footer Styles)
+    ========================================================== */
+.mainFooter { /* ✅ تم التعديل: main-footer -> mainFooter */
+    background-color: var(--text-black); /* خلفية سوداء للفوتر */
+    color: var(--background-white); /* نص أبيض */
+    padding: 60px 0 20px; /* بادينغ علوي وسفلي */
+    font-size: 0.95em;
+    line-height: 1.6;
+}
+
+.footerContent { /* ✅ تم التعديل: footer-content -> footerContent */
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); /* تخطيط شبكي لأقسام الفوتر */
+    gap: 30px; /* مسافة بين الأعمدة */
+    margin-bottom: 40px; /* مسافة قبل شريط حقوق النشر */
+    text-align: right; /* محاذاة لليمين */
+}
+
+.footerSection h3 { /* ✅ تم التعديل: footer-section h3 -> footerSection h3 */
+    color: var(--highlight-gold); /* لون ذهبي للعناوين */
+    font-size: 1.3em;
+    margin-bottom: 25px;
+    font-weight: 700;
+    font-family: 'Changa', sans-serif; /* تطبيق خط Changa */
+}
+
+.footerInfo .footerLogoContainer { /* ✅ تم التعديل: footer-info .footer-logo-container -> footerInfo .footerLogoContainer */
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.footerInfo .sanadlogoFooter { /* ✅ تم التعديل: footer-info .sanadlogo-footer -> footerInfo .sanadlogoFooter */
+    height: 40px; /* حجم الشعار في الفوتر */
+    width: auto;
+    fill: var(--highlight-gold); /* لون ذهبي للشعار SVG */
+}
+
+.footerInfo .logoText { /* ✅ تم التعديل: footer-info .logo-text -> footerInfo .logoText */
+    color: var(--background-white); /* لون نص الشعار */
+    font-size: 1.5em; /* حجم نص الشعار */
+}
+
+.footerDescription { /* ✅ تم التعديل: footer-description -> footerDescription */
+    margin-bottom: 20px;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.footerContact p { /* ✅ تم التعديل: footer-contact p -> footerContact p */
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.footerContact p i { /* ✅ تم التعديل: footer-contact p i -> footerContact p i */
+    color: var(--highlight-gold); /* أيقونات الاتصال باللون الذهبي */
+    font-size: 1.1em;
+}
+
+.footerLinks ul { /* ✅ تم التعديل: footer-links ul -> footerLinks ul */
+    padding: 0;
+    list-style: none;
+}
+
+.footerLinks li { /* ✅ تم التعديل: footer-links li -> footerLinks li */
+    margin-bottom: 10px;
+}
+
+.footerLinks a { /* ✅ تم التعديل: footer-links a -> footerLinks a */
+    color: rgba(255, 255, 255, 0.8);
+    transition: color 0.3s ease;
+}
+
+.footerLinks a:hover { /* ✅ تم التعديل: footer-links a:hover -> footerLinks a:hover */
+    color: var(--highlight-gold); /* تغيير اللون عند الهوفر */
+}
+
+.footerSocial .socialIcons { /* ✅ تم التعديل: footer-social .social-icons -> footerSocial .socialIcons */
+    display: flex;
+    gap: 15px;
+    margin-bottom: 25px; /* مسافة أسفل أيقونات التواصل الاجتماعي */
+}
+
+.footerSocial .socialIcons a { /* ✅ تم التعديل: footer-social .social-icons a -> footerSocial .socialIcons a */
+    color: var(--background-white);
+    font-size: 1.5em;
+    width: 40px;
+    height: 40px;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.footerSocial .socialIcons a:hover { /* ✅ تم التعديل: footer-social .social-icons a:hover -> footerSocial .socialIcons a:hover */
+    background-color: var(--highlight-gold);
+    color: var(--text-black);
+    border-color: var(--highlight-gold);
+}
+
+.footerBottom { /* ✅ تم التعديل: footer-bottom -> footerBottom */
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding-top: 20px;
+    text-align: center;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.85em;
+}
+
+/* ⚠️ مهم: تحتاج إلى نقل تعريف .container إذا كان يستخدم في أماكن أخرى في الفوتر
+   أو إذا كان كلاساً عاماً موجوداً في globals.css.
+   إذا كان .container يستخدم في الهيدر ولديه نفس التعريف، اتركه في globals.css.
+   إذا كان هذا التعريف خاصاً بالفوتر فقط، اتركه هنا.
+*/
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 15px;
+}

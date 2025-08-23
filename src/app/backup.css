@@ -1,0 +1,4568 @@
+/* src/app/globals.css */
+
+/* ==========================================================
+   متغيرات الألوان (Color Variables)
+   ========================================================== */
+:root {
+    --primary-green: #4A6C47;        /* الأخضر الزيتي */
+    --cta-red: #B02E30;              /* الأحمر القاني لزر التبرع */
+    --highlight-gold: #CDA349;       /* الذهبي للإبراز */
+    --background-white: #FFFFFF;     /* الأبيض للخلفيات */
+    --text-black: #1C1C1C;           /* الأسود المحايد للنصوص */
+    --light-grey: #F8F9FA;           /* للحدود أو بعض الخلفيات الفاتحة جداً */
+}
+
+/* ==========================================================
+   الأنماط العامة وإعادة الضبط (Global Styles & Resets)
+   ========================================================== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    height: 100%; /* لضمان أن html و body يأخذان ارتفاع 100% من الشاشة */
+    overflow-x: hidden; /* لمنع التمرير الأفقي غير المرغوب فيه */
+}
+
+body {
+    font-family: 'Changa', sans-serif; /* تم تحديث الخط إلى Changa */
+    direction: rtl; /* للتأكد من الاتجاه من اليمين لليسار */
+    unicode-bidi: embed; /* لضمان تطبيق الاتجاه بشكل صحيح */
+    text-align: right; /* محاذاة النص لليمين */
+    color: var(--text-black);
+    background-color: var(--background-white);
+    padding-top: 100px; /* هذا البادينغ لتعويض ارتفاع الهيدر الثابت */
+    font-feature-settings: "lnum"; /* لضمان استخدام الأرقام الغربية (lining numbers) */
+    font-variant-numeric: lining-nums; /* لضمان استخدام الأرقام الغربية (lining numbers) */
+}
+
+/* لمنع التمرير عندما تكون قائمة الموبايل مفتوحة */
+body.no-scroll {
+    overflow: hidden;
+}
+
+/* نمط لـ SVG (من كودك الأصلي) */
+.cls-1 {
+    fill: var(--primary-green);
+    stroke: var(--background-white);
+}
+
+a {
+    text-decoration: none;
+    color: inherit; /* ليرث اللون من العنصر الأب */
+}
+
+ul {
+    list-style: none;
+}
+
+/* ==========================================================
+   أنماط التخطيط والفئات المساعدة (Layout & Utility Classes)
+   ========================================================== */
+.container {
+    max-width: 1200px; /* عرض أقصى للمحتوى */
+    margin: 0 auto; /* توسيط المحتوى */
+    padding: 0 15px; /* هذا البادينغ كما أرسلته أنت */
+}
+
+/* أزرار الـ CTA الأساسية */
+.btn {
+    display: inline-block;
+    padding: 15px 30px; /* تم تعديل الـ padding هنا */
+    border-radius: 44px; /* حواف دائرية بسيطة */
+    transition: background-color 0.3s ease, color 0.3s ease;
+    font-weight: bold;
+    font-family: 'Changa', sans-serif; /* تم تحديث الخط إلى Changa */
+    text-align: center;
+}
+
+/* هذا القسم هو كما أرسلته أنت بالضبط */
+.btn-cta-primary {
+    background-color: var(--highlight-gold) !important;
+    color: var(--background-white) !important;
+    display: inline-block;
+    padding: 15px !important;
+    border-radius: 44px;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    font-weight: bold;
+    font-family: 'Changa', sans-serif;
+    text-align: center;
+}
+
+.btn-cta-primary:hover {
+    background-color: #b18a37 !important; /* لون ذهبي أغمق قليلاً */
+}
+
+/* زر الـ CTA الثانوي */
+.btn-secondary-cta {
+    background-color: var(--primary-green); /* خلفية خضراء زيتية */
+    color: var(--background-white); /* نص أبيض */
+    border: 1px solid var(--primary-green); /* حدود خضراء */
+}
+
+.btn-secondary-cta:hover {
+    background-color: #3b5a38; /* لون أغمق قليلاً عند الهوفر */
+}
+
+/* ==========================================================
+   أنماط الرأس - الشريط العلوي (Header - Top Bar Styles)
+   ========================================================== */
+.main-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
+    background-color: var(--background-white);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.top-bar {
+    background-color: var(--primary-green);
+    color: var(--background-white);
+    padding: 10px 0;
+    font-size: 0.85em; /* حجم خط أصغر قليلاً */
+}
+
+.top-bar .container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.top-bar-left,
+.top-bar-right {
+    display: flex;
+    align-items: center;
+    gap: 15px; /* مسافة بين العناصر */
+}
+
+/* تنسيق أيقونة سلة التسوق */
+.top-bar-left .cart-icon {
+    font-size: 1.2em; /* لتكبير حجم الأيقونة قليلاً */
+    color: var(--background-white); /* للتأكد من أن الأيقونة باللون الأبيض */
+    padding: 5px; /* لإضافة مسافة حول الأيقونة لتكون قابلة للضغط بشكل أفضل */
+    display: flex; /* لضمان توسيط الأيقونة */
+    align-items: center;
+    justify-content: center;
+}
+
+.top-bar-left .separator {
+    color: rgba(255, 255, 255, 0.5); /* لون فاصل خفيف */
+}
+
+/* تنسيق أزرار الشريط العلوي "العادية" */
+.top-bar .top-link,
+.top-bar .currency {
+    padding: 8px 15px; /* هذا هو البادينغ كما أرسلته أنت */
+    border-radius: 5px; /* حواف دائرية */
+    border: 1px solid rgba(255, 255, 255, 0.5); /* حدود بيضاء شفافة */
+    transition: all 0.3s ease; /* transition لجميع الخصائص */
+    color: var(--background-white); /* لون النص أبيض في الوضع العادي */
+}
+
+.top-bar .top-link:hover,
+.top-bar .currency:hover {
+    background-color: var(--background-white);
+    color: var(--primary-green);
+    border-color: var(--background-white);
+}
+
+/* ==========================================================
+   أنماط الرأس - التنقل الرئيسي (Header - Main Navigation Styles)
+   ========================================================== */
+.main-nav {
+    background-color: var(--background-white);
+    padding: 15px 0;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.main-nav .container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+}
+
+/* الشعار والنص */
+.logo-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'Changa', sans-serif;
+    font-weight: bold;
+    font-size: 1.8em;
+    color: var(--text-black);
+}
+
+.logo-container svg {
+    height: 52px; /* تم تعديل حجم الشعار بناءً على كودك الأخير */
+    width: auto;
+    fill: var(--highlight-gold);
+}
+
+/* قائمة الروابط الرئيسية */
+.nav-links {
+    display: flex;
+    align-items: center;
+    gap: 25px;
+    font-family: 'Changa', sans-serif;
+}
+
+.nav-links li a {
+    padding: 8px 0;
+    font-weight: 700;
+    transition: color 0.3s ease;
+    position: relative;
+    color: var(--text-black);
+}
+
+/* تأثير الخط السفلي عند الهوفر */
+.nav-links li a:hover::after {
+    width: 100%;
+}
+.nav-links li a::after {
+    content: '';
+    position: absolute;
+    bottom: -5px;
+    right: 0;
+    width: 0%;
+    height: 3px;
+    background-color: var(--highlight-gold);
+    transition: width 0.3s ease;
+}
+
+/* سهم الدروب داون في الديسكتوب */
+.nav-links .has-dropdown > a::before {
+    content: '\25BC';
+    font-family: 'Font Awesome 6 Free';
+    font-weight: 900;
+    font-size: 0.6em;
+    margin-left: 5px;
+    display: inline-block;
+    transform: rotate(0deg);
+    transition: transform 0.3s ease;
+    vertical-align: middle;
+}
+
+/* ==========================================================
+   أنماط قوائم الدروب داون (Dropdown Menus Styles)
+   ========================================================== */
+.has-dropdown {
+    position: relative;
+}
+
+.dropdown-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background-color: var(--background-white);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    min-width: 180px;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(10px);
+    transition: opacity 0.3s ease, transform 0.3s ease, visibility 0s linear 0.3s;
+    border-top: 3px solid var(--primary-green);
+    padding: 10px 0;
+    border-radius: 0 0 5px 5px;
+}
+
+.has-dropdown:hover .dropdown-menu {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+    transition-delay: 0s;
+}
+
+.dropdown-menu li a {
+    display: block;
+    padding: 12px 25px;
+    color: var(--text-black);
+    font-weight: 400;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.dropdown-menu li a:hover {
+    background-color: var(--light-grey);
+    color: var(--primary-green);
+}
+
+/* ==========================================================
+   أنماط قائمة الجوال (Mobile Menu Styles)
+   ========================================================== */
+
+/* إخفاء زر الهامبرغر وقائمة الجوال في الديسكتوب */
+.hamburger-menu,
+.mobile-menu {
+    display: none;
+}
+
+/* ستايلات أيقونة السلة والعداد (من كودك الأصلي) */
+.cart-icon {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px;
+  border-radius: 50%;
+  transition: background-color 0.3s ease;
+}
+
+.cart-icon:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.cart-icon .fas.fa-shopping-cart {
+  font-size: 1.5rem;
+  color: var(--background-white); /* لون الأيقونة */
+}
+
+.cart-count {
+  position: absolute;
+  top: -5px; /* Adjust as needed */
+  right: -5px; /* Adjust as needed */
+  background-color: var(--cta-red); /* لون العداد */
+  color: var(--background-white);
+  border-radius: 50%;
+  padding: 2px 6px;
+  font-size: 0.75rem;
+  font-weight: bold;
+  min-width: 20px;
+  text-align: center;
+  line-height: 1.2;
+  display: flex; /* لضمان توسيط الرقم داخل الدائرة */
+  align-items: center;
+  justify-content: center;
+}
+
+/* ستايلات زر الهامبرغر (لشاشات الجوال) */
+.hamburger-menu {
+  /* display: none; تم نقله إلى media query */
+  background: none;
+  border: none;
+  color: var(--background-white);
+  font-size: 1.8rem;
+  cursor: pointer;
+  padding: 10px;
+}
+
+/* ستايلات القائمة الجانبية للموبايل (mobile-menu) */
+.mobile-menu {
+  position: fixed;
+  top: 0;
+  right: -100%; /* إخفاء القائمة خارج الشاشة افتراضياً */
+  width: 70%; /* عرض القائمة */
+  max-width: 300px; /* لتحديد أقصى عرض */
+  height: 100%;
+  background-color: var(--primary-green); /* لون خلفية القائمة */
+  box-shadow: -2px 0 10px rgba(0, 0, 0, 0.2);
+  z-index: 1001; /* أعلى من الـ overlay */
+  transition: right 0.3s ease-out; /* حركة سلاسة عند الفتح والإغلاق */
+  display: flex; /* لتوسيط المحتوى العمودي */
+  flex-direction: column;
+  padding-top: 60px; /* مسافة للزر العلوي */
+}
+
+.mobile-menu.active {
+  right: 0; /* إظهار القائمة على الشاشة */
+}
+
+.close-mobile-menu {
+  position: absolute;
+  top: 15px;
+  left: 15px; /* زر الإغلاق على اليسار في الاتجاه العربي */
+  background: none;
+  border: none;
+  color: var(--background-white);
+  font-size: 2rem;
+  cursor: pointer;
+}
+
+.mobile-nav-links {
+  list-style: none;
+  padding: 0 20px;
+  margin: 0;
+  width: 100%;
+  overflow-y: auto; /* للسماح بالتمرير إذا كانت الروابط كثيرة */
+}
+
+.mobile-nav-links li {
+  margin: 15px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1); /* خط فاصل */
+  padding-bottom: 10px;
+}
+
+.mobile-nav-links li:last-child {
+  border-bottom: none;
+}
+
+.mobile-nav-links a {
+  color: var(--background-white);
+  font-size: 1.1rem;
+  text-decoration: none;
+  display: block;
+  padding: 5px 0;
+}
+
+.mobile-nav-links a:hover {
+  color: var(--highlight-gold);
+}
+
+.mobile-nav-links .has-dropdown .dropdown-arrow {
+  display: inline-block;
+  margin-right: 8px; /* مسافة بين النص والسهم */
+  transition: transform 0.2s ease-out;
+}
+
+.mobile-nav-links .has-dropdown.open .dropdown-arrow {
+  transform: rotate(90deg); /* تدوير السهم عند الفتح */
+}
+
+.mobile-dropdown-menu {
+  list-style: none;
+  padding: 10px 0 0 20px; /* إزاحة داخلية للقائمة الفرعية */
+  margin: 0;
+  background-color: rgba(0, 0, 0, 0.1);
+  border-radius: 5px;
+  margin-top: 10px;
+}
+
+.mobile-dropdown-menu li {
+  border-bottom: none;
+  padding-bottom: 0;
+  margin-bottom: 10px;
+}
+.mobile-dropdown-menu li:last-child {
+  margin-bottom: 0;
+}
+
+/* overlay عندما تكون القائمة الجانبية مفتوحة */
+.overlay {
+  display: none; /* مخفي افتراضيا */
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5); /* خلفية شبه شفافة */
+  z-index: 1000; /* تحت القائمة ولكن فوق المحتوى */
+}
+
+/* إظهار الـ overlay عندما تكون قائمة الموبايل نشطة */
+.mobile-menu.active + .overlay {
+  display: block;
+}
+
+/* ==========================================================
+   أنماط الأقسام الرئيسية (Main Sections Styles)
+   ========================================================== */
+
+/* Hero Section Styles */
+.hero-section {
+  color: var(--background-white); /* نص أبيض */
+  padding: 80px 0 0; /* مسافة علوية، لا مسافة سفلية كبيرة لأن الصور ستكون في الأسفل */
+  text-align: center;
+  position: relative;
+  overflow: hidden; /* لمنع تجاوز الصور */
+  min-height: 70vh; /* ارتفاع أدنى لضمان ظهور المحتوى */
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.hero-content {
+  max-width: 800px; /* عرض أقصى للمحتوى النصي */
+  margin: 0 auto;
+  padding-bottom: 50px; /* مسافة بين النص والصور */
+}
+
+.hero-title {
+  font-family: 'Changa', sans-serif; /* استخدام خط Changa للعناوين */
+  font-size: 3.5rem; /* حجم كبير للعنوان */
+  font-weight: 700;
+  line-height: 1.2;
+  margin-bottom: 20px;
+  color: var(--primary-green);
+}
+
+/* لون التمييز في الـ Hero - أخضر فاتح مطابق للصورة */
+.highlight-hero {
+  color: #82D87B;
+}
+
+.hero-subtitle-line {
+  display: block;
+  font-size: 1.5rem; /* حجم أصغر قليلاً من العنوان الرئيسي */
+  font-weight: 400; /* وزن أخف */
+  margin-top: 10px;
+  color: var(--highlight-gold) !important;
+}
+
+.hero-description {
+  font-family: 'Cairo', sans-serif; /* استخدام خط Cairo للوصف */
+  font-size: 1.15rem;
+  line-height: 1.6;
+  max-width: 600px;
+  margin: 0 auto 30px;
+  color: rgba(255, 255, 255, 0.8); /* لون أبيض شفاف قليلاً */
+}
+
+/* زر الدعوة لاتخاذ إجراء في الـ Hero */
+.hero-content a {
+  /* تجاوز ستايلات .btn-primary ليتوافق مع تصميم الصورة */
+  color: var(--primary-green); /* نص أسود */
+  border: 2px solid var(--primary-green) !important; /* لا حدود */
+  padding: 15px 30px;
+  border-radius: 50px; /* مستدير جداً */
+  font-size: 1.1rem;
+  font-weight: bold;
+  transition: all 0.3s ease;
+  margin: 5px;
+}
+
+.btn-hero-cta:hover {
+  background-color: var(--primary-green); /* أخضر أغمق عند التحويم */
+  color: var(--light-grey);
+  transform: translateY(-2px);
+}
+
+/* Hero Image Cards */
+.hero-image-cards-wrapper {
+  width: 100%;
+  padding-bottom: 50px;
+  position: relative;
+  z-index: 10;
+}
+
+.hero-image-cards-container {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  /* ستايلات السلايدر القابل للسحب */
+  scroll-snap-type: x mandatory; /* لجعل البطاقات تلتصق بنقطة معينة */
+  padding: 0 20px;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none; /* إخفاء شريط التمرير لـ Firefox */
+  -ms-overflow-style: none; /* إخفاء شريط التمرير لـ IE/Edge */
+  cursor: grab; /* مؤشر الماوس الافتراضي */
+  /* إضافة دعم اتجاه RTL للسلايدر */
+  direction: ltr; /* لضمان أن التمرير يعمل بشكل صحيح مع السحب من اليمين لليسار */
+}
+
+.hero-image-cards-container::-webkit-scrollbar {
+  display: none; /* إخفاء شريط التمرير لـ Chrome/Safari */
+}
+
+.hero-image-cards-container.is-dragging {
+  cursor: grabbing; /* مؤشر الماوس عند السحب */
+}
+
+.hero-image-card {
+  flex-shrink: 0;
+  width: 280px; /* عرض البطاقة */
+  height: 280px; /* ارتفاع البطاقة (لجعلها مربعة) */
+  position: relative; /* مهم جداً لدعم layout="fill" في Image */
+  border-radius: 1rem;
+  overflow: hidden;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+  transform: translateY(50px); /* رفع البطاقات قليلاً لتبدو وكأنها تخرج من الأسفل */
+  transition: transform 0.3s ease;
+  scroll-snap-align: center; /* لجعل البطاقات تلتصق بالمنتصف عند التمرير */
+}
+
+.hero-image-card.central-card {
+  transform: translateY(0); /* البطاقة المركزية لا ترتفع */
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4); /* ظل أعمق للبطاقة المركزية */
+}
+
+/* منع تحديد النص في الجسم عند السحب */
+body.no-select {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+/* Temporary Main Content Style (Placeholder) */
+/* .temporary-main-content-style { } */
+
+/* Loading Page Styles */
+.loading-page {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: var(--primary-green);
+    display: flex;
+    flex-direction: column; /* لجعل الشعار والسبينر يظهران فوق بعضهما */
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    transition: opacity 1s ease-out, visibility 0s 1s; /* مدة انتقال أطول للاختفاء السلس */
+}
+
+.loading-page .loading-logo {
+    height: 120px;
+    width: auto;
+    fill: var(--highlight-gold);
+    margin-bottom: 20px; /* مسافة بين الشعار والسبينر */
+}
+
+/* الكلاس الذي سيضيفه الـ JS لإخفاء صفحة التحميل */
+.loading-page.fade-out {
+    opacity: 0;
+    visibility: hidden;
+}
+
+/* Spinner Styles */
+.spinner {
+    border: 8px solid rgba(255, 255, 255, 0.3); /* لون رمادي فاتح للخلفية */
+    border-top: 8px solid var(--highlight-gold); /* لون ذهبي للجزء المتحرك */
+    border-radius: 50%; /* لجعلها دائرة */
+    width: 60px;
+    height: 60px;
+    animation: spin 1.2s linear infinite; /* حركة الدوران */
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Achievements Section Styles */
+.achievements-section {
+    padding: 60px 0;
+    background-color: var(--background-white);
+    text-align: center;
+}
+
+.achievements-section .section-title {
+    font-size: 2.5em;
+    font-weight: 700;
+    color: var(--text-black);
+    margin-bottom: 50px;
+    text-align: center;
+}
+
+.achievements-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 30px;
+    justify-items: center;
+    align-items: start;
+}
+
+.achievement-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 20px;
+}
+
+.achievement-icon {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background-color: var(--primary-green);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.achievement-icon i {
+    font-size: 3.5em;
+    color: var(--background-white);
+}
+
+.achievement-number {
+    font-size: 2.8em;
+    font-weight: 700;
+    color: var(--highlight-gold);
+    margin-bottom: 10px;
+}
+
+.achievement-title {
+    font-size: 1.1em;
+    font-weight: 600;
+    color: var(--text-black);
+    line-height: 1.4;
+}
+
+/* Why Sanad Section Styles */
+.why-sanad-section {
+    padding: 60px 0;
+    background-color: var(--primary-green); /* تم تغيير الخلفية هنا */
+    text-align: center;
+}
+
+.why-sanad-section .section-title {
+    font-size: 2.5em;
+    font-weight: 700;
+    color: var(--highlight-gold); /* تم تغيير لون النص هنا */
+    margin-bottom: 50px;
+    display: inline-block;
+    position: relative;
+}
+
+.why-sanad-section .section-title-box {
+    padding: 10px 30px;
+    border-radius: 5px;
+    display: inline-block;
+}
+
+.why-sanad-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    margin-top: 50px;
+}
+
+.why-sanad-item {
+    background-color: var(--background-white);
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: flex-end;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.why-sanad-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.why-sanad-item .item-icon-wrapper {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background-color: var(--highlight-gold);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 25px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.why-sanad-item .item-icon-wrapper i {
+    font-size: 2.2em;
+    color: var(--background-white);
+}
+
+.why-sanad-item .item-title {
+    font-size: 1.3em;
+    font-weight: 700;
+    color: var(--primary-green);
+    margin-bottom: 15px;
+    line-height: 1.4;
+}
+
+.why-sanad-item .item-description {
+    font-size: 1em;
+    color: var(--text-black);
+    line-height: 1.6;
+}
+
+/* Process & Map Combined Section Styles */
+.process-map-section {
+    padding: 80px 0;
+    background-color: var(--light-grey);
+    text-align: center;
+    min-height: 600px; /* ارتفاع أدنى للقسم بالكامل */
+    display: block;
+}
+
+.process-map-section .section-title {
+    font-size: 2.5em;
+    font-weight: 700;
+    color: var(--text-black);
+    margin-bottom: 50px;
+}
+
+.process-map-section .grid-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* عمودين متساويين */
+    gap: 40px; /* مسافة بين العمودين */
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 15px;
+    direction: rtl; /* تأكيد الاتجاه ليعمل grid-template-columns بشكل صحيح مع RTL */
+    align-items: stretch; /* لجعل الأعمدة تمتد لملء ارتفاع الصف الأطول */
+    grid-auto-rows: minmax(auto, 1fr); /* لجعل الصفوف تتكيف وتتمدد */
+    overflow: hidden; /* للحفاظ على حدود الشبكة */
+    min-height: 500px; /* ارتفاع أدنى للحاوية الشبكية */
+}
+
+/* Carousel Column Styles (Right Side) */
+.carousel-column {
+    grid-column: 1 / 2;
+    text-align: right;
+    display: flex; /* Keep flex for internal content */
+    flex-direction: column;
+    align-items: center;
+    height: auto; /* تأكيد: ارتفاع تلقائي */
+    min-height: unset; /* تأكيد: إزالة أي min-height قديم */
+    max-height: unset; /* تأكيد: إزالة أي max-height قديم */
+}
+
+/* تنسيق عنوان الكاروسيل */
+.carousel-column .section-title {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+/* تنسيقات Swiper الأساسية - لتحسين الشكل العام */
+.swiper {
+    width: 100%;
+    max-width: 600px;
+    height: auto;
+    min-height: 450px; /* ارتفاع أدنى للكاروسيل نفسه */
+    background-color: var(--background-white);
+    border-radius: 15px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    padding: 40px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden; /* تأكيد أن Swiper نفسه لديه overflow hidden */
+}
+
+.swiper-slide {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+    box-sizing: border-box;
+    min-height: 250px;
+    text-align: right;
+    background-color: transparent;
+    overflow: hidden; /* تأكيد أن الشريحة نفسها لديها overflow hidden */
+}
+
+.slide-content-inner {
+    display: flex;
+    flex-direction: row;
+    gap: 30px;
+    align-items: center;
+    text-align: right;
+    width: 100%;
+    max-width: 550px;
+    overflow: hidden; /* تأكيد أن المحتوى الداخلي لديه overflow hidden */
+}
+
+.slide-text-content {
+    flex-grow: 1;
+    order: 2;
+    text-align: right;
+    color: var(--text-black);
+    overflow: hidden; /* تأكيد أن النص لديه overflow hidden */
+}
+
+.slide-title {
+    font-size: 1.8em;
+    font-weight: 700;
+    color: var(--primary-green) !important;
+    margin-bottom: 15px;
+    line-height: 1.3;
+}
+
+.slide-description {
+    font-size: 1em;
+    color: var(--text-black) !important;
+    line-height: 1.6;
+}
+
+.slide-image {
+    max-width: 40%;
+    height: auto;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    flex-shrink: 0;
+    order: 1;
+    overflow: hidden; /* تأكيد أن الصورة لديها overflow hidden */
+}
+
+/* تنسيقات Swiper.js Pagination (النقاط أسفل الكاروسيل) */
+.swiper-pagination {
+    margin-top: 30px !important;
+    position: relative !important;
+}
+.swiper-pagination-bullet {
+    background-color: var(--light-grey);
+    opacity: 1;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    width: 10px;
+    height: 10px;
+    margin: 0 6px !important;
+}
+
+.swiper-pagination-bullet-active {
+    background-color: var(--highlight-gold);
+    transform: scale(1.4);
+    box-shadow: 0 0 0 2px rgba(205, 163, 73, 0.3);
+}
+
+/* تنسيقات Swiper.js Navigation (الأسهم) */
+.swiper-button-next,
+.swiper-button-prev {
+    color: var(--primary-green) !important;
+    font-size: 1.8em !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    background-color: rgba(255, 255, 255, 0.8);
+    border-radius: 50%;
+    width: 50px !important;
+    height: 50px !important;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.swiper-button-next:hover,
+.swiper-button-prev:hover {
+    background-color: var(--primary-green) !important;
+    color: var(--background-white) !important;
+}
+
+/* في RTL، Swiper يعكس الأسهم تلقائياً، ولكن يمكننا التحكم في مكانها */
+.swiper-button-next {
+    left: 10px !important;
+    right: auto !important;
+}
+.swiper-button-prev {
+    right: 10px !important;
+    left: auto !important;
+}
+
+/* Map Column Styles (Left Side) */
+.map-column {
+    grid-column: 2 / 3;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100%;
+    justify-content: center;
+    min-height: 100%;
+}
+
+/* تنسيق عنوان الخريطة */
+.map-column .section-title {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.map-container {
+    position: relative;
+    width: 100%; /* تأكيد: 100% من عرض الـ map-column */
+    height: 100%; /* تأكيد: 100% من ارتفاع الـ map-column (الذي يمتد بفضل الـ Grid) */
+    display: block; /* للحفاظ على سلوك الـ block وعدم تداخل الـ Flexbox مع absolute positioning */
+    min-height: 300px; /* ارتفاع أدنى للماب كونتينر */
+    overflow: hidden;
+    border-radius: 15px;
+    background-color: var(--background-white);
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* تنسيق الخريطة الـ SVG نفسها */
+.syria-map-image {
+    width: 100%; /* تأكيد: 100% من عرض map-container */
+    height: auto; /* للحفاظ على الـ aspect ratio */
+    min-height: auto; /* إزالة الـ min-height الثابت للسماح لها بالنمو بحرية */
+    max-width: 100%; /* للتأكد من أنها لا تتجاوز عرضها الأقصى */
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+/* تنسيق مؤشرات المحافظات */
+.governorate-marker {
+    position: absolute;
+    transform: translate(-50%, -50%); /* لتوسيط المؤشر على النقطة */
+    cursor: pointer;
+    z-index: 10;
+    transition: transform 0.2s ease, z-index 0s 0.2s;
+    opacity: 1 !important;
+    visibility: visible !important;
+    display: block !important;
+}
+
+.governorate-marker i {
+    font-size: 2.5em; /* حجم الأيقونة */
+    color: var(--highlight-gold) !important; /* لون ذهبي لتمييز واضح */
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5); /* ظل لتحسين الوضوح */
+}
+
+.marker-tooltip {
+    position: absolute;
+    top: -35px; /* يظهر فوق المؤشر */
+    left: 50%;
+    transform: translateX(-50%); /* لتوسيط التلميح */
+    background-color: var(--text-black); /* خلفية سوداء واضحة */
+    color: var(--background-white); /* نص أبيض ليظهر بوضوح على الخلفية السوداء */
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 0.9em;
+    white-space: nowrap; /* لمنع انكسار النص */
+    opacity: 0; /* مخفي افتراضياً */
+    visibility: hidden; /* مخفي افتراضياً */
+    transition: opacity 0.3s ease, visibility 0s 0.3s;
+    z-index: 12; /* ليظهر فوق المؤشر نفسه */
+}
+
+.governorate-marker:hover .marker-tooltip {
+    opacity: 1;
+    visibility: visible;
+    transition-delay: 0s;
+}
+
+/* ==========================================================
+   أنماط الفوتر (Footer Styles)
+   ========================================================== */
+.main-footer {
+    background-color: var(--text-black); /* خلفية سوداء للفوتر */
+    color: var(--background-white); /* نص أبيض */
+    padding: 60px 0 20px; /* بادينغ علوي وسفلي */
+    font-size: 0.95em;
+    line-height: 1.6;
+}
+
+.main-footer .footer-content {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); /* تخطيط شبكي لأقسام الفوتر */
+    gap: 30px; /* مسافة بين الأعمدة */
+    margin-bottom: 40px; /* مسافة قبل شريط حقوق النشر */
+    text-align: right; /* محاذاة لليمين */
+}
+
+.footer-section h3 {
+    color: var(--highlight-gold); /* لون ذهبي للعناوين */
+    font-size: 1.3em;
+    margin-bottom: 25px;
+    font-weight: 700;
+    font-family: 'Changa', sans-serif; /* تطبيق خط Changa */
+}
+
+.footer-info .footer-logo-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.footer-info .sanadlogo-footer {
+    height: 40px; /* حجم الشعار في الفوتر */
+    width: auto;
+    fill: var(--highlight-gold); /* لون ذهبي للشعار SVG */
+}
+
+.footer-info .logo-text {
+    color: var(--background-white); /* لون نص الشعار */
+    font-size: 1.5em; /* حجم نص الشعار */
+}
+
+.footer-description {
+    margin-bottom: 20px;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.footer-contact p {
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.footer-contact p i {
+    color: var(--highlight-gold); /* أيقونات الاتصال باللون الذهبي */
+    font-size: 1.1em;
+}
+
+.footer-links ul {
+    padding: 0;
+    list-style: none;
+}
+
+.footer-links li {
+    margin-bottom: 10px;
+}
+
+.footer-links a {
+    color: rgba(255, 255, 255, 0.8);
+    transition: color 0.3s ease;
+}
+
+.footer-links a:hover {
+    color: var(--highlight-gold); /* تغيير اللون عند الهوفر */
+}
+
+.footer-social .social-icons {
+    display: flex;
+    gap: 15px;
+}
+
+.footer-social .social-icons a {
+    color: var(--background-white);
+    font-size: 1.5em;
+    width: 40px;
+    height: 40px;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.footer-social .social-icons a:hover {
+    background-color: var(--highlight-gold);
+    color: var(--text-black);
+    border-color: var(--highlight-gold);
+}
+
+.footer-bottom {
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding-top: 20px;
+    text-align: center;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.85em;
+}
+
+/* ==========================================================
+   أنماط صفحة "من نحن" (About Us Page Styles)
+   ========================================================== */
+
+/* قسم البطل العام للصفحات (Generic Page Hero Section) */
+.page-hero-section {
+    position: relative;
+    height: 300px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: var(--background-white);
+    background-size: cover;
+    background-position: center;
+    /* تأكد أن الصورة موجودة في public/images/about-hero-bg.jpg */
+    /* filter: brightness(0.7); تم إزالة الفلتر إذا كنت تفضل صورة أوضح */
+    margin-top: 100px;
+    z-index: 1; /* للتأكد من أنها فوق المحتوى الآخر إذا كان هناك تداخل */
+}
+
+.page-hero-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5); /* طبقة داكنة فوق الصورة لجعل النص أوضح */
+    z-index: -1;
+}
+
+.page-hero-title {
+    font-size: 3.5em;
+    font-weight: 700;
+    text-shadow: 2px 2px 5px rgba(0,0,0,0.5);
+    position: relative; /* لجعل العنوان فوق الطبقة الداكنة */
+    z-index: 2;
+}
+
+/* بادينغ عام للأقسام */
+.py-80 {
+    padding-top: 80px;
+    padding-bottom: 80px;
+}
+
+/* شبكة عامة لعمودين */
+.grid-2-columns-responsive {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* عمودين متساويين */
+    gap: 50px; /* مسافة بين الأعمدة */
+    align-items: center; /* توسيط عمودي */
+}
+
+/* قسم "عن سند" (About Sanad Section) */
+.about-sanad-section .about-text-content h2,
+.vision-section h2,
+.mission-section h2,
+.values-section h2,
+.team-section h2 {
+    color: var(--primary-green);
+    font-size: 2.2em;
+    margin-bottom: 25px;
+    font-weight: 700;
+    font-family: 'Changa', sans-serif;
+}
+
+.about-sanad-section .about-text-content p,
+.vision-section p,
+.mission-section p {
+    color: var(--text-black);
+    font-size: 1em;
+    line-height: 1.8;
+    margin-bottom: 15px;
+}
+
+.about-sanad-section .about-text-content ul {
+    list-style: none;
+    padding: 0;
+    margin-top: 20px;
+}
+
+.about-sanad-section .about-text-content ul li {
+    position: relative;
+    padding-right: 25px; /* مسافة للأيقونة */
+    margin-bottom: 10px;
+    color: var(--text-black);
+    line-height: 1.6;
+}
+
+.about-sanad-section .about-text-content ul li::before {
+    content: '\f00c'; /* أيقونة علامة صح (Font Awesome checkmark) */
+    font-family: "Font Awesome 5 Free"; /* تأكد من استيراد Font Awesome */
+    font-weight: 900; /* لظهور الأيقونة الصلبة */
+    color: var(--primary-green);
+    position: absolute;
+    right: 0;
+    top: 0;
+}
+
+.about-image .responsive-image {
+    max-width: 100%;
+    height: auto;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+/* ترتيب لسطح المكتب (صورة يمين، نص يسار) */
+@media (min-width: 993px) {
+    .order-1-desktop { order: 1; }
+    .order-2-desktop { order: 2; }
+}
+
+/* أقسام الرؤية والرسالة */
+.vision-section, .mission-section {
+    text-align: center;
+}
+
+.vision-section {
+    background-color: var(--light-grey);
+}
+
+.vision-section p, .mission-section p {
+    max-width: 800px; /* تحديد عرض أقصى للنص ليكون سهل القراءة */
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* قسم القيم */
+.values-section {
+    background-color: var(--light-grey); /* لون خلفية مختلف */
+}
+
+.values-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); /* 2-4 أعمدة حسب الشاشة */
+    gap: 30px;
+    margin-top: 40px;
+}
+
+.value-item {
+    background-color: var(--background-white);
+    padding: 30px;
+    border-radius: 10px;
+    text-align: center;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.value-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.value-item i {
+    font-size: 3.5em;
+    color: var(--highlight-gold); /* أيقونات القيم باللون الذهبي */
+    margin-bottom: 20px;
+}
+
+.value-item h3 {
+    font-size: 1.5em;
+    color: var(--primary-green);
+    margin-bottom: 15px;
+    font-weight: 700;
+    font-family: 'Changa', sans-serif;
+}
+
+.value-item p {
+    color: var(--text-black);
+    font-size: 0.95em;
+    line-height: 1.7;
+}
+
+/* قسم الفريق */
+.team-section {
+    background-color: var(--background-white);
+}
+
+.team-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); /* 2-4 أعمدة حسب الشاشة */
+    gap: 30px;
+    margin-top: 40px;
+}
+
+.team-member {
+    background-color: var(--light-grey);
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.team-member-image {
+    width: 150px; /* حجم صورة عضو الفريق */
+    height: 150px;
+    border-radius: 50%; /* لجعل الصورة دائرية */
+    object-fit: cover;
+    border: 4px solid var(--highlight-gold); /* حدود ذهبية للصورة */
+    margin-bottom: 15px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.team-member h3 {
+    font-size: 1.4em;
+    color: var(--primary-green);
+    margin-bottom: 5px;
+    font-weight: 700;
+    font-family: 'Changa', sans-serif;
+}
+
+.team-member p {
+    color: var(--text-black);
+    font-size: 0.9em;
+    margin-bottom: 15px;
+}
+
+.member-social-icons {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+
+.member-social-icons a {
+    color: var(--primary-green);
+    font-size: 1.2em;
+    transition: color 0.3s ease;
+}
+
+.member-social-icons a:hover {
+    color: var(--highlight-gold);
+}
+
+/* ==========================================================
+   أنماط صفحة تصفح الحالات (Cases Browse Page Styles)
+   ========================================================== */
+.browse-cases-section .section-title.mb-60 {
+    margin-bottom: 60px;
+}
+
+.cases-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* أعمدة متجاوبة للكروت */
+    gap: 30px; /* مسافة بين الكروت */
+    justify-items: center; /* توسيط الكروت */
+}
+
+.case-card {
+    background-color: var(--background-white);
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    overflow: hidden; /* لإخفاء أي جزء زائد من الصورة */
+    display: flex;
+    flex-direction: column;
+    width: 100%; /* تأكد من أن الكرت يملأ العمود */
+    max-width: 400px; /* لتحديد أقصى عرض للكرت */
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.case-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.case-image-wrapper {
+    width: 100%;
+    height: 200px; /* ارتفاع ثابت للصورة */
+    position: relative;
+}
+
+.case-content {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1; /* لجعل المحتوى يتمدد لملء المساحة المتاحة */
+}
+
+.case-title {
+    font-size: 1.5em;
+    font-weight: 700;
+    color: var(--primary-green);
+    margin-bottom: 10px;
+    font-family: 'Changa', sans-serif;
+}
+
+.case-governorate {
+    font-size: 0.9em;
+    color: #666;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.case-governorate i {
+    color: var(--highlight-gold);
+}
+
+.case-description {
+    font-size: 0.95em;
+    color: var(--text-black);
+    line-height: 1.5;
+    margin-bottom: 20px;
+    flex-grow: 1; /* لجعل الوصف يتمدد */
+}
+
+.case-progress-bar-wrapper {
+    background-color: var(--light-grey);
+    border-radius: 5px;
+    height: 10px;
+    margin-bottom: 10px;
+    overflow: hidden;
+}
+
+.case-progress-bar {
+    background-color: var(--primary-green);
+    height: 100%;
+    border-radius: 5px;
+    transition: width 0.5s ease-in-out;
+}
+
+.case-stats {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85em;
+    color: #555;
+    margin-bottom: 20px;
+}
+
+.case-stats span:nth-child(1),
+.case-stats span:nth-child(2) {
+    font-weight: bold;
+    color: var(--text-black);
+}
+
+.case-stats span:nth-child(3) { /* Percentage */
+    color: var(--primary-green);
+    font-weight: bold;
+}
+
+.case-card-btn {
+    width: 100%;
+    padding: 12px 20px;
+    background-color: var(--highlight-gold);
+    color: var(--background-white);
+    font-weight: bold;
+    border-radius: 5px;
+    text-align: center;
+    transition: background-color 0.3s ease;
+}
+
+.case-card-btn:hover {
+    background-color: #b18a37; /* لون ذهبي أغمق عند الهوفر */
+}
+
+/* ==========================================================
+   أنماط فلاتر الحالات (Cases Filters Styles)
+   ========================================================== */
+.cases-filters {
+    display: flex;
+    flex-wrap: wrap; /* للسماح بتعدد الأسطر في الشاشات الصغيرة */
+    gap: 15px; /* مسافة أقل بين مجموعات الفلاتر لتكون متراصة */
+    justify-content: center; /* توسيط الفلاتر في الصف */
+    align-items: flex-end; /* لمحاذاة جميع الفلاتر للقاع عند اختلاف الارتفاعات */
+    margin-bottom: 40px; /* مسافة تحت الفلاتر وقبل شبكة الحالات */
+    padding: 15px; /* بادينغ داخلي أقل قليلاً */
+    background-color: var(--background-white);
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    text-align: right;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end; /* ليتناسب مع RTL: الليبل على يمين حقل الإدخال */
+    gap: 8px; /* مسافة بين الليبل وحقل الإدخال/الاختيار */
+    flex-grow: 1; /* للسماح للمجموعات بالتمدد لملء المساحة المتاحة */
+    min-width: 150px; /* لتجنب الانكماش الشديد جداً */
+}
+
+.filter-group.filter-search {
+    min-width: 220px; /* عرض أكبر لفلتر البحث ليناسب النص الطويل */
+    order: -1; /* لجعل فلتر البحث يظهر أولاً على اليمين (في RTL) */
+}
+
+.cases-filters label {
+    font-weight: bold;
+    color: var(--primary-green);
+    font-size: 0.95em;
+    white-space: nowrap; /* لمنع انكسار نص الليبل */
+    margin-bottom: 0; /* لتقليل المسافة الإضافية من P tags */
+}
+
+.custom-select,
+.custom-input {
+    width: 100%; /* تملأ عرض المجموعة */
+    padding: 10px 15px;
+    border: 1px solid var(--light-grey);
+    border-radius: 5px;
+    background-color: var(--background-white);
+    color: var(--text-black);
+    font-size: 1em;
+    cursor: pointer;
+    -webkit-appearance: none; /* لإزالة ستايلات المتصفح الافتراضية */
+    -moz-appearance: none;
+    appearance: none;
+    background-repeat: no-repeat;
+    background-position: left 10px center; /* وضع السهم على اليسار في RTL */
+    background-size: 16px;
+    text-align: right; /* محاذاة النص لليمين داخل الـ select/input */
+    padding-left: 30px; /* مسافة للسهم أو لعدم تداخله مع النص */
+}
+
+/* أيقونة السهم لـ select */
+.custom-select {
+    background-image: url('data:image/svg+xml;charset=UTF-8,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"%3E%3Cpolyline points="6 9 12 15 18 9"%3E%3C/polyline%3E%3C/svg%3E');
+}
+
+/* مكان النص المؤقت في حقل الإدخال */
+.custom-input::placeholder {
+    color: #999;
+}
+
+.custom-select:focus,
+.custom-input:focus {
+    outline: none;
+    border-color: var(--highlight-gold);
+    box-shadow: 0 0 0 2px rgba(205, 163, 73, 0.3);
+}
+
+.no-cases-message {
+    font-size: 1.2em;
+    color: #888;
+    padding: 50px 0;
+}
+
+/* ==========================================================
+   أنماط كارت الحالة العاجلة (Urgent Case Card Styles)
+   ========================================================== */
+.case-card.urgent-case {
+    border: 2px solid var(--cta-red); /* حدود حمراء بارزة */
+    box-shadow: 0 4px 20px rgba(176, 46, 48, 0.2); /* ظل أحمر خفيف */
+    position: relative; /* للسماح بوضع شارة "عاجل" */
+    overflow: visible; /* للسماح للشارة بالظهور خارج الحدود */
+}
+
+.case-card.urgent-case .case-title {
+    color: var(--cta-red); /* عنوان الكرت باللون الأحمر */
+}
+
+/* شارة "عاجل" (اختياري) */
+.case-card.urgent-case::before {
+    content: "عاجل!";
+    position: absolute;
+    top: -10px; /* موضع الشارة */
+    right: -10px;
+    background-color: var(--cta-red);
+    color: var(--background-white);
+    padding: 5px 15px;
+    border-radius: 5px;
+    font-size: 0.8em;
+    font-weight: bold;
+    transform: rotate(15deg); /* ميلان بسيط */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    z-index: 10;
+}
+
+/* ==========================================================
+   أنماط صفحة تفاصيل الحالة (Case Details Page Styles)
+   ========================================================== */
+
+/* حاوية المحتوى الرئيسية */
+.case-details-main-container {
+    background-color: var(--light-grey);
+    padding-top: 50px;
+    padding-bottom: 50px;
+}
+.case-details-main-container > .container {
+    background-color: var(--background-white);
+    border-radius: 15px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+    padding: 40px;
+}
+
+/* شريط المعلومات العلوي (اسم المدرسة، المبلغ المتبقي، إدخال التبرع) */
+.case-top-info-bar-inside-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--light-grey);
+    margin-bottom: 40px;
+}
+
+.school-name-display .school-name {
+    font-family: 'Changa', sans-serif;
+    font-size: 2.2em;
+    color: var(--primary-green);
+    margin: 0;
+    text-align: right;
+}
+
+.remaining-funds-display p {
+    font-size: 1.2em;
+    color: var(--text-black);
+    margin: 0;
+    white-space: nowrap;
+}
+
+.remaining-funds-display .highlight-gold {
+    color: var(--highlight-gold);
+    font-weight: bold;
+}
+.remaining-funds-display .highlight-green {
+    color: var(--primary-green);
+    font-weight: bold;
+}
+
+.direct-donate-input {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.donation-amount-input {
+    width: 150px;
+    padding: 10px 15px;
+    border: 1px solid var(--light-grey);
+    border-radius: 5px;
+    background-color: var(--background-white);
+    color: var(--text-black);
+    font-size: 1em;
+    text-align: center;
+    -webkit-appearance: none;
+    -moz-appearance: textfield;
+}
+
+.donation-amount-input::placeholder {
+    color: #999;
+}
+
+.donation-amount-input:focus {
+    outline: none;
+    border-color: var(--highlight-gold);
+    box-shadow: 0 0 0 2px rgba(205, 163, 73, 0.3);
+}
+
+.donate-general-btn {
+    padding: 10px 20px;
+    background-color: var(--highlight-gold);
+    color: var(--text-black);
+    border-radius: 5px;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+}
+.donate-general-btn:hover {
+    background-color: #b18a37;
+}
+
+/* التنقل الفرعي لتفاصيل الحالة (التبويبات) */
+.case-sub-nav-section-tabs {
+    margin-bottom: 40px;
+    background-color: var(--light-grey);
+    border-radius: 8px;
+    padding: 10px;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.case-sub-nav-section-tabs .sub-nav-container {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.case-sub-nav-section-tabs .sub-nav-item {
+    flex-grow: 1;
+    text-align: center;
+    color: var(--text-black);
+    font-family: 'Changa', sans-serif;
+    font-weight: 600;
+    padding: 12px 15px;
+    border-radius: 6px;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    white-space: nowrap;
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+}
+
+.case-sub-nav-section-tabs .sub-nav-item:hover {
+    background-color: rgba(0,0,0,0.05);
+    color: var(--primary-green);
+}
+
+.case-sub-nav-section-tabs .sub-nav-item.active {
+    background-color: var(--primary-green);
+    color: var(--background-white);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.case-sub-nav-section-tabs .sub-nav-item.active:hover {
+    background-color: var(--primary-green);
+    color: var(--background-white);
+}
+
+/* منطقة محتوى التبويبات */
+.tab-content-area {
+    min-height: 300px;
+    background-color: var(--background-white);
+    padding: 40px;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    margin-top: 20px;
+}
+
+.tab-pane {
+    /* General styles for tab content sections */
+    /* Display property will be controlled by React state */
+}
+
+/* قسم شريط التقدم المرئي (داخل التبويبات، مثلاً تبويب المنتجات) */
+.visual-progress-bar-wrapper {
+    background-color: var(--background-white);
+    padding: 30px 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    text-align: center;
+    margin-bottom: 60px;
+    position: relative;
+    overflow: visible;
+    border: 1px solid var(--light-grey);
+}
+
+.visual-progress-text {
+    font-size: 1.2em;
+    font-weight: bold;
+    color: var(--primary-green);
+    margin-bottom: 20px;
+    font-family: 'Changa', sans-serif;
+}
+
+.visual-progress-bar-container {
+    position: relative;
+    height: 25px;
+    background-color: #f0f0f0;
+    border-radius: 12.5px;
+    overflow: hidden;
+    margin: 0 40px;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.2);
+    display: flex;
+    direction: ltr; /* مهم جداً: لجعل البار يبدأ من اليسار ويتجه لليمين */
+}
+
+.progress-segment {
+    height: 100%;
+    transition: width 0.5s ease-out;
+}
+.red-segment {
+    background-color: var(--cta-red);
+}
+.yellow-segment {
+    background-color: var(--highlight-gold);
+}
+.green-segment {
+    background-color: var(--primary-green);
+}
+
+/* أيقونات داخل شريط التقدم (السلة والشاحنة) */
+.progress-cart-icon-pos,
+.delivery-truck-icon {
+    position: absolute;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px; /* حجم موحد للأيقونات */
+    height: 30px;
+}
+
+.progress-cart-icon-pos {
+    left: 0;
+}
+.delivery-truck-icon {
+    /* 'left' property set dynamically in JS */
+}
+
+.progress-cart-icon-pos .progress-icon-fa,
+.delivery-truck-icon .progress-icon-fa {
+    font-size: 1.5em; /* حجم الأيقونة */
+    color: var(--background-white); /* لون أبيض للأيقونات */
+    text-shadow: 0 0 3px rgba(0,0,0,0.5); /* ظل خفيف لتحسين الوضوح */
+}
+
+.visual-progress-percentage {
+    position: absolute;
+    top: 50%;
+    right: auto;
+    left: 5px; /* وضع النسبة على يسار الشريط */
+    transform: translateY(-50%);
+    font-weight: bold;
+    color: var(--primary-green);
+    font-size: 0.9em;
+    padding-left: 5px;
+    z-index: 8;
+    white-space: nowrap;
+}
+
+.delivery-message {
+    font-size: 1em;
+    color: #777;
+    margin-top: 15px;
+}
+
+/* شبكة المنتجات/الاحتياجات */
+.products-needs-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 25px; /* تم تقليل المسافة هنا للحفاظ على إحكامها */
+    justify-items: center;
+    margin-bottom: 0;
+}
+
+/* كارد المنتج - التصميم القديم (إذا كان لا يزال مستخدماً) */
+.product-card {
+    background-color: var(--background-white);
+    border: 1px solid var(--light-grey);
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px 15px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.product-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.product-image-wrapper { /* هذا الكلاس الآن لحاويات الأيقونات */
+    width: 120px;
+    height: 120px;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 4em; /* حجم الأيقونة */
+    color: var(--highlight-gold); /* لون الأيقونة */
+}
+.product-image-wrapper .product-icon-fa {
+    font-size: inherit; /* ليرث حجم الأيقونة */
+    color: inherit; /* ليرث اللون */
+}
+
+.product-item-name {
+    font-size: 1.2em;
+    font-weight: 700;
+    color: var(--primary-green);
+    margin-bottom: 5px;
+    font-family: 'Changa', sans-serif;
+}
+
+.product-price,
+.product-quantity-needed,
+.product-funded-quantity,
+.product-remaining-quantity {
+    font-size: 0.95em;
+    color: var(--text-black);
+    margin-bottom: 5px;
+    text-align: right;
+    width: 100%;
+}
+
+.product-donation-controls {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    margin-top: 15px;
+}
+
+.product-quantity-input {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid var(--light-grey);
+    border-radius: 5px;
+    text-align: center;
+    font-size: 1em;
+    -moz-appearance: textfield;
+}
+.product-quantity-input::-webkit-outer-spin-button,
+.product-quantity-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+.product-quantity-input:focus {
+    outline: none;
+    border-color: var(--highlight-gold);
+    box-shadow: 0 0 0 2px rgba(205, 163, 73, 0.3);
+}
+
+.add-to-cart-btn {
+    width: 100%;
+    padding: 10px 15px;
+    background-color: var(--highlight-gold);
+    color: var(--background-white);
+    border: none;
+    border-radius: 5px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+.add-to-cart-btn:hover {
+    background-color: #b18a37;
+}
+.add-to-cart-btn .product-btn-icon-fa {
+    font-size: 1.1em;
+    color: var(--background-white);
+}
+
+.no-products-message {
+    font-size: 1.1em;
+    color: #888;
+    padding: 30px 0;
+    grid-column: 1 / -1;
+}
+
+/* كارد المنتج - التصميم الجديد كلياً لصفحة تفاصيل الحالة */
+.product-card-new-design {
+    background-color: var(--background-white);
+    border: 1px solid var(--light-grey); /* حدود خفيفة جداً */
+    border-radius: 12px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08); /* ظل أعمق وأكثر نعومة */
+    padding: 0; /* لا يوجد padding مباشر على الكارد */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    overflow: hidden;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    position: relative; /* لإضافة تأثيرات لاحقة إذا لزم الأمر */
+    width: 100%;
+}
+
+.product-card-new-design:hover {
+    transform: translateY(-8px); /* رفع أكثر عند التحويم */
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15); /* ظل أكبر وأكثر وضوحاً */
+}
+
+.product-image-placeholder {
+    width: 100%; /* يملأ عرض الكارد */
+    height: 160px; /* ارتفاع ثابت لمنطقة الأيقونة */
+    background-color: var(--primary-green); /* خلفية خضراء لمنطقة الأيقونة */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 0; /* لا يوجد margin سفلي مباشر هنا */
+    flex-shrink: 0;
+    position: relative;
+}
+
+.product-icon-fa-new {
+    font-size: 4.5rem; /* حجم أكبر للأيقونة */
+    color: var(--background-white); /* لون أبيض للأيقونة */
+}
+
+.product-content-wrapper { /* غلاف جديد للمحتوى النصي أسفل الأيقونة */
+    padding: 25px; /* padding داخلي للمحتوى */
+    width: 100%;
+    box-sizing: border-box; /* لضمان أن padding لا يزيد العرض */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.product-item-name-new {
+    font-family: 'Changa', sans-serif;
+    font-size: 1.7rem; /* حجم كبير لاسم المنتج */
+    font-weight: 700;
+    color: var(--text-black);
+    margin-bottom: 15px; /* مسافة أقل */
+    line-height: 1.3;
+}
+
+.price-quantity-group {
+    display: flex;
+    flex-direction: column; /* عمودي لتجميع السعر والكمية */
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    background-color: transparent;
+    color: var(--text-black);
+    border-radius: 0;
+    padding: 0;
+    margin-bottom: 25px; /* مسافة أكبر قبل الزر */
+    font-family: 'Cairo', sans-serif;
+}
+
+.unit-price-text {
+    font-size: 1rem;
+    font-weight: 400;
+    color: #666; /* لون رمادي مناسب */
+    margin-bottom: 5px;
+}
+
+.unit-price-value {
+    font-size: 1.6rem; /* حجم أكبر للسعر */
+    font-weight: bold;
+    color: var(--primary-green);
+    margin-bottom: 20px; /* مسافة أكبر */
+}
+
+.quantity-control-new {
+    display: flex;
+    align-items: center;
+    background-color: var(--light-grey);
+    border-radius: 50px;
+    padding: 8px 15px; /* padding أكبر قليلاً */
+    width: 160px; /* عرض ثابت */
+    justify-content: space-between;
+}
+
+.quantity-label {
+    font-size: 0.95rem;
+    color: var(--text-black);
+    margin-left: 0;
+    white-space: nowrap;
+}
+
+.quantity-input-new {
+    background: transparent;
+    border: none;
+    color: var(--text-black);
+    font-size: 1.3rem;
+    font-weight: bold;
+    width: 45px;
+    text-align: center;
+    -moz-appearance: textfield;
+}
+
+/* إزالة أسهم المتصفح لـ Chrome/Safari */
+.quantity-input-new::-webkit-outer-spin-button,
+.quantity-input-new::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.quantity-input-new:focus {
+    outline: none;
+}
+
+.quantity-arrows {
+    display: flex;
+    flex-direction: column;
+    margin-right: 0;
+}
+
+.quantity-arrows button {
+    background: none;
+    border: none;
+    color: var(--primary-green);
+    cursor: pointer;
+    padding: 3px;
+    font-size: 0.9rem;
+    line-height: 1;
+    transition: color 0.2s ease;
+}
+
+.quantity-arrows button:hover {
+    color: var(--highlight-gold);
+}
+
+.quantity-arrows button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn-donate-new {
+    background: linear-gradient(to right, var(--primary-green), var(--highlight-gold));
+    color: var(--background-white); /* نص أبيض ليتناسب مع التدرج */
+    border: none;
+    border-radius: 50px; /* حواف دائرية جداً */
+    width: calc(100% - 20px); /* عرض يملأ الكارد مع مسافة جانبية */
+    font-size: 1.3rem;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    margin-bottom: 5%;
+}
+
+.btn-donate-new:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+}
+
+.btn-donate-new .donate-amount {
+    font-family: 'Changa', sans-serif;
+    font-size: 1.6rem; /* حجم أكبر للمبلغ */
+}
+
+.btn-donate-new .donate-text {
+    font-family: 'Cairo', sans-serif;
+    font-size: 1.4rem; /* حجم أكبر للنص */
+}
+
+/* كتل تفاصيل الحالة العامة (للوصف، المعرض، إلخ) */
+.case-description-block,
+.case-gallery-block {
+    background-color: var(--background-white);
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    margin-top: 40px;
+    border: 1px solid var(--light-grey);
+}
+
+.case-description-block h2, .case-gallery-block h3 {
+    font-size: 1.8em;
+    color: var(--primary-green);
+    margin-bottom: 20px;
+    font-family: 'Changa', sans-serif;
+    text-align: right;
+}
+
+.case-description-block p {
+    font-size: 1em;
+    line-height: 1.7;
+    color: var(--text-black);
+    margin-bottom: 10px;
+}
+.case-description-block p strong {
+    color: var(--highlight-gold);
+}
+
+.case-gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 15px;
+}
+
+.gallery-item {
+    position: relative;
+    width: 100%;
+    padding-top: 75%; /* نسبة 4:3 */
+    overflow: hidden;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.gallery-item .responsive-image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* ==========================================================
+   أنماط صفحة سلة التبرعات (Donation Basket Page Styles)
+   ========================================================== */
+
+/* أنماط عناصر السلة المدمجة والمحسنة */
+.cart-item-card-compact {
+  display: flex;
+  align-items: center; /* توسيط العناصر عمودياً */
+  padding: 10px 12px; /* تقليل التباعد الداخلي قليلاً */
+  margin-bottom: 10px; /* تقليل التباعد بين العناصر */
+  background-color: #ffffff; /* خلفية بيضاء */
+  border-radius: 8px; /* زوايا مستديرة مناسبة */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); /* ظل أخف وأكثر دقة */
+  gap: 12px; /* مسافة مناسبة بين الأعمدة المرنة */
+  border: 1px solid #e5e5e5; /* حدود خفيفة جداً */
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.cart-item-card-compact:hover {
+  transform: translateY(-2px); /* رفع خفيف جداً عند التحويم */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08); /* ظل أكبر قليلاً عند التحويم */
+}
+
+/* حاوية الصورة/الأيقونة */
+.cart-item-image-container-compact {
+  position: relative;
+  width: 55px; /* عرض أصغر للصورة */
+  height: 55px; /* ارتفاع أصغر للصورة */
+  flex-shrink: 0;
+  border-radius: 6px; /* زوايا مستديرة للصورة */
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f9f9f9; /* خلفية فاتحة جداً */
+  border: 1px solid #f0f0f0;
+}
+
+.cart-item-image-container-compact .product-icon-fa {
+  font-size: 2.2rem; /* حجم أيقونة مناسب داخل الحاوية */
+  color: var(--primary-green); /* لون الأيقونة من الثيم الجديد */
+}
+
+.cart-item-image-container-compact .fa-image {
+  font-size: 1.5rem; /* حجم أيقونة بديلة مناسب */
+}
+
+/* تفاصيل العنصر */
+.cart-item-details-compact {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.cart-item-details-compact h2 {
+  font-size: 1.1rem; /* حجم خط أصغر لاسم العنصر ليكون واضحاً ومدمجاً */
+  font-weight: 600; /* خط شبه سميك */
+  margin-bottom: 3px;
+  color: var(--text-black); /* لون النص من الثيم الجديد */
+}
+
+.cart-item-details-compact p {
+  font-size: 0.85rem; /* حجم خط أصغر للنصوص الفرعية */
+  color: #666; /* يمكن تعديله للون رمادي من الثيم إذا توفر */
+  margin-bottom: 2px;
+}
+
+/* عناصر التحكم (الكمية والإزالة) */
+.cart-item-controls-compact {
+  display: flex;
+  align-items: center;
+  gap: 10px; /* مسافة مناسبة بين العناصر */
+  margin-top: 6px; /* تباعد عن النصوص العلوية */
+}
+
+/* مدخل الكمية */
+.cart-item-quantity-input-compact {
+  width: 55px; /* عرض أصغر لمدخل الكمية */
+  padding: 5px 7px; /* تباعد داخلي أصغر */
+  border: 1px solid #dcdcdc;
+  border-radius: 5px;
+  text-align: center;
+  font-size: 0.9rem; /* حجم خط واضح */
+  -moz-appearance: textfield;
+}
+
+/* إخفاء أسهم المتصفح الافتراضية في Chrome/Safari/Edge */
+.cart-item-quantity-input-compact::-webkit-outer-spin-button,
+.cart-item-quantity-input-compact::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* زر الإزالة */
+.cart-item-remove-btn-compact {
+  background-color: var(--cta-red); /* لون أحمر مناسب للإزالة من الثيم الجديد */
+  color: white;
+  padding: 6px 10px; /* تباعد داخلي أصغر */
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 0.8rem; /* حجم خط أصغر */
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.cart-item-remove-btn-compact:hover {
+  background-color: #a0282a; /* ظل أغمق قليلاً للأحمر عند التحويم */
+  transform: translateY(-1px);
+}
+
+/* السعر الإجمالي للعنصر */
+.cart-item-total-price-compact {
+  font-size: 1.15rem; /* حجم خط مناسب للسعر الإجمالي ليكون بارزاً */
+  font-weight: bold;
+  color: var(--primary-green); /* لون مميز وواضح من الثيم الجديد */
+  flex-shrink: 0;
+  margin-left: auto;
+  text-align: right;
+  padding-left: 8px; /* تباعد عن بقية العناصر */
+}
+
+/* أنماط ملخص السلة */
+.cart-summary-card {
+  padding: 20px;
+  background-color: var(--light-grey); /* خلفية من الثيم الجديد */
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.cart-summary-card h2 {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-bottom: 15px;
+  text-align: center;
+  color: var(--text-black); /* لون النص من الثيم الجديد */
+}
+
+.cart-summary-total {
+  display: flex;
+  justify-content: space-between;
+  font-size: 1.2rem;
+  font-weight: bold;
+  margin-bottom: 20px;
+  padding-top: 10px;
+  border-top: 1px solid #eee; /* يمكن استخدام var(--light-grey) هنا أيضاً */
+}
+
+.cart-summary-total span:last-child {
+  color: var(--primary-green); /* لون من الثيم الجديد */
+}
+
+/* ستايلات رسالة السلة الفارغة */
+.empty-cart-message {
+  text-align: center;
+  padding: 50px 20px;
+  background-color: var(--light-grey); /* خلفية من الثيم الجديد */
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  margin-top: 50px;
+}
+
+.empty-cart-message p {
+  font-size: 1.2rem;
+  color: #555; /* يمكن تعديله للون رمادي من الثيم إذا توفر */
+  margin-bottom: 25px;
+}
+
+.empty-cart-message .btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 25px;
+  font-size: 1rem;
+  border-radius: 30px;
+  text-decoration: none;
+  background-color: var(--primary-green); /* لون من الثيم الجديد */
+  color: white;
+  transition: background-color 0.3s ease;
+}
+
+.empty-cart-message .btn:hover {
+  background-color: #3e5a3b; /* ظل أغمق قليلاً للأخضر عند التحويم */
+}
+
+.empty-cart-message .btn i {
+  margin-right: 8px;
+}
+
+
+/* ==========================================================
+   أنماط صفحة المتابعة للدفع (Checkout Page Styles)
+   ========================================================== */
+
+/* ستايلات عامة لحقول النموذج */
+label {
+  color: var(--text-black); /* لون نص التسمية */
+  font-family: 'Cairo', sans-serif;
+  font-size: 1.125rem; /* text-lg */
+  font-weight: 600; /* font-semibold */
+  margin-bottom: 0.5rem; /* mb-2 */
+  display: block; /* block */
+}
+
+input[type="text"],
+input[type="email"],
+input[type="tel"],
+textarea {
+  width: 100%; /* w-full */
+  padding: 0.75rem; /* p-3 */
+  border: 1px solid var(--light-grey); /* border border-gray-300 */
+  border-radius: 0.375rem; /* rounded-md */
+  color: var(--text-black);
+  background-color: var(--background-white);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="tel"]:focus,
+textarea:focus {
+  border-color: var(--primary-green);
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(74, 108, 71, 0.2); /* ظل التركيز */
+}
+
+/* ستايلات ملخص الطلب - تفاصيل العناصر */
+.space-y-4 > div {
+  background-color: transparent; /* تأكد من عدم وجود خلفية إضافية */
+}
+
+.space-y-4 > div .font-semibold {
+  color: var(--text-black);
+  font-family: 'Cairo', sans-serif;
+}
+
+.space-y-4 > div .text-sm {
+  font-size: 0.875rem; /* text-sm */
+  color: #666; /* لون أغمق قليلاً */
+}
+
+/* ستايلات أيقونات الصور في ملخص الطلب */
+.checkout-item-image-container { /* هذا الكلاس غير موجود في الكود، ولكن يمكن إضافته إذا لزم الأمر */
+  width: 3rem; /* w-12 */
+  height: 3rem; /* h-12 */
+  position: relative; /* relative */
+  flex-shrink: 0; /* flex-shrink-0 */
+  margin-left: 0.75rem; /* ml-3 */
+  border-radius: 0.375rem; /* rounded-md */
+  overflow: hidden; /* لمنع تجاوز الصورة */
+  display: flex; /* لتوسيط الأيقونة */
+  align-items: center;
+  justify-content: center;
+  background-color: var(--light-grey); /* خلفية للأيقونة الافتراضية */
+}
+
+/* ستايلات أيقونة المنتج في ملخص الطلب (إذا لم تكن صورة) */
+.checkout-item-image-container .product-icon-fa {
+  font-size: 1.875rem; /* text-3xl */
+  color: #666; /* لون رمادي مناسب */
+}
+
+.checkout-item-image-container .fas.fa-image { /* أيقونة الصورة الافتراضية */
+  font-size: 1.25rem; /* fa-lg */
+  color: #888; /* لون أغمق قليلاً */
+}
+
+/* خطوط الفصل */
+.border-dashed {
+  border-style: dashed;
+}
+
+/* ==========================================================
+   أنماط الاستجابة (Responsive Styles - Media Queries)
+   ========================================================== */
+
+@media (max-width: 1200px) { /* شاشات متوسطة وكبيرة */
+  .products-needs-grid {
+    grid-template-columns: repeat(3, 1fr); /* 3 أعمدة على الشاشات الكبيرة */
+    gap: 30px;
+  }
+}
+
+@media (max-width: 1024px) {
+  .hero-title {
+    font-size: 3rem;
+  }
+  .hero-subtitle-line {
+    font-size: 2rem;
+  }
+}
+
+@media (max-width: 992px) {
+  /* إخفاء القائمة الرئيسية في أحجام الشاشات الصغيرة */
+  .main-nav .nav-links,
+  .main-nav .nav-buttons { /* تم إضافة .nav-buttons هنا إذا كانت موجودة */
+    display: none;
+  }
+  /* إخفاء مبدل العملات واللغة في الشريط العلوي للجوال إذا كانت ستظهر في القائمة الجانبية */
+  .top-bar-left .lang-currency-switcher {
+    display: none;
+  }
+  .top-bar-right .top-link {
+    display: none;
+  }
+
+  /* إظهار زر الهامبرغر */
+  .hamburger-menu {
+    display: flex; /* تم التعديل هنا ليتوافق مع تصميم الهامبرغر */
+    flex-direction: column;
+    justify-content: space-around;
+    width: 30px;
+    height: 25px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    z-index: 1001;
+  }
+
+  .hamburger-menu .bar {
+    width: 100%;
+    height: 3px;
+    background-color: var(--text-black);
+    border-radius: 5px;
+    transition: all 0.3s ease;
+  }
+
+  /* تنسيق القائمة الجانبية للموبايل */
+  .mobile-menu {
+    display: block; /* إظهار القائمة الجانبية */
+    /* ... بقية أنماط mobile-menu موجودة في قسمها الخاص */
+  }
+
+  .main-header .container {
+    justify-content: space-between; /* للحفاظ على تباعد الشعار وزر الهامبرغر */
+  }
+
+  /* إخفاء الشريط العلوي في الجوال تماماً */
+  .top-bar {
+    display: none;
+  }
+
+  /* تعديلات عامة لصفحة "من نحن" */
+  .page-hero-title {
+    font-size: 2.5em;
+  }
+  .grid-2-columns-responsive {
+    grid-template-columns: 1fr; /* عمود واحد في الشاشات الصغيرة */
+    gap: 30px;
+  }
+  /* في الموبايل، الصورة ستأتي أولاً بشكل افتراضي لأننا لم نحدد order لها */
+  .about-image, .about-text-content {
+    order: unset; /* إلغاء الترتيب المحدد لسطح المكتب */
+  }
+  .about-image { /* لجعل الصورة تظهر قبل النص في الموبايل */
+    margin-bottom: 20px;
+  }
+
+  /* تعديلات قسم "لماذا سند" */
+  .why-sanad-grid {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  }
+
+  /* تعديلات قسم "العملية والخريطة" */
+  .process-map-section .grid-container {
+    grid-template-columns: 1fr;
+    gap: 60px;
+    direction: rtl;
+    align-items: flex-start;
+    min-height: auto;
+  }
+  .map-column {
+    grid-column: 1 / 2; /* في الجوال، عمود الخريطة يأخذ العرض الكامل */
+    height: auto;
+    min-height: auto;
+    display: block;
+    justify-content: unset;
+    align-items: unset;
+  }
+  .map-container {
+    width: 100%;
+    height: auto; /* السماح بالارتفاع التلقائي في الجوال */
+    min-height: auto; /* إزالة الارتفاع الأدنى الثابت */
+    display: flex; /* إعادة تفعيل flex في الجوال للتوسيط */
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+  .syria-map-image {
+    min-height: auto; /* إزالة الـ min-height */
+    height: auto; /* تأكيد */
+  }
+  .carousel-column {
+    grid-column: 1 / 2; /* في الجوال، عمود الكاروسيل يأخذ العرض الكامل */
+  }
+
+  /* تعديلات شبكة المنتجات في صفحة تفاصيل الحالة */
+  .products-needs-grid {
+    grid-template-columns: repeat(2, 1fr); /* عمودين على التابلت */
+    gap: 25px;
+  }
+}
+
+@media (max-width: 768px) {
+  /* تعديلات عامة */
+  .hero-section {
+    padding: 60px 0 0;
+    min-height: 60vh;
+  }
+  .hero-title {
+    font-size: 2.5rem;
+  }
+  .hero-subtitle-line {
+    font-size: 1.8rem;
+  }
+  .hero-description {
+    font-size: 1rem;
+  }
+  .btn-hero-cta {
+    padding: 12px 25px;
+    font-size: 1rem;
+  }
+  .hero-image-cards-container {
+    justify-content: flex-start;
+  }
+  .hero-image-card {
+    width: 220px;
+    height: 220px;
+    transform: translateY(30px);
+  }
+  .hero-image-card.central-card {
+    transform: translateY(0);
+  }
+
+  /* تعديلات قسم الإنجازات */
+  .achievements-section {
+    padding: 40px 0;
+  }
+  .achievements-section .section-title {
+    font-size: 2em;
+    margin-bottom: 40px;
+  }
+  .achievements-grid {
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 20px;
+  }
+  .achievement-icon {
+    width: 80px;
+    height: 80px;
+  }
+  .achievement-icon i {
+    font-size: 3em;
+  }
+  .achievement-number {
+    font-size: 2.2em;
+  }
+
+  /* تعديلات قسم "لماذا سند" */
+  .why-sanad-section {
+    padding: 40px 0;
+  }
+  .why-sanad-section .section-title {
+    font-size: 2em;
+    margin-bottom: 40px;
+  }
+  .why-sanad-grid {
+    grid-template-columns: 1fr;
+  }
+  .why-sanad-item {
+    padding: 25px;
+  }
+  .why-sanad-item .item-title {
+    font-size: 1.2em;
+  }
+  .why-sanad-item .item-icon-wrapper {
+    width: 50px;
+    height: 50px;
+    margin-bottom: 15px;
+  }
+  .why-sanad-item .item-icon-wrapper i {
+    font-size: 1.8em;
+  }
+
+  /* تعديلات صفحة "من نحن" */
+  .page-hero-section {
+    height: 250px;
+    margin-top: 80px;
+  }
+  .page-hero-title {
+    font-size: 2em;
+  }
+  .py-80 {
+    padding-top: 40px;
+    padding-bottom: 40px;
+  }
+  .about-sanad-section .about-text-content h2,
+  .vision-section h2,
+  .mission-section h2,
+  .values-section h2,
+  .team-section h2 {
+    font-size: 1.8em;
+    margin-bottom: 15px;
+  }
+  .values-grid, .team-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* تعديلات صفحة تصفح الحالات */
+  .cases-grid {
+    grid-template-columns: 1fr; /* عمود واحد في الشاشات الصغيرة جداً */
+    gap: 20px;
+  }
+  .case-card {
+    max-width: 100%; /* تأكد من أنها تملأ العرض المتاح */
+  }
+  .case-image-wrapper {
+    height: 180px;
+  }
+  .case-content {
+    padding: 15px;
+  }
+
+  /* تعديلات فلاتر الحالات */
+  .filter-group {
+    min-width: 140px; /* تقليل العرض قليلاً في التابلت */
+  }
+  .filter-group.filter-search {
+    min-width: 200px;
+  }
+
+  /* تعديلات صفحة تفاصيل الحالة */
+  .case-details-main-container > .container {
+    padding: 30px;
+  }
+  .case-top-info-bar-inside-container {
+    flex-direction: column;
+    text-align: center;
+    align-items: stretch;
+    padding-left: 0;
+    padding-right: 0;
+  }
+  .school-name-display,
+  .remaining-funds-display,
+  .direct-donate-input {
+    width: 100%;
+    justify-content: center;
+  }
+  .school-name-display .school-name {
+    margin-bottom: 10px;
+  }
+  .remaining-funds-display p {
+    margin-bottom: 15px;
+  }
+  .direct-donate-input {
+    flex-direction: column;
+    gap: 15px;
+  }
+  .donation-amount-input,
+  .donate-general-btn {
+    width: 80%;
+    max-width: 300px;
+  }
+
+  .case-sub-nav-section-tabs .sub-nav-item {
+    padding: 8px 15px;
+    font-size: 0.9em;
+  }
+  .visual-progress-bar-wrapper {
+    padding: 20px;
+    margin-bottom: 40px;
+  }
+  .visual-progress-text {
+    font-size: 1em;
+  }
+  .visual-progress-bar-container {
+    height: 20px;
+    margin: 0 30px;
+  }
+  .progress-cart-icon {
+    width: 20px;
+    height: 20px;
+  }
+  .delivery-truck-icon {
+    margin-top: -8px;
+    width: 30px;
+    height: 20px;
+  }
+  .visual-progress-percentage {
+    font-size: 0.8em;
+    top: 20px;
+  }
+  .products-needs-grid {
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 15px;
+    margin-bottom: 40px;
+  }
+  .product-image-wrapper {
+    width: 100px;
+    height: 100px;
+    font-size: 3em;
+  }
+  .product-card {
+    padding: 15px 10px;
+  }
+  .product-donate-btn {
+    padding: 8px 10px;
+    font-size: 0.9em;
+  }
+}
+
+@media (max-width: 576px) {
+  /* تعديلات عامة */
+  .case-details-main-container > .container {
+    padding: 20px;
+  }
+  .products-needs-grid {
+    grid-template-columns: 1fr;
+    max-width: 250px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .product-card {
+    width: 100%;
+  }
+  .donation-amount-input,
+  .donate-general-btn {
+    width: 100%;
+  }
+  .case-top-info-bar-inside-container {
+    gap: 10px;
+    padding-bottom: 15px;
+    margin-bottom: 30px;
+  }
+  .case-sub-nav-section-tabs {
+    margin-bottom: 30px;
+  }
+  .tab-content-area {
+    padding: 20px;
+    margin-top: 15px;
+  }
+  .visual-progress-bar-wrapper {
+    margin-bottom: 30px;
+  }
+}
+
+@media (max-width: 480px) {
+  /* تعديلات عامة */
+  .hero-title {
+    font-size: 2rem;
+  }
+  .hero-subtitle-line {
+    font-size: 1.5rem;
+  }
+  .hero-image-card {
+    width: 190px;
+    height: 190px;
+  }
+
+  /* تعديلات قسم الإنجازات */
+  .achievements-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* تعديلات شبكة المنتجات في صفحة تفاصيل الحالة */
+  .products-needs-grid {
+    grid-template-columns: 1fr; /* عمود واحد على الجوال */
+    gap: 20px;
+  }
+  .product-card-new-design {
+    padding: 20px;
+  }
+  .product-image-placeholder {
+    height: 120px;
+    width: 120px;
+    margin-bottom: 20px;
+  }
+  .product-icon-fa-new {
+    font-size: 4rem;
+  }
+  .product-item-name-new {
+    font-size: 1.5rem;
+    margin-bottom: 10px;
+  }
+  .price-quantity-group {
+    width: 100%;
+    padding: 8px 15px;
+    margin-bottom: 20px;
+  }
+  .unit-price-value {
+    font-size: 1.4rem;
+  }
+  .quantity-control-new {
+    width: 140px;
+    padding: 6px 10px;
+  }
+  .quantity-input-new {
+    font-size: 1.1rem;
+    width: 35px;
+  }
+  .btn-donate-new {
+    padding: 12px 0;
+    font-size: 1.2rem;
+  }
+  .btn-donate-new .donate-amount {
+    font-size: 1.4rem;
+  }
+
+  /* تعديلات فلاتر الحالات */
+  .cases-filters {
+    flex-direction: column; /* عمودياً في الشاشات الصغيرة جداً */
+    align-items: stretch; /* لتمتد على كامل العرض */
+    padding: 15px;
+    gap: 15px;
+  }
+  .filter-group {
+    align-items: stretch;
+    min-width: 100%; /* تملأ العرض بالكامل */
+  }
+  .filter-group.filter-search {
+    min-width: 100%;
+  }
+  .custom-select,
+  .custom-input {
+    width: 100%; /* تملأ العرض بالكامل */
+  }
+}
+
+/* ==========================================================
+   أنماط صفحة سلة التبرعات (Donation Basket Page Styles) - أنماط إضافية
+   هذه الأنماط قد تكون مكررة جزئياً من قسم "أنماط سلة التبرعات - العناصر المدمجة"
+   ولكنها هنا لتغطية الفئات العامة التي لم يتم تغييرها إلى "-compact"
+   ========================================================== */
+.cart-item-card {
+  background-color: var(--background-white);
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); /* ظل أعمق قليلاً */
+  padding: 20px;
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column; /* بشكل عمودي افتراضيا */
+  align-items: center;
+  text-align: center;
+}
+
+@media (min-width: 768px) { /* على الشاشات الكبيرة، اجعلها أفقية */
+  .cart-item-card {
+    flex-direction: row;
+    text-align: right;
+    justify-content: space-between;
+  }
+}
+
+.cart-item-image-container {
+  width: 100px; /* حجم ثابت للصورة */
+  height: 100px;
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden; /* لضمان أن الصورة لا تتجاوز الحدود */
+  margin-bottom: 15px;
+  flex-shrink: 0; /* منع الصورة من الانكماش */
+}
+
+@media (min-width: 768px) {
+  .cart-item-image-container {
+    margin-bottom: 0;
+    margin-right: 20px; /* مسافة على اليمين في تخطيط الصف */
+  }
+}
+
+.cart-item-details {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.cart-item-details h2 {
+  font-family: 'Changa', sans-serif;
+  color: var(--text-black);
+  margin-bottom: 5px;
+}
+
+.cart-item-details p {
+  color: var(--text-black);
+  font-size: 0.95rem;
+  margin-bottom: 3px;
+}
+
+.cart-item-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 15px;
+}
+
+@media (min-width: 768px) {
+  .cart-item-controls {
+    justify-content: flex-start; /* محاذاة لليمين على الديسكتوب */
+  }
+}
+
+.cart-item-quantity-input {
+  width: 70px;
+  padding: 8px 10px;
+  border: 1px solid var(--light-grey);
+  border-radius: 5px;
+  text-align: center;
+  font-size: 1rem;
+  color: var(--text-black);
+  background-color: var(--background-white);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.cart-item-quantity-input:focus {
+  border-color: var(--primary-green);
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(74, 108, 71, 0.2); /* ظل التركيز */
+}
+
+.cart-item-remove-btn {
+  background-color: transparent;
+  border: none;
+  color: var(--cta-red);
+  font-size: 1rem;
+  cursor: pointer;
+  margin-right: 15px; /* مسافة على اليمين */
+  padding: 8px;
+  border-radius: 5px;
+  transition: background-color 0.2s ease;
+}
+
+.cart-item-remove-btn:hover {
+  background-color: rgba(176, 46, 48, 0.1); /* خلفية خفيفة عند التحويم */
+}
+
+.cart-item-total-price {
+  font-family: 'Changa', sans-serif;
+  color: var(--primary-green); /* لون أخضر للمبلغ */
+  font-size: 1.6rem; /* حجم أكبر */
+  font-weight: bold;
+  flex-shrink: 0; /* منع السعر من الانكماش */
+  margin-top: 15px;
+}
+
+@media (min-width: 768px) {
+  .cart-item-total-price {
+    margin-top: 0;
+    margin-left: 20px; /* مسافة على اليسار في تخطيط الصف */
+  }
+}
+
+/* ستايلات ملخص السلة */
+/* تم نقلها إلى قسم "أنماط سلة التبرعات - العناصر المدمجة" لتجنب التكرار */
+
+/* ستايلات رسالة السلة الفارغة */
+/* تم نقلها إلى قسم "أنماط سلة التبرعات - العناصر المدمجة" لتجنب التكرار */
+
+/* ==========================================================
+   أنماط صفحة المتابعة للدفع (Checkout Page Styles) - أنماط إضافية
+   ========================================================== */
+
+/* ستايلات عامة لحقول النموذج */
+label {
+  color: var(--text-black); /* لون نص التسمية */
+  font-family: 'Cairo', sans-serif;
+  font-size: 1.125rem; /* text-lg */
+  font-weight: 600; /* font-semibold */
+  margin-bottom: 0.5rem; /* mb-2 */
+  display: block; /* block */
+}
+
+input[type="text"],
+input[type="email"],
+input[type="tel"],
+textarea {
+  width: 100%; /* w-full */
+  padding: 0.75rem; /* p-3 */
+  border: 1px solid var(--light-grey); /* border border-gray-300 */
+  border-radius: 0.375rem; /* rounded-md */
+  color: var(--text-black);
+  background-color: var(--background-white);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="tel"]:focus,
+textarea:focus {
+  border-color: var(--primary-green);
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(74, 108, 71, 0.2); /* ظل التركيز */
+}
+
+/* ستايلات ملخص الطلب - تفاصيل العناصر */
+.space-y-4 > div {
+  background-color: transparent; /* تأكد من عدم وجود خلفية إضافية */
+}
+
+.space-y-4 > div .font-semibold {
+  color: var(--text-black);
+  font-family: 'Cairo', sans-serif;
+}
+
+.space-y-4 > div .text-sm {
+  font-size: 0.875rem; /* text-sm */
+  color: #666; /* لون أغمق قليلاً */
+}
+
+/* ستايلات أيقونات الصور في ملخص الطلب */
+.checkout-item-image-container { /* هذا الكلاس غير موجود في الكود، ولكن يمكن إضافته إذا لزم الأمر */
+  width: 3rem; /* w-12 */
+  height: 3rem; /* h-12 */
+  position: relative; /* relative */
+  flex-shrink: 0; /* flex-shrink-0 */
+  margin-left: 0.75rem; /* ml-3 */
+  border-radius: 0.375rem; /* rounded-md */
+  overflow: hidden; /* لمنع تجاوز الصورة */
+  display: flex; /* لتوسيط الأيقونة */
+  align-items: center;
+  justify-content: center;
+  background-color: var(--light-grey); /* خلفية للأيقونة الافتراضية */
+}
+
+/* ستايلات أيقونة المنتج في ملخص الطلب (إذا لم تكن صورة) */
+.checkout-item-image-container .product-icon-fa {
+  font-size: 1.875rem; /* text-3xl */
+  color: #666; /* لون رمادي مناسب */
+}
+
+.checkout-item-image-container .fas.fa-image { /* أيقونة الصورة الافتراضية */
+  font-size: 1.25rem; /* fa-lg */
+  color: #888; /* لون أغمق قليلاً */
+}
+
+/* خطوط الفصل */
+.border-dashed {
+  border-style: dashed;
+}
+
+/* ==========================================================
+   أنماط الاستجابة (Responsive Styles - Media Queries)
+   ========================================================== */
+
+/* شاشات متوسطة وكبيرة */
+@media (max-width: 1200px) {
+  .products-needs-grid {
+    grid-template-columns: repeat(3, 1fr); /* 3 أعمدة على الشاشات الكبيرة */
+    gap: 30px;
+  }
+}
+
+/* شاشات التابلت */
+@media (max-width: 1024px) {
+  .hero-title {
+    font-size: 3rem;
+  }
+  .hero-subtitle-line {
+    font-size: 2rem;
+  }
+}
+
+@media (max-width: 992px) {
+  /* إخفاء القائمة الرئيسية في أحجام الشاشات الصغيرة */
+  .main-nav .nav-links,
+  .main-nav .nav-buttons {
+    display: none;
+  }
+  /* إخفاء مبدل العملات واللغة في الشريط العلوي للجوال إذا كانت ستظهر في القائمة الجانبية */
+  .top-bar-left .lang-currency-switcher {
+    display: none;
+  }
+  .top-bar-right .top-link {
+    display: none;
+  }
+
+  /* إظهار زر الهامبرغر */
+  .hamburger-menu {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    width: 30px;
+    height: 25px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    z-index: 1001;
+  }
+
+  .hamburger-menu .bar {
+    width: 100%;
+    height: 3px;
+    background-color: var(--text-black);
+    border-radius: 5px;
+    transition: all 0.3s ease;
+  }
+
+  /* تنسيق القائمة الجانبية للموبايل */
+  .mobile-menu {
+    display: block;
+  }
+
+  .main-header .container {
+    justify-content: space-between;
+  }
+
+  /* إخفاء الشريط العلوي في الجوال تماماً */
+  .top-bar {
+    display: none;
+  }
+
+  /* تعديلات عامة لصفحة "من نحن" */
+  .page-hero-title {
+    font-size: 2.5em;
+  }
+  .grid-2-columns-responsive {
+    grid-template-columns: 1fr;
+    gap: 30px;
+  }
+  .about-image, .about-text-content {
+    order: unset;
+  }
+  .about-image {
+    margin-bottom: 20px;
+  }
+
+  /* تعديلات قسم "لماذا سند" */
+  .why-sanad-grid {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  }
+
+  /* تعديلات قسم "العملية والخريطة" */
+  .process-map-section .grid-container {
+    grid-template-columns: 1fr;
+    gap: 60px;
+    direction: rtl;
+    align-items: flex-start;
+    min-height: auto;
+  }
+  .map-column {
+    grid-column: 1 / 2;
+    height: auto;
+    min-height: auto;
+    display: block;
+    justify-content: unset;
+    align-items: unset;
+  }
+  .map-container {
+    width: 100%;
+    height: auto;
+    min-height: auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+  .syria-map-image {
+    min-height: auto;
+    height: auto;
+  }
+  .carousel-column {
+    grid-column: 1 / 2;
+  }
+
+  /* تعديلات شبكة المنتجات في صفحة تفاصيل الحالة */
+  .products-needs-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 25px;
+  }
+}
+
+/* شاشات الجوال */
+@media (max-width: 768px) {
+  /* تعديلات عامة */
+  .hero-section {
+    padding: 60px 0 0;
+    min-height: 60vh;
+  }
+  .hero-title {
+    font-size: 2.5rem;
+  }
+  .hero-subtitle-line {
+    font-size: 1.8rem;
+  }
+  .hero-description {
+    font-size: 1rem;
+  }
+  .btn-hero-cta {
+    padding: 12px 25px;
+    font-size: 1rem;
+  }
+  .hero-image-cards-container {
+    justify-content: flex-start;
+  }
+  .hero-image-card {
+    width: 220px;
+    height: 220px;
+    transform: translateY(30px);
+  }
+  .hero-image-card.central-card {
+    transform: translateY(0);
+  }
+
+  /* تعديلات قسم الإنجازات */
+  .achievements-section {
+    padding: 40px 0;
+  }
+  .achievements-section .section-title {
+    font-size: 2em;
+    margin-bottom: 40px;
+  }
+  .achievements-grid {
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 20px;
+  }
+  .achievement-icon {
+    width: 80px;
+    height: 80px;
+  }
+  .achievement-icon i {
+    font-size: 3em;
+  }
+  .achievement-number {
+    font-size: 2.2em;
+  }
+
+  /* تعديلات قسم "لماذا سند" */
+  .why-sanad-section {
+    padding: 40px 0;
+  }
+  .why-sanad-section .section-title {
+    font-size: 2em;
+    margin-bottom: 40px;
+  }
+  .why-sanad-grid {
+    grid-template-columns: 1fr;
+  }
+  .why-sanad-item {
+    padding: 25px;
+  }
+  .why-sanad-item .item-title {
+    font-size: 1.2em;
+  }
+  .why-sanad-item .item-icon-wrapper {
+    width: 50px;
+    height: 50px;
+    margin-bottom: 15px;
+  }
+  .why-sanad-item .item-icon-wrapper i {
+    font-size: 1.8em;
+  }
+
+  /* تعديلات صفحة "من نحن" */
+  .page-hero-section {
+    height: 250px;
+    margin-top: 80px;
+  }
+  .page-hero-title {
+    font-size: 2em;
+  }
+  .py-80 {
+    padding-top: 40px;
+    padding-bottom: 40px;
+  }
+  .about-sanad-section .about-text-content h2,
+  .vision-section h2,
+  .mission-section h2,
+  .values-section h2,
+  .team-section h2 {
+    font-size: 1.8em;
+    margin-bottom: 15px;
+  }
+  .values-grid, .team-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* تعديلات صفحة تصفح الحالات */
+  .cases-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  .case-card {
+    max-width: 100%;
+  }
+  .case-image-wrapper {
+    height: 180px;
+  }
+  .case-content {
+    padding: 15px;
+  }
+
+  /* تعديلات فلاتر الحالات */
+  .filter-group {
+    min-width: 140px;
+  }
+  .filter-group.filter-search {
+    min-width: 200px;
+  }
+
+  /* تعديلات صفحة تفاصيل الحالة */
+  .case-details-main-container > .container {
+    padding: 30px;
+  }
+  .case-top-info-bar-inside-container {
+    flex-direction: column;
+    text-align: center;
+    align-items: stretch;
+    padding-left: 0;
+    padding-right: 0;
+  }
+  .school-name-display,
+  .remaining-funds-display,
+  .direct-donate-input {
+    width: 100%;
+    justify-content: center;
+  }
+  .school-name-display .school-name {
+    margin-bottom: 10px;
+  }
+  .remaining-funds-display p {
+    margin-bottom: 15px;
+  }
+  .direct-donate-input {
+    flex-direction: column;
+    gap: 15px;
+  }
+  .donation-amount-input,
+  .donate-general-btn {
+    width: 80%;
+    max-width: 300px;
+  }
+
+  .case-sub-nav-section-tabs .sub-nav-item {
+    padding: 8px 15px;
+    font-size: 0.9em;
+  }
+  .visual-progress-bar-wrapper {
+    padding: 20px;
+    margin-bottom: 40px;
+  }
+  .visual-progress-text {
+    font-size: 1em;
+  }
+  .visual-progress-bar-container {
+    height: 20px;
+    margin: 0 30px;
+  }
+  .progress-cart-icon {
+    width: 20px;
+    height: 20px;
+  }
+  .delivery-truck-icon {
+    margin-top: -8px;
+    width: 30px;
+    height: 20px;
+  }
+  .visual-progress-percentage {
+    font-size: 0.8em;
+    top: 20px;
+  }
+  .products-needs-grid {
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 15px;
+    margin-bottom: 40px;
+  }
+  .product-image-wrapper {
+    width: 100px;
+    height: 100px;
+    font-size: 3em;
+  }
+  .product-card {
+    padding: 15px 10px;
+  }
+  .product-donate-btn {
+    padding: 8px 10px;
+    font-size: 0.9em;
+  }
+}
+
+/* شاشات الجوال الصغيرة جداً */
+@media (max-width: 576px) {
+  /* تعديلات عامة */
+  .case-details-main-container > .container {
+    padding: 20px;
+  }
+  .products-needs-grid {
+    grid-template-columns: 1fr;
+    max-width: 250px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .product-card {
+    width: 100%;
+  }
+  .donation-amount-input,
+  .donate-general-btn {
+    width: 100%;
+  }
+  .case-top-info-bar-inside-container {
+    gap: 10px;
+    padding-bottom: 15px;
+    margin-bottom: 30px;
+  }
+  .case-sub-nav-section-tabs {
+    margin-bottom: 30px;
+  }
+  .tab-content-area {
+    padding: 20px;
+    margin-top: 15px;
+  }
+  .visual-progress-bar-wrapper {
+    margin-bottom: 30px;
+  }
+}
+
+@media (max-width: 480px) {
+  /* تعديلات عامة */
+  .hero-title {
+    font-size: 2rem;
+  }
+  .hero-subtitle-line {
+    font-size: 1.5rem;
+  }
+  .hero-image-card {
+    width: 190px;
+    height: 190px;
+  }
+
+  /* تعديلات قسم الإنجازات */
+  .achievements-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* تعديلات شبكة المنتجات في صفحة تفاصيل الحالة */
+  .products-needs-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  .product-card-new-design {
+    padding: 20px;
+  }
+  .product-image-placeholder {
+    height: 120px;
+    width: 120px;
+    margin-bottom: 20px;
+  }
+  .product-icon-fa-new {
+    font-size: 4rem;
+  }
+  .product-item-name-new {
+    font-size: 1.5rem;
+    margin-bottom: 10px;
+  }
+  .price-quantity-group {
+    width: 100%;
+    padding: 8px 15px;
+    margin-bottom: 20px;
+  }
+  .unit-price-value {
+    font-size: 1.4rem;
+  }
+  .quantity-control-new {
+    width: 140px;
+    padding: 6px 10px;
+  }
+  .quantity-input-new {
+    font-size: 1.1rem;
+    width: 35px;
+  }
+  .btn-donate-new {
+    padding: 12px 0;
+    font-size: 1.2rem;
+  }
+  .btn-donate-new .donate-amount {
+    font-size: 1.4rem;
+  }
+
+  /* تعديلات فلاتر الحالات */
+  .cases-filters {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 15px;
+    gap: 15px;
+  }
+  .filter-group {
+    align-items: stretch;
+    min-width: 100%;
+  }
+  .filter-group.filter-search {
+    min-width: 100%;
+  }
+  .custom-select,
+  .custom-input {
+    width: 100%;
+  }
+}
+/*------------------------ secondary styles ------------------------*/
+/* هذا القسم هو كما أرسلته أنت بالضبط */
+.btn-cta-primary {
+    background-color: var(--highlight-gold) !important;
+    color: var(--background-white) !important;
+    display: inline-block;
+    padding: 15px !important;
+    border-radius: 44px;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    font-weight: bold;
+    font-family: 'Changa', sans-serif;
+    text-align: center;
+}
+
+.btn-cta-primary:hover {
+    background-color: #b18a37 !important; /* لون ذهبي أغمق قليلاً */
+}
+
+/* زر الـ CTA الثانوي */
+.btn-secondary-cta {
+    background-color: var(--primary-green); /* خلفية خضراء زيتية */
+    color: var(--background-white); /* نص أبيض */
+    border: 1px solid var(--primary-green); /* حدود خضراء */
+}
+
+.btn-secondary-cta:hover {
+    background-color: #3b5a38; /* لون أغمق قليلاً عند الهوفر */
+}
+/* ==========================================================
+   أنماط صفحة المتابعة للدفع (Checkout Page Styles)
+   ========================================================== */
+
+/* ستايلات عامة لحقول النموذج */
+label {
+  color: var(--text-black); /* لون نص التسمية */
+  font-family: 'Cairo', sans-serif;
+  font-size: 1.125rem; /* text-lg */
+  font-weight: 600; /* font-semibold */
+  margin-bottom: 0.5rem; /* mb-2 */
+  display: block; /* block */
+}
+
+/* ستايلات ملخص الطلب - تفاصيل العناصر */
+.space-y-4 > div {
+  background-color: transparent; /* تأكد من عدم وجود خلفية إضافية */
+}
+
+.space-y-4 > div .font-semibold {
+  color: var(--text-black);
+  font-family: 'Cairo', sans-serif;
+}
+
+.space-y-4 > div .text-sm {
+  font-size: 0.875rem; /* text-sm */
+  color: #666; /* لون أغمق قليلاً */
+}
+
+/* ستايلات أيقونات الصور في ملخص الطلب */
+.checkout-item-image-container { /* هذا الكلاس غير موجود في الكود، ولكن يمكن إضافته إذا لزم الأمر */
+  width: 3rem; /* w-12 */
+  height: 3rem; /* h-12 */
+  position: relative; /* relative */
+  flex-shrink: 0; /* flex-shrink-0 */
+  margin-left: 0.75rem; /* ml-3 */
+  border-radius: 0.375rem; /* rounded-md */
+  overflow: hidden; /* لمنع تجاوز الصورة */
+  display: flex; /* لتوسيط الأيقونة */
+  align-items: center;
+  justify-content: center;
+  background-color: var(--light-grey); /* خلفية للأيقونة الافتراضية */
+}
+
+/* ستايلات أيقونة المنتج في ملخص الطلب (إذا لم تكن صورة) */
+.checkout-item-image-container .product-icon-fa {
+  font-size: 1.875rem; /* text-3xl */
+  color: #666; /* لون رمادي مناسب */
+}
+
+.checkout-item-image-container .fas.fa-image { /* أيقونة الصورة الافتراضية */
+  font-size: 1.25rem; /* fa-lg */
+  color: #888; /* لون أغمق قليلاً */
+}
+
+/* خطوط الفصل */
+.border-dashed {
+  border-style: dashed;
+}
+
+/* ==========================================================
+   أنماط الاستجابة (Responsive Styles - Media Queries)
+   ========================================================== */
+
+@media (max-width: 1200px) { /* شاشات متوسطة وكبيرة */
+  .products-needs-grid {
+    grid-template-columns: repeat(3, 1fr); /* 3 أعمدة على الشاشات الكبيرة */
+    gap: 30px;
+  }
+}
+
+@media (max-width: 1024px) {
+  .hero-title {
+    font-size: 3rem;
+  }
+  .hero-subtitle-line {
+    font-size: 2rem;
+  }
+}
+
+@media (max-width: 992px) {
+  body
+  {
+    padding-top: 60px;
+  }
+  /* تعديلات عامة لصفحة "من نحن" */
+  .page-hero-title {
+    font-size: 2.5em;
+  }
+  .grid-2-columns-responsive {
+    grid-template-columns: 1fr; /* عمود واحد في الشاشات الصغيرة */
+    gap: 30px;
+  }
+  /* في الموبايل، الصورة ستأتي أولاً بشكل افتراضي لأننا لم نحدد order لها */
+  .about-image, .about-text-content {
+    order: unset; /* إلغاء الترتيب المحدد لسطح المكتب */
+  }
+  .about-image { /* لجعل الصورة تظهر قبل النص في الموبايل */
+    margin-bottom: 20px;
+  }
+
+  /* تعديلات قسم "لماذا سند" */
+  .why-sanad-grid {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  }
+
+  /* تعديلات قسم "العملية والخريطة" */
+  .process-map-section .grid-container {
+    grid-template-columns: 1fr;
+    gap: 60px;
+    direction: rtl;
+    align-items: flex-start;
+    min-height: auto;
+  }
+  .map-column {
+    grid-column: 1 / 2; /* في الجوال، عمود الخريطة يأخذ العرض الكامل */
+    height: auto;
+    min-height: auto;
+    display: block;
+    justify-content: unset;
+    align-items: unset;
+  }
+  .map-container {
+    width: 100%;
+    height: auto; /* السماح بالارتفاع التلقائي في الجوال */
+    min-height: auto; /* إزالة الارتفاع الأدنى الثابت */
+    display: flex; /* إعادة تفعيل flex في الجوال للتوسيط */
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+  .syria-map-image {
+    min-height: auto; /* إزالة الـ min-height */
+    height: auto; /* تأكيد */
+  }
+  .carousel-column {
+    grid-column: 1 / 2; /* في الجوال، عمود الكاروسيل يأخذ العرض الكامل */
+  }
+
+  /* تعديلات شبكة المنتجات في صفحة تفاصيل الحالة */
+  .products-needs-grid {
+    grid-template-columns: repeat(2, 1fr); /* عمودين على التابلت */
+    gap: 25px;
+  }
+}
+
+
+
+@media (max-width: 576px) {
+  /* تعديلات عامة */
+  .case-details-main-container > .container {
+    padding: 20px;
+  }
+  .products-needs-grid {
+    grid-template-columns: 1fr;
+    max-width: 250px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .product-card {
+    width: 100%;
+  }
+  .donation-amount-input,
+  .donate-general-btn {
+    width: 100%;
+  }
+  .case-top-info-bar-inside-container {
+    gap: 10px;
+    padding-bottom: 15px;
+    margin-bottom: 30px;
+  }
+  .case-sub-nav-section-tabs {
+    margin-bottom: 30px;
+  }
+  .tab-content-area {
+    padding: 20px;
+    margin-top: 15px;
+  }
+  .visual-progress-bar-wrapper {
+    margin-bottom: 30px;
+  }
+}
+
+@media (max-width: 480px) {
+  /* تعديلات عامة */
+  .hero-title {
+    font-size: 2rem;
+  }
+  .hero-subtitle-line {
+    font-size: 1.5rem;
+  }
+  .hero-image-card {
+    width: 190px;
+    height: 190px;
+  }
+
+  /* تعديلات قسم الإنجازات */
+  .achievements-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* تعديلات شبكة المنتجات في صفحة تفاصيل الحالة */
+  .products-needs-grid {
+    grid-template-columns: 1fr; /* عمود واحد على الجوال */
+    gap: 20px;
+  }
+  .product-card-new-design {
+    padding: 20px;
+  }
+  .product-image-placeholder {
+    height: 120px;
+    width: 120px;
+    margin-bottom: 20px;
+  }
+  .product-icon-fa-new {
+    font-size: 4rem;
+  }
+  .product-item-name-new {
+    font-size: 1.5rem;
+    margin-bottom: 10px;
+  }
+  .price-quantity-group {
+    width: 100%;
+    padding: 8px 15px;
+    margin-bottom: 20px;
+  }
+  .unit-price-value {
+    font-size: 1.4rem;
+  }
+  .quantity-control-new {
+    width: 140px;
+    padding: 6px 10px;
+  }
+  .quantity-input-new {
+    font-size: 1.1rem;
+    width: 35px;
+  }
+  .btn-donate-new {
+    padding: 12px 0;
+    font-size: 1.2rem;
+  }
+  .btn-donate-new .donate-amount {
+    font-size: 1.4rem;
+  }
+
+  /* تعديلات فلاتر الحالات */
+  .cases-filters {
+    flex-direction: column; /* عمودياً في الشاشات الصغيرة جداً */
+    align-items: stretch; /* لتمتد على كامل العرض */
+    padding: 15px;
+    gap: 15px;
+  }
+  .filter-group {
+    align-items: stretch;
+    min-width: 100%; /* تملأ العرض بالكامل */
+  }
+  .filter-group.filter-search {
+    min-width: 100%;
+  }
+  .custom-select,
+  .custom-input {
+    width: 100%; /* تملأ العرض بالكامل */
+  }
+}
+
+/* ==========================================================
+   أنماط صفحة سلة التبرعات (Donation Basket Page Styles) - أنماط إضافية
+   هذه الأنماط قد تكون مكررة جزئياً من قسم "أنماط سلة التبرعات - العناصر المدمجة"
+   ولكنها هنا لتغطية الفئات العامة التي لم يتم تغييرها إلى "-compact"
+   ========================================================== */
+.cart-item-card {
+  background-color: var(--background-white);
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); /* ظل أعمق قليلاً */
+  padding: 20px;
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column; /* بشكل عمودي افتراضيا */
+  align-items: center;
+  text-align: center;
+}
+
+@media (min-width: 768px) { /* على الشاشات الكبيرة، اجعلها أفقية */
+  .cart-item-card {
+    flex-direction: row;
+    text-align: right;
+    justify-content: space-between;
+  }
+}
+
+.cart-item-image-container {
+  width: 100px; /* حجم ثابت للصورة */
+  height: 100px;
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden; /* لضمان أن الصورة لا تتجاوز الحدود */
+  margin-bottom: 15px;
+  flex-shrink: 0; /* منع الصورة من الانكماش */
+}
+
+@media (min-width: 768px) {
+  .cart-item-image-container {
+    margin-bottom: 0;
+    margin-right: 20px; /* مسافة على اليمين في تخطيط الصف */
+  }
+}
+
+.cart-item-details {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.cart-item-details h2 {
+  font-family: 'Changa', sans-serif;
+  color: var(--text-black);
+  margin-bottom: 5px;
+}
+
+.cart-item-details p {
+  color: var(--text-black);
+  font-size: 0.95rem;
+  margin-bottom: 3px;
+}
+
+.cart-item-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 15px;
+}
+
+@media (min-width: 768px) {
+  .cart-item-controls {
+    justify-content: flex-start; /* محاذاة لليمين على الديسكتوب */
+  }
+}
+
+.cart-item-quantity-input {
+  width: 70px;
+  padding: 8px 10px;
+  border: 1px solid var(--light-grey);
+  border-radius: 5px;
+  text-align: center;
+  font-size: 1rem;
+  color: var(--text-black);
+  background-color: var(--background-white);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.cart-item-quantity-input:focus {
+  border-color: var(--primary-green);
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(74, 108, 71, 0.2); /* ظل التركيز */
+}
+
+.cart-item-remove-btn {
+  background-color: transparent;
+  border: none;
+  color: var(--cta-red);
+  font-size: 1rem;
+  cursor: pointer;
+  margin-right: 15px; /* مسافة على اليمين */
+  padding: 8px;
+  border-radius: 5px;
+  transition: background-color 0.2s ease;
+}
+
+.cart-item-remove-btn:hover {
+  background-color: rgba(176, 46, 48, 0.1); /* خلفية خفيفة عند التحويم */
+}
+
+.cart-item-total-price {
+  font-family: 'Changa', sans-serif;
+  color: var(--primary-green); /* لون أخضر للمبلغ */
+  font-size: 1.6rem; /* حجم أكبر */
+  font-weight: bold;
+  flex-shrink: 0; /* منع السعر من الانكماش */
+  margin-top: 15px;
+}
+
+@media (min-width: 768px) {
+  .cart-item-total-price {
+    margin-top: 0;
+    margin-left: 20px; /* مسافة على اليسار في تخطيط الصف */
+  }
+}
+
+/* ستايلات ملخص السلة */
+/* تم نقلها إلى قسم "أنماط سلة التبرعات - العناصر المدمجة" لتجنب التكرار */
+
+/* ستايلات رسالة السلة الفارغة */
+/* تم نقلها إلى قسم "أنماط سلة التبرعات - العناصر المدمجة" لتجنب التكرار */
+
+/* ==========================================================
+   أنماط صفحة المتابعة للدفع (Checkout Page Styles) - أنماط إضافية
+   ========================================================== */
+
+/* ستايلات عامة لحقول النموذج */
+label {
+  color: var(--text-black); /* لون نص التسمية */
+  font-family: 'Cairo', sans-serif;
+  font-size: 1.125rem; /* text-lg */
+  font-weight: 600; /* font-semibold */
+  margin-bottom: 0.5rem; /* mb-2 */
+  display: block; /* block */
+}
+/* ستايلات ملخص الطلب - تفاصيل العناصر */
+.space-y-4 > div {
+  background-color: transparent; /* تأكد من عدم وجود خلفية إضافية */
+}
+
+.space-y-4 > div .font-semibold {
+  color: var(--text-black);
+  font-family: 'Cairo', sans-serif;
+}
+
+.space-y-4 > div .text-sm {
+  font-size: 0.875rem; /* text-sm */
+  color: #666; /* لون أغمق قليلاً */
+}
+
+/* ستايلات أيقونات الصور في ملخص الطلب */
+.checkout-item-image-container { /* هذا الكلاس غير موجود في الكود، ولكن يمكن إضافته إذا لزم الأمر */
+  width: 3rem; /* w-12 */
+  height: 3rem; /* h-12 */
+  position: relative; /* relative */
+  flex-shrink: 0; /* flex-shrink-0 */
+  margin-left: 0.75rem; /* ml-3 */
+  border-radius: 0.375rem; /* rounded-md */
+  overflow: hidden; /* لمنع تجاوز الصورة */
+  display: flex; /* لتوسيط الأيقونة */
+  align-items: center;
+  justify-content: center;
+  background-color: var(--light-grey); /* خلفية للأيقونة الافتراضية */
+}
+
+/* ستايلات أيقونة المنتج في ملخص الطلب (إذا لم تكن صورة) */
+.checkout-item-image-container .product-icon-fa {
+  font-size: 1.875rem; /* text-3xl */
+  color: #666; /* لون رمادي مناسب */
+}
+
+.checkout-item-image-container .fas.fa-image { /* أيقونة الصورة الافتراضية */
+  font-size: 1.25rem; /* fa-lg */
+  color: #888; /* لون أغمق قليلاً */
+}
+
+/* خطوط الفصل */
+.border-dashed {
+  border-style: dashed;
+}
+
+/* ==========================================================
+   أنماط الاستجابة (Responsive Styles - Media Queries)
+   ========================================================== */
+
+/* شاشات متوسطة وكبيرة */
+@media (max-width: 1200px) {
+  .products-needs-grid {
+    grid-template-columns: repeat(3, 1fr); /* 3 أعمدة على الشاشات الكبيرة */
+    gap: 30px;
+  }
+}
+
+/* شاشات التابلت */
+@media (max-width: 1024px) {
+  .hero-title {
+    font-size: 3rem;
+  }
+  .hero-subtitle-line {
+    font-size: 2rem;
+  }
+}
+
+@media (max-width: 992px) {
+  /* إخفاء القائمة الرئيسية في أحجام الشاشات الصغيرة */
+  .main-nav .nav-links,
+  .main-nav .nav-buttons {
+    display: none;
+  }
+  /* إخفاء مبدل العملات واللغة في الشريط العلوي للجوال إذا كانت ستظهر في القائمة الجانبية */
+  .top-bar-left .lang-currency-switcher {
+    display: none;
+  }
+  .top-bar-right .top-link {
+    display: none;
+  }
+
+  /* إظهار زر الهامبرغر */
+  .hamburger-menu {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    width: 30px;
+    height: 25px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    z-index: 1001;
+  }
+
+  .hamburger-menu .bar {
+    width: 100%;
+    height: 3px;
+    background-color: var(--text-black);
+    border-radius: 5px;
+    transition: all 0.3s ease;
+  }
+
+  /* تنسيق القائمة الجانبية للموبايل */
+  .mobile-menu {
+    display: block;
+  }
+
+  .main-header .container {
+    justify-content: space-between;
+  }
+
+  /* إخفاء الشريط العلوي في الجوال تماماً */
+  .top-bar {
+    display: none;
+  }
+
+  /* تعديلات عامة لصفحة "من نحن" */
+  .page-hero-title {
+    font-size: 2.5em;
+  }
+  .grid-2-columns-responsive {
+    grid-template-columns: 1fr;
+    gap: 30px;
+  }
+  .about-image, .about-text-content {
+    order: unset;
+  }
+  .about-image {
+    margin-bottom: 20px;
+  }
+
+  /* تعديلات قسم "لماذا سند" */
+  .why-sanad-grid {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  }
+
+  /* تعديلات قسم "العملية والخريطة" */
+  .process-map-section .grid-container {
+    grid-template-columns: 1fr;
+    gap: 60px;
+    direction: rtl;
+    align-items: flex-start;
+    min-height: auto;
+  }
+  .map-column {
+    grid-column: 1 / 2;
+    height: auto;
+    min-height: auto;
+    display: block;
+    justify-content: unset;
+    align-items: unset;
+  }
+  .map-container {
+    width: 100%;
+    height: auto;
+    min-height: auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+  .syria-map-image {
+    min-height: auto;
+    height: auto;
+  }
+  .carousel-column {
+    grid-column: 1 / 2;
+  }
+
+  /* تعديلات شبكة المنتجات في صفحة تفاصيل الحالة */
+  .products-needs-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 25px;
+  }
+}
+
+/* شاشات الجوال */
+@media (max-width: 768px) {
+  /* تعديلات عامة */
+  .hero-section {
+    padding: 60px 0 0;
+    min-height: 60vh;
+  }
+  .hero-title {
+    font-size: 2.5rem;
+  }
+  .hero-subtitle-line {
+    font-size: 1.8rem;
+  }
+  .hero-description {
+    font-size: 1rem;
+  }
+  .btn-hero-cta {
+    padding: 12px 25px;
+    font-size: 1rem;
+  }
+  .hero-image-cards-container {
+    justify-content: flex-start;
+  }
+  .hero-image-card {
+    width: 220px;
+    height: 220px;
+    transform: translateY(30px);
+  }
+  .hero-image-card.central-card {
+    transform: translateY(0);
+  }
+
+  /* تعديلات قسم الإنجازات */
+  .achievements-section {
+    padding: 40px 0;
+  }
+  .achievements-section .section-title {
+    font-size: 2em;
+    margin-bottom: 40px;
+  }
+  .achievements-grid {
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 20px;
+  }
+  .achievement-icon {
+    width: 80px;
+    height: 80px;
+  }
+  .achievement-icon i {
+    font-size: 3em;
+  }
+  .achievement-number {
+    font-size: 2.2em;
+  }
+
+  /* تعديلات قسم "لماذا سند" */
+  .why-sanad-section {
+    padding: 40px 0;
+  }
+  .why-sanad-section .section-title {
+    font-size: 2em;
+    margin-bottom: 40px;
+  }
+  .why-sanad-grid {
+    grid-template-columns: 1fr;
+  }
+  .why-sanad-item {
+    padding: 25px;
+  }
+  .why-sanad-item .item-title {
+    font-size: 1.2em;
+  }
+  .why-sanad-item .item-icon-wrapper {
+    width: 50px;
+    height: 50px;
+    margin-bottom: 15px;
+  }
+  .why-sanad-item .item-icon-wrapper i {
+    font-size: 1.8em;
+  }
+
+  /* تعديلات صفحة "من نحن" */
+  .page-hero-section {
+    height: 250px;
+    margin-top: 80px;
+  }
+  .page-hero-title {
+    font-size: 2em;
+  }
+  .py-80 {
+    padding-top: 40px;
+    padding-bottom: 40px;
+  }
+  .about-sanad-section .about-text-content h2,
+  .vision-section h2,
+  .mission-section h2,
+  .values-section h2,
+  .team-section h2 {
+    font-size: 1.8em;
+    margin-bottom: 15px;
+  }
+  .values-grid, .team-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* تعديلات صفحة تصفح الحالات */
+  .cases-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  .case-card {
+    max-width: 100%;
+  }
+  .case-image-wrapper {
+    height: 180px;
+  }
+  .case-content {
+    padding: 15px;
+  }
+
+  /* تعديلات فلاتر الحالات */
+  .filter-group {
+    min-width: 140px;
+  }
+  .filter-group.filter-search {
+    min-width: 200px;
+  }
+
+  /* تعديلات صفحة تفاصيل الحالة */
+  .case-details-main-container > .container {
+    padding: 30px;
+  }
+  .case-top-info-bar-inside-container {
+    flex-direction: column;
+    text-align: center;
+    align-items: stretch;
+    padding-left: 0;
+    padding-right: 0;
+  }
+  .school-name-display,
+  .remaining-funds-display,
+  .direct-donate-input {
+    width: 100%;
+    justify-content: center;
+  }
+  .school-name-display .school-name {
+    margin-bottom: 10px;
+  }
+  .remaining-funds-display p {
+    margin-bottom: 15px;
+  }
+  .direct-donate-input {
+    flex-direction: column;
+    gap: 15px;
+  }
+  .donation-amount-input,
+  .donate-general-btn {
+    width: 80%;
+    max-width: 300px;
+  }
+
+  .case-sub-nav-section-tabs .sub-nav-item {
+    padding: 8px 15px;
+    font-size: 0.9em;
+  }
+  .visual-progress-bar-wrapper {
+    padding: 20px;
+    margin-bottom: 40px;
+  }
+  .visual-progress-text {
+    font-size: 1em;
+  }
+  .visual-progress-bar-container {
+    height: 20px;
+    margin: 0 30px;
+  }
+  .progress-cart-icon {
+    width: 20px;
+    height: 20px;
+  }
+  .delivery-truck-icon {
+    margin-top: -8px;
+    width: 30px;
+    height: 20px;
+  }
+  .visual-progress-percentage {
+    font-size: 0.8em;
+    top: 20px;
+  }
+  .products-needs-grid {
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 15px;
+    margin-bottom: 40px;
+  }
+  .product-image-wrapper {
+    width: 100px;
+    height: 100px;
+    font-size: 3em;
+  }
+  .product-card {
+    padding: 15px 10px;
+  }
+  .product-donate-btn {
+    padding: 8px 10px;
+    font-size: 0.9em;
+  }
+}
+
+/* شاشات الجوال الصغيرة جداً */
+@media (max-width: 576px) {
+  /* تعديلات عامة */
+  .case-details-main-container > .container {
+    padding: 20px;
+  }
+  .products-needs-grid {
+    grid-template-columns: 1fr;
+    max-width: 250px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .product-card {
+    width: 100%;
+  }
+  .donation-amount-input,
+  .donate-general-btn {
+    width: 100%;
+  }
+  .case-top-info-bar-inside-container {
+    gap: 10px;
+    padding-bottom: 15px;
+    margin-bottom: 30px;
+  }
+  .case-sub-nav-section-tabs {
+    margin-bottom: 30px;
+  }
+  .tab-content-area {
+    padding: 20px;
+    margin-top: 15px;
+  }
+  .visual-progress-bar-wrapper {
+    margin-bottom: 30px;
+  }
+}
+
+@media (max-width: 480px) {
+  /* تعديلات عامة */
+  .hero-title {
+    font-size: 2rem;
+  }
+  .hero-subtitle-line {
+    font-size: 1.5rem;
+  }
+  .hero-image-card {
+    width: 190px;
+    height: 190px;
+  }
+
+  /* تعديلات قسم الإنجازات */
+  .achievements-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* تعديلات شبكة المنتجات في صفحة تفاصيل الحالة */
+  .products-needs-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  .product-card-new-design {
+    padding: 20px;
+  }
+  .product-image-placeholder {
+    height: 120px;
+    width: 120px;
+    margin-bottom: 20px;
+  }
+  .product-icon-fa-new {
+    font-size: 4rem;
+  }
+  .product-item-name-new {
+    font-size: 1.5rem;
+    margin-bottom: 10px;
+  }
+  .price-quantity-group {
+    width: 100%;
+    padding: 8px 15px;
+    margin-bottom: 20px;
+  }
+  .unit-price-value {
+    font-size: 1.4rem;
+  }
+  .quantity-control-new {
+    width: 140px;
+    padding: 6px 10px;
+  }
+  .quantity-input-new {
+    font-size: 1.1rem;
+    width: 35px;
+  }
+  .btn-donate-new {
+    padding: 12px 0;
+    font-size: 1.2rem;
+  }
+  .btn-donate-new .donate-amount {
+    font-size: 1.4rem;
+  }
+
+  /* تعديلات فلاتر الحالات */
+  .cases-filters {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 15px;
+    gap: 15px;
+  }
+  .filter-group {
+    align-items: stretch;
+    min-width: 100%;
+  }
+  .filter-group.filter-search {
+    min-width: 100%;
+  }
+  .custom-select,
+  .custom-input {
+    width: 100%;
+  }
+}

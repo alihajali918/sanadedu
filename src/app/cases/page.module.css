@@ -1,0 +1,263 @@
+/* ==========================================================
+   FILE: src/app/cases/page.module.css
+   DESCRIPTION: Styles for the Cases Page, written in camelCase format.
+   NOTE: This is a non-standard convention for CSS, but technically works with CSS Modules.
+   ========================================================== */
+
+/* Utility classes */
+.mb60 {
+    margin-bottom: 60px;
+}
+
+.py80 {
+    padding-top: 80px;
+    padding-bottom: 80px;
+}
+
+.bgLightGrey {
+    background-color: var(--light-grey);
+}
+
+.container {
+    width: 100%;
+    padding-right: 15px;
+    padding-left: 15px;
+    margin-right: auto;
+    margin-left: auto;
+    max-width: 1200px; 
+}
+
+.textCenter {
+    text-align: center;
+}
+
+.sectionTitle {
+    /* Base section-title styles */
+}
+
+/* Grid and Card Styles */
+.casesGrid {
+display: grid;
+grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+gap: 30px;
+justify-items: center;
+}
+
+.caseCard {
+background-color: var(--background-white);
+border-radius: 10px;
+box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+overflow: hidden;
+display: flex;
+flex-direction: column;
+width: 100%;
+max-width: 400px;
+transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.caseCard:hover {
+transform: translateY(-5px);
+box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.caseImageWrapper {
+width: 100%;
+height: 200px;
+position: relative;
+}
+
+.caseImage {
+    /* Styles for Next.js Image component */
+}
+
+.caseContent {
+padding: 20px;
+display: flex;
+flex-direction: column;
+flex-grow: 1;
+}
+
+.caseTitle {
+font-size: 1.5em;
+font-weight: 700;
+color: var(--primary-green);
+margin-bottom: 10px;
+font-family: 'Changa', sans-serif;
+}
+
+.caseGovernorate {
+font-size: 0.9em;
+color: #666;
+margin-bottom: 10px;
+display: flex;
+align-items: center;
+gap: 5px;
+}
+
+.caseGovernorate i {
+color: var(--highlight-gold);
+}
+
+.caseDescription {
+font-size: 0.95em;
+color: var(--text-black);
+line-height: 1.5;
+margin-bottom: 20px;
+flex-grow: 1;
+}
+
+.caseProgressBarWrapper {
+background-color: var(--light-grey);
+border-radius: 5px;
+height: 10px;
+margin-bottom: 10px;
+overflow: hidden;
+}
+
+.caseProgressBar {
+background-color: var(--primary-green);
+height: 100%;
+border-radius: 5px;
+transition: width 0.5s ease-in-out;
+}
+
+.caseStats {
+display: flex;
+justify-content: space-between;
+font-size: 0.85em;
+color: #555;
+margin-bottom: 20px;
+}
+
+.caseStats span:nth-child(1),
+.caseStats span:nth-child(2) {
+font-weight: bold;
+color: var(--text-black);
+}
+
+.caseStats span:nth-child(3) { /* Percentage */
+color: var(--primary-green);
+font-weight: bold;
+}
+
+/* Button styles */
+.btn {
+    /* Base button styles */
+}
+.btnCtaPrimary {
+    /* Primary call-to-action styles */
+}
+.caseCardBtn {
+width: 100%;
+padding: 12px 20px;
+background-color: var(--highlight-gold);
+color: var(--background-white);
+font-weight: bold;
+border-radius: 5px;
+text-align: center;
+transition: background-color 0.3s ease;
+}
+
+.caseCardBtn:hover {
+background-color: #b18a37;
+}
+
+/* Filters Styles */
+.casesFilters {
+display: flex;
+flex-wrap: wrap;
+gap: 15px;
+justify-content: center;
+align-items: flex-end;
+margin-bottom: 40px;
+padding: 15px;
+background-color: var(--background-white);
+border-radius: 10px;
+box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+text-align: right;
+}
+
+.filterGroup {
+display: flex;
+flex-direction: column;
+align-items: flex-end;
+gap: 8px;
+flex-grow: 1;
+min-width: 150px;
+}
+
+.filterSearch {
+min-width: 220px;
+order: -1;
+}
+
+.casesFilters label {
+font-weight: bold;
+color: var(--primary-green);
+font-size: 0.95em;
+white-space: nowrap;
+margin-bottom: 0;
+}
+
+.customSelect,
+.customInput {
+width: 100%;
+padding: 10px 15px;
+border: 1px solid var(--light-grey);
+border-radius: 5px;
+background-color: var(--background-white);
+color: var(--text-black);
+font-size: 1em;
+cursor: pointer;
+}
+
+.customSelect {
+background-image: url('data:image/svg+xml;charset=UTF-8,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"%3E%3Cpolyline points="6 9 12 15 18 9"%3E%3C/polyline%3E%3C/svg%3E');
+background-repeat: no-repeat;
+background-position: left 10px center;
+}
+
+.customInput::placeholder {
+color: #999;
+}
+
+.customSelect:focus,
+.customInput:focus {
+outline: none;
+border-color: var(--highlight-gold);
+box-shadow: 0 0 0 2px rgba(205, 163, 73, 0.3);
+}
+
+.noCasesMessage {
+font-size: 1.2em;
+color: #888;
+padding: 50px 0;
+}
+
+/* Urgent Case Card Styles */
+.urgentCase {
+border: 2px solid var(--cta-red);
+box-shadow: 0 4px 20px rgba(176, 46, 48, 0.2);
+position: relative;
+overflow: visible;
+}
+
+.urgentCase .caseTitle {
+color: var(--cta-red);
+}
+
+.urgentCase::before {
+content: "عاجل!";
+position: absolute;
+top: -10px;
+right: -10px;
+background-color: var(--cta-red);
+color: var(--background-white);
+padding: 5px 15px;
+border-radius: 5px;
+font-size: 0.8em;
+font-weight: bold;
+transform: rotate(15deg);
+box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+z-index: 10;
+}

@@ -1,0 +1,503 @@
+/* Header.module.css */
+
+/*
+   ملاحظة هامة: المتغيرات مثل --background-white, --primary-green, إلخ.
+   يجب أن تكون معرفة في ملف CSS عام (مثل app/globals.css) ويتم استيرادها في app/layout.tsx.
+   إذا لم تكن معرفة هناك، فإن هذه الستايلات لن تعمل بشكل صحيح.
+*/
+.btn { 
+    display: inline-block;
+    padding: 15px 30px; /* تم تعديل الـ padding هنا */
+    border-radius: 5px; /* حواف دائرية بسيطة */
+    transition: background-color 0.3s ease, color 0.3s ease;
+    font-weight: bold;
+    font-family: var(--font-changa), sans-serif; /* تم تحديث الخط إلى Changa */
+    text-align: center;
+}
+.btnCtaPrimary {
+    background-color: var(--highlight-gold) !important;
+    color: var(--background-white) !important;
+    display: inline-block;
+    padding: 10px !important;
+    border-radius: 5px;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    font-weight: bold;
+    font-family: var(--font-changa), sans-serif;
+    text-align: center;
+}
+.btnCtaPrimary:hover
+{
+    background-color: var(--hover-gold) !important;
+}
+.mainHeader { /* تم التغيير: main-header -> mainHeader */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
+    background-color: var(--background-white);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+.container {
+    max-width: 1200px; /* أو أي عرض أقصى تريده لمحتوى الهيدر */
+    margin: 0 auto; /* هذا يوسّط المحتوى أفقياً */
+    padding: 0 15px; /* هذا يضيف 15px مسافة من اليمين واليسار */
+}
+
+.topBar { /* تم التغيير: top-bar -> topBar */
+    background-color: var(--primary-green);
+    color: var(--background-white);
+    padding: 10px 0;
+    font-size: 0.85em; /* حجم خط أصغر قليلاً */
+}
+
+.topBar .container { /* تم التغيير: top-bar .container -> topBar .container */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.topBarLeft, /* تم التغيير: top-bar-left -> topBarLeft */
+.topBarRight { /* تم التغيير: top-bar-right -> topBarRight */
+    display: flex;
+    align-items: center;
+    gap: 15px; /* مسافة بين العناصر */
+}
+
+/* تنسيق أيقونة سلة التسوق */
+.topBarLeft .cartIcon { /* تم التغيير: top-bar-left .cart-icon -> topBarLeft .cartIcon */
+    font-size: 1.2em; /* لتكبير حجم الأيقونة قليلاً */
+    color: var(--background-white); /* للتأكد من أن الأيقونة باللون الأبيض */
+    padding: 5px; /* لإضافة مسافة حول الأيقونة لتكون قابلة للضغط بشكل أفضل */
+    display: flex; /* لضمان توسيط الأيقونة */
+    align-items: center;
+    justify-content: center;
+}
+
+.topBarLeft .separator { /* تم التغيير: top-bar-left .separator -> topBarLeft .separator */
+    color: rgba(255, 255, 255, 0.5); /* لون فاصل خفيف */
+}
+
+/* تنسيق أزرار الشريط العلوي "العادية" */
+.topBar .topLink, /* تم التغيير: top-bar .top-link -> topBar .topLink */
+.topBar .currency { /* تم التغيير: top-bar .currency -> topBar .currency */
+    padding: 8px 15px;
+    border-radius: 5px; /* حواف دائرية */
+    border: 1px solid rgba(255, 255, 255, 0.5); /* حدود بيضاء شفافة */
+    transition: all 0.3s ease; /* transition لجميع الخصائص */
+    color: var(--background-white); /* لون النص أبيض في الوضع العادي */
+}
+
+.topBar .topLink:hover,
+.topBar .currency:hover {
+    background-color: var(--background-white);
+    color: var(--primary-green);
+    border-color: var(--background-white);
+}
+
+.lang { /* هذا الكلاس كان اسمه .lang ولم يتغير */
+    /* تأكد من وجود هذا الكلاس في الـ CSS Module لأنه كان يظهر undefined */
+}
+
+.langCurrencySwitcher { /* تم التغيير: lang-currency-switcher -> langCurrencySwitcher */
+    /* ستايلات لمبدل العملة */
+}
+
+/* ==========================================================
+    أنماط الرأس - التنقل الرئيسي (Header - Main Navigation Styles)
+    ========================================================== */
+.mainNav { /* تم التغيير: main-nav -> mainNav */
+    background-color: var(--background-white);
+    padding: 15px 0;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.mainNav .container { /* تم التغيير: main-nav .container -> mainNav .container */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+}
+
+/* الشعار والنص */
+.logoContainer { /* تم التغيير: logo-container -> logoContainer */
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-changa), sans-serif;
+    font-weight: bold;
+    font-size: 1.8em;
+    color: var(--text-black);
+}
+
+.logoContainer svg { /* تم التغيير: logo-container svg -> logoContainer svg */
+    height: 100px; /* تم تعديل حجم الشعار بناءً على كودك الأخير */
+    width: auto;
+    fill: var(--highlight-gold);
+}
+
+.sanadlogo { /* هذا الكلاس كان اسمه .sanadlogo ولم يتغير */
+height: 70px;
+width: 70px;
+}
+
+/* قائمة الروابط الرئيسية */
+.navLinks { /* تم التغيير: nav-links -> navLinks */
+    display: flex;
+    align-items: center;
+    gap: 25px;
+    font-family: var(--font-changa), sans-serif;
+}
+
+.navLinks li a { /* تم التغيير: nav-links li a -> navLinks li a */
+    padding: 8px 0;
+    font-weight: 700;
+    transition: color 0.3s ease;
+    position: relative;
+    color: var(--text-black);
+}
+
+/* تأثير الخط السفلي عند الهوفر */
+.navLinks li a:hover::after { /* تم التغيير: nav-links li a:hover::after -> navLinks li a:hover::after */
+    width: 100%;
+}
+.navLinks li a::after { /* تم التغيير: nav-links li a::after -> navLinks li a::after */
+    content: '';
+    position: absolute;
+    bottom: -5px;
+    right: 0;
+    width: 0%;
+    height: 3px;
+    background-color: var(--highlight-gold);
+    transition: width 0.3s ease;
+}
+
+/* سهم الدروب داون في الديسكتوب */
+.navLinks .hasDropdown > a::before { /* تم التغيير: nav-links .has-dropdown > a::before -> navLinks .hasDropdown > a::before */
+    content: '\25BC';
+    font-family: 'Font Awesome 6 Free';
+    font-weight: 900;
+    font-size: 0.6em;
+    margin-left: 5px;
+    display: inline-block;
+    transform: rotate(0deg);
+    transition: transform 0.3s ease;
+    vertical-align: middle;
+}
+
+/* ==========================================================
+    أنماط قوائم الدروب داون (Dropdown Menus Styles)
+    ========================================================== */
+.hasDropdown { /* تم التغيير: has-dropdown -> hasDropdown */
+    position: relative;
+}
+
+.dropdownMenu { /* تم التغيير: dropdown-menu -> dropdownMenu */
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background-color: var(--background-white);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    min-width: 180px;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(10px);
+    transition: opacity 0.3s ease, transform 0.3s ease, visibility 0s linear 0.3s;
+    border-top: 3px solid var(--primary-green);
+    padding: 10px 0;
+    border-radius: 0 0 5px 5px;
+}
+
+.hasDropdown:hover .dropdownMenu { /* تم التغيير: has-dropdown:hover .dropdown-menu -> hasDropdown:hover .dropdownMenu */
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+    transition-delay: 0s;
+}
+
+.dropdownMenu li a { /* تم التغيير: dropdown-menu li a -> dropdownMenu li a */
+    display: block;
+    padding: 12px 25px;
+    color: var(--text-black);
+    font-weight: 400;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.dropdownMenu li a:hover { /* تم التغيير: dropdown-menu li a:hover -> dropdownMenu li a:hover */
+    background-color: var(--light-grey);
+    color: var(--primary-green);
+}
+.logoutButton {
+    border-radius: 5px; /* حواف دائرية */
+    border: 1px solid var(--highlight-gold) !important; /* حدود بيضاء شفافة */
+    transition: all 0.3s ease; /* transition لجميع الخصائص */
+    color: var(--text-white) !important; /* لون النص أبيض في الوضع العادي */
+    font-family: var(--font-changa), sans-serif;
+    background-color: var(--highlight-gold);
+    cursor: pointer;
+}
+.logoutButton:hover
+{
+    border: 1px solid var(--text-white) !important;
+    color: var(--primary-green) !important; /* لون النص أبيض في الوضع العادي */
+}
+
+/* ==========================================================
+    أنماط قائمة الجوال (Mobile Menu Styles)
+    ========================================================== */
+
+/* إخفاء زر الهامبرغر وقائمة الجوال في الديسكتوب */
+/* هذه القواعد سيتم تجاوزها في media queries للجوال */
+.hamburgerMenu, /* تم التغيير: hamburger-menu -> hamburgerMenu */
+.mobileMenu { /* تم التغيير: mobile-menu -> mobileMenu */
+    display: none;
+}
+
+/* ستايلات أيقونة السلة والعداد (من كودك الأصلي) */
+
+
+.cartIcon:hover { /* تم التغيير: cart-icon:hover -> cartIcon:hover */
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.cartIcon { /* تم التغيير: cart-icon .fas.fa-shopping-cart -> cartIcon .fas.fa-shopping-cart */
+  font-size: 1.4rem !important;
+  color: var(--background-white); /* لون الأيقونة */
+    position: relative; /* لتحديد موضع العداد بشكل صحيح */
+}
+
+/* src/components/Cart/Cart.module.css */
+
+.cartCount {
+  position: absolute;
+  top: -5px;
+  left: 20px; /* تم التغيير: استخدام right بدلاً من left */
+  background-color: var(--cta-red);
+  color: var(--background-white);
+  border-radius: 50%;
+  padding: 2px 6px;
+  font-size: 0.75rem;
+  font-weight: bold;
+  min-width: 20px;
+  text-align: center;
+  line-height: 1.2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ستايلات زر الهامبرغر (لشاشات الجوال) */
+.hamburgerMenu,.cartIconMobile,.authIconMobile { /* تم التغيير: hamburger-menu -> hamburgerMenu */
+    background: none;
+    border: none;
+    color: var(--highlight-gold);
+    font-size: 1.8rem;
+    cursor: pointer;
+    padding: 10px;
+}
+
+/* ستايلات القائمة الجانبية للموبايل (mobile-menu) */
+.mobileMenu { /* تم التغيير: mobile-menu -> mobileMenu */
+    position: fixed;
+    top: 0;
+    right: -100%; /* إخفاء القائمة خارج الشاشة افتراضياً */
+    width: 70%; /* عرض القائمة */
+    max-width: 300px; /* لتحديد أقصى عرض */
+    height: 100%;
+    background-color: var(--primary-green); /* لون خلفية القائمة */
+    box-shadow: -2px 0 10px rgba(0, 0, 0, 0.2);
+    z-index: 1001; /* أعلى من الـ overlay */
+    transition: right 0.3s ease-out; /* حركة سلاسة عند الفتح والإغلاق */
+    display: flex; /* لتوسيط المحتوى العمودي */
+    flex-direction: column;
+    padding-top: 60px; /* مسافة للزر العلوي */
+}
+
+.mobileMenu.active { /* تم التغيير: mobile-menu.active -> mobileMenu.active */
+    right: 0; /* إظهار القائمة على الشاشة */
+}
+
+.closeMobileMenu { /* تم التغيير: close-mobile-menu -> closeMobileMenu */
+    position: absolute;
+    top: 15px;
+    left: 15px; /* زر الإغلاق على اليسار في الاتجاه العربي */
+    background: none;
+    border: none;
+    color: var(--background-white);
+    font-size: 2rem;
+    cursor: pointer;
+}
+
+.mobileNavLinks { /* تم التغيير: mobile-nav-links -> mobileNavLinks */
+    list-style: none;
+    padding: 0 20px;
+    margin: 0;
+    width: 100%;
+    overflow-y: auto; /* للسماح بالتمرير إذا كانت الروابط كثيرة */
+}
+
+.mobileNavLinks li { /* تم التغيير: mobile-nav-links li -> mobileNavLinks li */
+    margin: 15px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1); /* خط فاصل */
+    padding-bottom: 10px;
+}
+
+.mobileNavLinks li:last-child { /* تم التغيير: mobile-nav-links li:last-child -> mobileNavLinks li:last-child */
+    border-bottom: none;
+}
+
+.mobileNavLinks a { /* تم التغيير: mobile-nav-links a -> mobileNavLinks a */
+    color: var(--background-white);
+    font-size: 1.1rem;
+    text-decoration: none;
+    display: block;
+    padding: 5px 0;
+}
+
+.mobileNavLinks a:hover { /* تم التغيير: mobile-nav-links a:hover -> mobileNavLinks a:hover */
+    color: var(--highlight-gold);
+}
+
+.mobileNavLinks .hasDropdown .dropdownArrow { /* تم التغيير: mobile-nav-links .has-dropdown .dropdown-arrow -> mobileNavLinks .hasDropdown .dropdownArrow */
+    display: inline-block;
+    margin-right: 8px; /* مسافة بين النص والسهم */
+    transition: transform 0.2s ease-out;
+    color: var(--background-white);
+}
+
+.mobileNavLinks .hasDropdown.open .dropdownArrow { /* تم التغيير: mobile-nav-links .has-dropdown.open .dropdown-arrow -> mobileNavLinks .hasDropdown.open .dropdownArrow */
+    transform: rotate(90deg); /* تدوير السهم عند الفتح */
+}
+
+.mobileDropdownMenu { /* تم التغيير: mobile-dropdown-menu -> mobileDropdownMenu */
+    list-style: none;
+    padding: 15px; /* إزاحة داخلية للقائمة الفرعية */
+    margin: 0;
+    background-color: rgba(0, 0, 0, 0.1);
+    border-radius: 5px;
+    margin-top: 10px;
+}
+
+.mobileDropdownMenu li { /* تم التغيير: mobile-dropdown-menu li -> mobileDropdownMenu li */
+    padding-bottom: 0;
+    margin-bottom: 10px;
+}
+.mobileDropdownMenu li:last-child { /* تم التغيير: mobile-dropdown-menu li:last-child -> mobileDropdownMenu li:last-child */
+    margin-bottom: 0;
+}
+
+/* overlay عندما تكون القائمة الجانبية مفتوحة */
+.overlay { /* هذا الكلاس كان اسمه .overlay ولم يتغير */
+    display: none; /* مخفي افتراضيا */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5); /* خلفية شبه شفافة */
+    z-index: 1000; /* تحت القائمة ولكن فوق المحتوى */
+}
+
+/* إظهار الـ overlay عندما تكون قائمة الموبايل نشطة */
+.mobileMenu.active + .overlay { /* تم التغيير: mobile-menu.active + .overlay -> mobileMenu.active + .overlay */
+    display: block;
+}
+.dropdownArrow::before {
+  content: '▼'; /* أو \25BC */
+  font-size: 0.7em;
+  color: var(--background-white);
+  display: inline-block;
+  transition: transform 0.3s ease;
+}
+
+.hasDropdown.open .dropdownArrow::before {
+  transform: rotate(90deg);
+}
+.cartIconMobile,.authIconMobile
+{
+    display: none;
+}
+/* ==========================================================
+    Media Queries (استعلامات الوسائط)
+    ========================================================== */
+
+@media (max-width: 992px) { /* لشاشات التابلت والجوالات الكبيرة */
+  .topBar .container { /* تم التغيير */
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .mainNav{
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+  }
+    .topBar 
+    {
+        display: none;
+    }
+
+  .topBarLeft, /* تم التغيير */
+  .topBarRight { /* تم التغيير */
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .topBarLeft .separator { /* تم التغيير */
+    display: none;
+  }
+
+  .navLinks { /* تم التغيير */
+    display: none;
+  }
+
+  .hamburgerMenu,.cartIconMobile,.authIconMobile { /* تم التغيير */
+    display: block;
+    font-size: 1.3rem;
+
+  }
+  .logoContainer
+  {
+    order: 2;
+    margin-left: 130px; /* لضبط المسافة بين الشعار وبقية العناصر */
+  }
+   .logoContainer .sanadlogo
+  {
+    width: 50px !important;
+  }
+  .hamburgerMenu{
+    order: 1;
+  }
+  .cartIconMobile{
+    order: 4;
+  }
+  .authIconMobile{
+    order: 3;
+  }
+  .cartCount { /* تم التغيير: cart-count -> cartCount */
+  position: absolute;
+  top: 10px; /* Adjust as needed */
+  left: 45px;}
+
+}
+
+@media (max-width: 576px) { /* لشاشات الجوالات الصغيرة */
+  .topBarLeft, /* تم التغيير */
+  .topBarRight { /* تم التغيير */
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+  }
+
+  .topLink, /* تم التغيير */
+  .langCurrencySwitcher, /* تم التغيير */
+  .cartIcon { /* تم التغيير */
+    width: 100%;
+    text-align: left;
+  }
+
+  .mobileMenu { /* تم التغيير */
+      width: 85%;
+      max-width: none;
+  }
+}

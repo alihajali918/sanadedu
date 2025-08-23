@@ -1,0 +1,182 @@
+/* src/app/latest-donors/page.module.css */
+
+/*
+    ملاحظة هامة: المتغيرات مثل --background-white, --primary-green, إلخ.
+    يجب أن تكون معرفة في ملف CSS عام (مثل app/globals.css) ويتم استيرادها في app/layout.tsx.
+    إذا لم تكن معرفة هناك، فإن هذه الستايلات لن تعمل بشكل صحيح.
+*/
+
+/* ==========================================================
+    أنماط صفحة آخر المتبرعين (Latest Donors Page Styles)
+    ========================================================== */
+
+.donorsContainer {
+    background-color: var(--light-grey); /* خلفية خفيفة للصفحة بشكل عام */
+    padding-bottom: 50px;
+    color: var(--text-black); /* لون النص الافتراضي للصفحة */
+    min-height: 80vh; /* ارتفاع أدنى للصفحة */
+}
+
+/* الأنماط العامة للحاوية (يمكن أن تكون في globals.css إذا كانت تستخدم على نطاق واسع) */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+/* قسم الـ Hero للصفحة */
+.heroSection {
+    background-color: var(--primary-green); /* خلفية خضراء لقسم الهيرو */
+    color: var(--background-white); /* نص أبيض في قسم الهيرو */
+    padding: 80px 0;
+    text-align: center;
+}
+
+.pageTitle {
+    font-family: 'Changa', sans-serif;
+    font-size: 3rem;
+    font-weight: bold;
+    margin-bottom: 20px;
+    color: var(--highlight-gold); /* عنوان الصفحة بلون ذهبي */
+}
+
+.pageDescription {
+    font-size: 1.1rem;
+    line-height: 1.7;
+    max-width: 700px;
+    margin: 0 auto 30px;
+    color: rgba(255, 255, 255, 0.9); /* وصف أبيض شفاف */
+}
+
+.heroImage { /* ستايلات للصورة إذا أضفتها */
+    max-width: 100%;
+    height: auto;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+/* قسم قائمة المتبرعين */
+.donorsListSection {
+    padding: 50px 0;
+}
+
+.donorCard {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: var(--background-white);
+    padding: 18px 25px;
+    margin-bottom: 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    flex-wrap: wrap; /* للسماح بالالتفاف في الشاشات الصغيرة */
+    text-align: right; /* محاذاة النص لليمين افتراضيا */
+}
+
+.donorCard:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.donorInfo {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start; /* محاذاة الاسم والمبلغ عموديا */
+    flex-grow: 1;
+    margin-bottom: 5px; /* مسافة قبل التاريخ في الموبايل */
+}
+
+.donorName {
+    font-family: 'Changa', sans-serif;
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: var(--primary-green); /* لون اسم المتبرع */
+    margin-bottom: 5px;
+}
+
+.donationAmount {
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: var(--highlight-gold); /* لون مبلغ التبرع */
+}
+
+.donationDate {
+    font-size: 0.9rem;
+    color: #888;
+    flex-shrink: 0; /* منع التاريخ من الانكماش */
+}
+
+.loadMoreButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background-color: var(--primary-green);
+    color: var(--background-white);
+    border: none;
+    padding: 12px 25px;
+    border-radius: 30px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    margin: 30px auto 0; /* توسيط الزر */
+}
+
+.loadMoreButton:hover {
+    background-color: #3e5a3b;
+    transform: translateY(-2px);
+}
+
+.loadMoreButton i {
+    margin-right: 8px; /* مسافة بين الأيقونة والنص في RTL */
+}
+
+.allDonorsLoadedMessage, .noDonorsMessage {
+    text-align: center;
+    font-size: 1.1rem;
+    color: #666;
+    margin-top: 30px;
+    padding: 15px;
+    background-color: var(--background-white);
+    border-radius: 8px;
+}
+
+
+/* Media Queries */
+@media (min-width: 768px) {
+    .donorInfo {
+        flex-direction: row; /* الاسم والمبلغ في صف واحد على الشاشات الأكبر */
+        gap: 15px; /* مسافة بين الاسم والمبلغ */
+        align-items: center;
+        margin-bottom: 0;
+    }
+    .donorCard {
+        justify-content: space-between; /* دفع العناصر إلى الأطراف */
+    }
+}
+
+@media (max-width: 767px) {
+    .pageTitle {
+        font-size: 2.2rem;
+    }
+    .pageDescription {
+        font-size: 1rem;
+    }
+    .donorCard {
+        flex-direction: column; /* البطاقات تصبح عمودية في الشاشات الصغيرة */
+        align-items: flex-start; /* محاذاة لليمين */
+        text-align: right;
+    }
+    .donorInfo {
+        width: 100%; /* تملأ العرض المتاح */
+        margin-bottom: 10px;
+        align-items: flex-end; /* محاذاة لليمين */
+        flex-direction: column;
+    }
+    .donationDate {
+        width: 100%;
+        text-align: right;
+    }
+}

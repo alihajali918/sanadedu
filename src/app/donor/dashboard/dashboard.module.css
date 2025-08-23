@@ -1,0 +1,186 @@
+/* src/app/dashboard/dashboard.module.css */
+
+.dashboardContainer {
+  display: flex;
+  /* Adjust min-height to account for header and footer, assuming they exist outside the dashboard layout */
+  min-height: calc(100vh - var(--header-height, 80px) - var(--footer-height, 100px));
+  background-color: var(--light-grey);
+  direction: rtl; /* Ensure RTL direction for the entire dashboard layout */
+  padding-top: 60px !important; /* لتعويض ارتفاع الهيدر الثابت */
+}
+
+.sidebar {
+  width: 250px;
+  background-color: var(--background-white);
+  padding: 30px 20px;
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05);
+  border-left: 1px solid var(--border-light); /* Separator line on the left */
+}
+
+.sidebarTitle {
+  font-size: 1.8em;
+  color: var(--primary-green);
+  margin-bottom: 30px;
+  text-align: center;
+  font-weight: 700;
+}
+
+.sidebarNav ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.sidebarNav li {
+  margin-bottom: 15px;
+}
+
+.navLink {
+  display: block;
+  padding: 12px 15px;
+  color: var(--text-dark);
+  text-decoration: none;
+  font-size: 1.1em;
+  border-radius: 8px;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  text-align: right; /* Align text to the right */
+}
+
+.navLink:hover,
+.navLink.active { /* Add .active class for the current page */
+  background-color: var(--primary-green);
+  color: var(--text-white);
+}
+
+.logoutButton {
+  display: block;
+  width: 100%;
+  padding: 12px 15px;
+  border: 1px solid var(--primary-green);
+  background-color: var(--background-white);
+  color: var(--primary-green);
+  border-radius: 8px;
+  font-size: 1.1em;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  margin-top: 30px;
+  font-family: var(--font-changa);
+}
+
+.logoutButton:hover {
+  background-color: var(--primary-green);
+  color: var(--text-white);
+}
+
+.mainContent {
+  flex-grow: 1;
+  padding: 40px; /* Padding for the main content area */
+}
+
+.pageTitle {
+  font-size: 2.5em;
+  color: var(--primary-green);
+  margin-bottom: 20px;
+  text-align: right;
+  font-weight: 700;
+}
+
+.welcomeText {
+  font-size: 1.1em;
+  color: var(--text-dark);
+  margin-bottom: 40px;
+  line-height: 1.8;
+  text-align: right;
+}
+
+.dashboardSummary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 25px;
+  margin-top: 30px;
+}
+
+.summaryCard {
+  background-color: var(--background-white);
+  padding: 25px;
+  border-radius: 10px;
+  box-shadow: 0 3px 15px rgba(0, 0, 0, 0.08);
+  text-align: center;
+  border-top: 5px solid var(--primary-green); /* Top border with a distinctive color */
+}
+
+.summaryCard h3 {
+  font-size: 1.4em;
+  color: var(--text-dark);
+  margin-bottom: 15px;
+  font-weight: 600;
+}
+
+.summaryCard p {
+  font-size: 2em;
+  color: var(--primary-green);
+  font-weight: 700;
+}
+
+/* Responsive adjustments for Dashboard Layout */
+@media (max-width: 900px) {
+  .dashboardContainer {
+    flex-direction: column; /* Sidebar moves to the top */
+  }
+
+  .sidebar {
+    width: 100%;
+    padding: 20px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    border-left: none;
+    border-bottom: 1px solid var(--border-light);
+  }
+
+  .sidebarNav ul {
+    display: flex;
+    justify-content: space-around; /* Distribute links horizontally */
+    flex-wrap: wrap;
+  }
+
+  .sidebarNav li {
+    margin: 0 10px 10px 0;
+  }
+
+  .navLink {
+    padding: 10px 12px;
+    font-size: 1em;
+    text-align: center;
+  }
+
+  .logoutButton {
+    margin-top: 15px;
+  }
+
+  .mainContent {
+    padding: 25px;
+  }
+
+  .pageTitle {
+    font-size: 2em;
+  }
+
+  .welcomeText {
+    font-size: 1em;
+  }
+
+  .dashboardSummary {
+    grid-template-columns: 1fr; /* Stack cards vertically */
+  }
+}
+
+@media (max-width: 600px) {
+  .sidebarNav ul {
+    flex-direction: column; /* Links stack vertically on very small screens */
+    align-items: stretch;
+  }
+  .sidebarNav li {
+    margin-bottom: 10px;
+    margin-right: 0;
+  }
+}

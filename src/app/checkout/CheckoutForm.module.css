@@ -1,0 +1,68 @@
+/* src/app/checkout/CheckoutForm.module.css */
+
+.checkoutForm {
+    width: 100%;
+    max-width: 500px;
+    margin: 0 auto;
+    padding: 30px;
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 5px 25px rgba(0, 0, 0, 0.1);
+    direction: rtl;
+}
+
+.formTitle {
+    text-align: center;
+    font-size: 1.8rem;
+    color: var(--primary-green);
+    margin-bottom: 25px;
+}
+
+.cardElementContainer {
+    padding: 15px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    margin-bottom: 20px;
+    background-color: #fdfdfd;
+}
+
+.submitButton {
+    width: 100%;
+    padding: 15px;
+    background-color: var(--primary-green);
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.submitButton:hover:not(:disabled) {
+    background-color: var(--highlight-gold);
+}
+
+.submitButton:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+.errorMessage {
+    color: #9e2146;
+    background-color: #fddfdf;
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.successMessage {
+    color: #2f5b2b;
+    background-color: #e4f5e3;
+    padding: 15px;
+    border-radius: 5px;
+    margin-bottom: 20px;
+    text-align: center;
+    font-weight: bold;
+}

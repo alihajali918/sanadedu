@@ -1,0 +1,133 @@
+/* src/components/specific/SyriaMap.module.css */
+
+.mapWrapper {
+  position: relative;
+  max-width: 800px; /* يمكن تعديل عرض الخريطة الكلي هنا */
+  margin: 40px auto; /* توسيط الخريطة وإعطائها بعض المساحة */
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+  overflow: hidden;
+  background-color: var(--background-white);
+  padding: 20px;
+  text-align: center;
+  direction: ltr; /* تأكد أن الخريطة نفسها تكون LTR لعدم قلب إحداثيات SVG */
+}
+
+.syriaMapSvg {
+  width: 100%;
+  height: auto;
+  display: block;
+  margin: 0 auto;
+}
+
+/* ستايلات مسارات المحافظات */
+.governoratePath {
+  fill: var(--primary-green); /* لون تعبئة المحافظة الافتراضي */
+  stroke: var(--background-white); /* لون حدود المحافظة */
+  stroke-width: 0.5;
+  transition: fill 0.3s ease, stroke-width 0.2s ease;
+  cursor: pointer;
+}
+
+.governoratePath:hover {
+  fill: var(--secondary-color); /* لون عند التمرير */
+  stroke-width: 1; /* حدود أسمك قليلاً عند التمرير */
+}
+
+.governoratePath.selected {
+  fill: #ffc107; /* لون مميز للمحافظة المختارة */
+  stroke: var(--text-black);
+  stroke-width: 2;
+}
+
+/* ستايلات علامات المحافظات (النقاط) */
+.mapMarker {
+  cursor: pointer;
+  /* تم إزالة transform: scale(1.2) من هنا لجعل الماركر ثابتًا بصريًا */
+  /* تم إزالة transition: transform 0.2s ease, opacity 0.2s ease; ليحل محله transition: opacity 0.2s ease; */
+  transition: opacity 0.2s ease;
+}
+
+.mapMarker:hover {
+  opacity: 0.8; /* جعل الماركر باهتًا قليلاً عند التحويم */
+}
+
+.mapMarkerPath {
+  fill: var(--highlight-gold); /* لون العلامة الافتراضي */
+  /* لا حاجة لـ stroke أو stroke-width هنا إذا كانت الأيقونة لا تحتاجها */
+}
+
+/* ستايل لاسم المحافظة الظاهر بشكل دائم */
+.governorateLabel {
+  font-family: 'Changa', sans-serif; /* استخدم نفس خط موقعك */
+  font-size: 14px; /* حجم الخط لاسم المحافظة */
+  font-weight: 600;
+  fill: var(--text-dark); /* لون النص */
+  pointer-events: none; /* لضمان أن النص لا يمنع النقر على الماركر أو المحافظة */
+  user-select: none; /* لمنع تحديد النص */
+}
+
+/* تم إزالة ستايل الـ Tooltip div بالكامل */
+/* .mapTooltip { ... } */
+
+
+/* رسالة المحافظة المختارة عند النقر */
+.selectedGovMessage {
+  margin-top: 20px;
+  font-size: 1.1em;
+  color: var(--text-dark);
+  padding: 10px 15px;
+  background-color: var(--background-secondary);
+  border-radius: 8px;
+  border-right: 5px solid var(--primary-green);
+  text-align: right;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.selectedGovMessage strong {
+  color: var(--primary-green);
+  margin-left: 5px;
+}
+
+.viewCasesBtn {
+  background-color: var(--secondary-color);
+  color: var(--white-color);
+  padding: 8px 15px;
+  border-radius: 5px;
+  text-decoration: none;
+  font-size: 0.9em;
+  transition: background-color 0.3s ease;
+  margin-top: 5px;
+}
+
+.viewCasesBtn:hover {
+  background-color: #5a7a57;
+}
+
+/* الاستجابة على الشاشات الصغيرة */
+@media (max-width: 768px) {
+  .mapWrapper {
+    margin: 20px auto;
+    padding: 10px;
+  }
+  .governorateLabel {
+    font-size: 12px; /* حجم خط أصغر على الجوال */
+  }
+  .selectedGovMessage {
+    font-size: 1em;
+    flex-direction: column;
+    align-items: flex-end;
+    text-align: right;
+  }
+  .selectedGovMessage strong {
+    margin-left: 0;
+  }
+  .viewCasesBtn {
+    width: 100%;
+    margin-top: 10px;
+    text-align: center;
+  }
+}

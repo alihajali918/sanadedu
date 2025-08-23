@@ -1,0 +1,185 @@
+/* src/app/request-documentation/page.module.css */
+
+/*
+    ملاحظة هامة: المتغيرات مثل --background-white, --primary-green, إلخ.
+    يجب أن تكون معرفة في ملف CSS عام (مثل app/globals.css) ويتم استيرادها في app/layout.tsx.
+    إذا لم تكن معرفة هناك، فإن هذه الستايلات لن تعمل بشكل صحيح.
+*/
+
+/* ==========================================================
+    أنماط صفحة طلب توثيق المؤسسة (Request Documentation Page Styles)
+    ========================================================== */
+
+.requestDocContainer {
+    background-color: var(--light-grey); /* خلفية خفيفة للصفحة بشكل عام */
+    padding-bottom: 50px;
+    color: var(--text-black); /* لون النص الافتراضي للصفحة */
+    min-height: 80vh; /* ارتفاع أدنى للصفحة */
+}
+
+/* الأنماط العامة للحاوية (يمكن أن تكون في globals.css إذا كانت تستخدم على نطاق واسع) */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    
+}
+
+/* قسم الـ Hero للصفحة */
+.heroSection {
+    background-color: var(--primary-green); /* خلفية خضراء لقسم الهيرو */
+    color: var(--background-white); /* نص أبيض في قسم الهيرو */
+    padding: 80px 0;
+    text-align: center;
+}
+
+.pageTitle {
+    font-family: 'Changa', sans-serif;
+    font-size: 3rem;
+    font-weight: bold;
+    margin-bottom: 20px;
+    color: var(--highlight-gold); /* عنوان الصفحة بلون ذهبي */
+}
+
+.pageDescription {
+    font-size: 1.1rem;
+    line-height: 1.7;
+    max-width: 700px;
+    margin: 0 auto 30px;
+    color: rgba(255, 255, 255, 0.9); /* وصف أبيض شفاف */
+}
+
+.heroImage { /* ستايلات للصورة إذا أضفتها */
+    max-width: 100%;
+    height: auto;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+/* قسم نموذج الطلب */
+.formSection {
+    padding: 50px 0;
+    text-align: center;
+}
+
+.documentationForm {
+    max-width: 700px; /* عرض أقصى للنموذج */
+    margin: 0 auto;
+    padding: 40px;
+    background-color: var(--background-white);
+    border-radius: 10px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+    text-align: right; /* محاذاة كل عناصر النموذج لليمين */
+    border: 1px solid var(--primary-green) !important;
+}
+
+.formGroup {
+    margin-bottom: 20px; /* مسافة بين مجموعات الحقول */
+}
+
+.formLabel {
+    display: block;
+    font-size: 1.1rem;
+    color: var(--text-black);
+    margin-bottom: 8px;
+    font-weight: 600;
+}
+
+.formInput,
+.formTextarea {
+width: 100%;
+  padding: 12px 15px;
+  border-bottom: 2px solid var(--highlight-gold) !important;
+  border: none;
+  border-radius: 8px;
+  font-size: 1em;
+  color: var(--text-black);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  text-align: right;
+}
+
+.formTextarea {
+    resize: vertical; /* السماح بتغيير حجم مربع النص عمودياً */
+    min-height: 100px;
+    border : 1px solid var(--primary-green) !important;
+}
+
+.formInput:focus,
+.formTextarea:focus {
+    border-color: var(--primary-green);
+    box-shadow: 0 0 0 3px rgba(var(--primary-green-rgb), 0.2);
+}
+
+.formInputFile { /* ستايل خاص بحقول رفع الملفات */
+    width: 100%;
+    padding: 10px;
+    border: 2px dashed #ccc; /* حدود متقطعة */
+    border-radius: 8px;
+    background-color: #f8f8f8;
+    color: #666;
+    cursor: pointer;
+    text-align: right;
+}
+
+.fileHint {
+    font-size: 0.85rem;
+    color: #888;
+    margin-top: 5px;
+    text-align: right;
+}
+
+
+.submitButton {
+     /* زر الإرسال بلون ذهبي */
+    color: var(--highlight-gold);
+    border: 2px solid var(--highlight-gold);
+    padding: 15px 30px;
+    border-radius: 40px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    display: flex; /* لتمكين الأيقونة والنص */
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%; /* الزر يملأ العرض المتاح */
+    margin-top: 30px;
+    font-family: 'Changa', sans-serif;
+}
+
+.submitButton i { /* أيقونة داخل الزر */
+    order: -1; /* لجعل الأيقونة تظهر قبل النص في RTL */
+    
+    
+}
+
+.submitButton:hover {
+    background-color: var(--highlight-gold); /* أو قيمة لون ثابتة */
+    color: var(--background-white);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    font-family: 'Changa', sans-serif;
+}
+
+/* Media Queries */
+@media (max-width: 768px) {
+    .pageTitle {
+        font-size: 2.2rem;
+    }
+    .pageDescription {
+        font-size: 1rem;
+    }
+    .documentationForm {
+        padding: 20px;
+    }
+    .formLabel {
+        font-size: 1rem;
+    }
+    .formInput,
+    .formTextarea,
+    .submitButton {
+        font-size: 1.1rem;
+        padding: 10px 12px;
+    }
+}

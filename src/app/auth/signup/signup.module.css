@@ -1,0 +1,229 @@
+/* ==========================================================
+// FILE: src/app/(auth)/signup/signup.module.css
+// DESCRIPTION: Styles for the signup page.
+// Now includes styles for Google Sign-Up button and separator.
+// ========================================================== */
+
+.authContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: calc(100vh - var(--header-height, 80px) - var(--footer-height, 100px));
+  background-color: var(--primary-green); /* لون خلفية فاتح للمنطقة */
+  padding: 40px 20px;
+  padding-top: 80px !important; /* لتعويض ارتفاع الهيدر الثابت */
+}
+
+.authCard {
+  background-color: var(--background-white);
+  padding: 40px;
+  border-radius: 10px;
+  box-shadow: 0 5px 25px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  max-width: 550px; /* ✅ زيادة العرض الأقصى قليلاً ليناسب التصميم الجديد */
+  width: 100%;
+  direction: rtl;
+}
+
+.authCard h2 {
+  font-size: 2.2em;
+  color: var(--primary-green);
+  margin-bottom: 30px;
+  font-weight: 700;
+}
+
+/* ✅ الخطوة 2: تنسيق حاوية الشبكة */
+.formGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* إنشاء عمودين متساويين */
+  gap: 20px; /* مسافة بين الحقول */
+  margin-bottom: 25px; /* هامش أسفل الشبكة بالكامل */
+}
+
+/* ✅ تعديل بسيط: إزالة الهامش السفلي من كل حقل لأن gap تقوم بالمهمة */
+.authForm .formGroup {
+  text-align: right;
+  margin-bottom: 0; 
+}
+
+.authForm label {
+  display: block;
+  font-size: 1.1em;
+  color: var(--text-dark);
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+.authForm input[type="text"],
+.authForm input[type="email"],
+.authForm input[type="password"] {
+  width: 100%;
+  padding: 12px 15px;
+  border-bottom: 2px solid var(--highlight-gold) !important;
+  border: none;
+  border-radius: 8px;
+  font-size: 1em;
+  color: var(--text-black);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.authForm input[type="text"]:focus,
+.authForm input[type="email"]:focus,
+.authForm input[type="password"]:focus {
+  border-color: var(--primary-green);
+  box-shadow: 0 0 0 3px rgba(74, 108, 71, 0.2);
+  outline: none;
+}
+
+.authForm input::placeholder {
+  color: var(--text-grey);
+}
+
+.formActions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 30px;
+}
+
+.btnPrimary {
+  background-color: var(--primary-green);
+  color: var(--text-white) !important;
+  padding: 14px 25px;
+  border: none;
+  border-radius: 8px;
+  font-size: 1em;
+  font-weight: 700;
+  font-family: var(--font-changa);
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  width: 100%;
+  max-width: 300px;
+}
+
+.btnPrimary:hover {
+  background-color: #3b5a38;
+  transform: translateY(-2px);
+}
+
+.btnPrimary:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+.authSwitch {
+  margin-top: 30px;
+  font-size: 1em;
+  color: var(--text-dark);
+}
+
+.authSwitch a {
+  color: var(--primary-green);
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.3s ease, text-decoration 0.3s ease;
+}
+
+.authSwitch a:hover {
+  color: var(--secondary-color);
+  text-decoration: underline;
+}
+
+/* ✅ الخطوة 3: جعل التصميم متجاوباً */
+@media (max-width: 768px) {
+  .formGrid {
+    grid-template-columns: 1fr; /* العودة إلى عمود واحد في الشاشات الصغيرة */
+    gap: 25px; /* يمكن تعديل المسافة للموبايل */
+  }
+}
+
+@media (max-width: 600px) {
+  .authContainer {
+    padding: 20px 15px;
+  }
+  .authCard {
+    padding: 25px;
+    box-shadow: 0 3px 15px rgba(0, 0, 0, 0.1);
+  }
+  .authCard h2 {
+    font-size: 1.8em;
+    margin-bottom: 25px;
+  }
+  .authForm input {
+    padding: 10px 12px;
+    font-size: 0.95em;
+  }
+  .btnPrimary {
+    padding: 12px 20px;
+    font-size: 1.1em;
+  }
+  .authSwitch {
+    font-size: 0.9em;
+    margin-top: 25px;
+  }
+}
+
+/* Social Login Styles (copied from login.module.css for consistency) */
+.socialLoginSeparator {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 30px 0;
+  color: #888;
+}
+
+.socialLoginSeparator::before,
+.socialLoginSeparator::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid #ddd;
+}
+
+.socialLoginSeparator:not(:empty)::before {
+  margin-right: .5em;
+}
+
+.socialLoginSeparator:not(:empty)::after {
+  margin-left: .5em;
+}
+
+.socialLoginButtons {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.googleSignInButton {
+  background-color: #4285F4; /* Google Blue */
+  color: white;
+  padding: 12px 25px;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.1em;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.googleSignInButton:hover {
+  background-color: #357ae8; /* Darker blue on hover */
+  transform: translateY(-2px);
+}
+
+.googleSignInButton:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+.googleIcon {
+  width: 35px;
+  height: 35px;
+  background-color: var(--text-white);
+  padding: 5px;
+  border-radius: 50%;
+}

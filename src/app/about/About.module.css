@@ -1,0 +1,81 @@
+/* الأنماط الآن معزولة داخل هذا الموديول */
+
+.aboutSection {
+    /* تستطيع تبسيط الأسماء لأنها معزولة */
+    padding-top: 80px;
+    padding-bottom: 80px;
+}
+
+.textContent h2 {
+    color: var(--primary-green);
+    font-size: 2.2em;
+    margin-bottom: 25px;
+    font-weight: 700;
+    font-family: 'Changa', sans-serif;
+}
+
+.textContent h3 {
+    font-size: 1.5em;
+    color: var(--primary-green);
+    margin-top: 30px;
+    margin-bottom: 15px;
+    font-weight: 700;
+    font-family: 'Changa', sans-serif;
+}
+
+.textContent p {
+    color: var(--text-black);
+    font-size: 1em;
+    line-height: 1.8;
+    margin-bottom: 15px;
+}
+
+.textContent ul {
+    list-style: none;
+    padding-right: 0;
+    margin-top: 20px;
+}
+
+.textContent ul li {
+    position: relative;
+    padding-right: 25px;
+    margin-bottom: 10px;
+    color: var(--text-black);
+    line-height: 1.6;
+}
+
+.textContent ul li::before {
+    content: '\f00c';
+    font-family: "Font Awesome 5 Free";
+    font-weight: 900;
+    color: var(--primary-green);
+    position: absolute;
+    right: 0;
+    top: 4px;
+}
+
+.imageContainer .responsiveImage {
+    width: 100%;
+    height: auto;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 40px;
+    align-items: center;
+}
+
+@media (min-width: 993px) {
+    .grid {
+        grid-template-columns: 1fr 1fr;
+    }
+    .orderText {
+        order: 1;
+    }
+    .orderImage {
+        order: 2;
+    }
+}

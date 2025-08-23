@@ -1,0 +1,169 @@
+/* src/app/support-staff/page.module.css */
+
+.supportPageContainer {
+    padding: 60px 20px;
+    background-color: #f8f9fa;
+    min-height: 100vh;
+    direction: rtl;
+}
+
+/* ✅ تخطيط الصفحة الرئيسي (عمودان) */
+.pageLayout {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* عمودان متساويان */
+    gap: 40px;
+    align-items: start; /* محاذاة العناصر لبداية كل عمود */
+    padding-top: 20px;
+}
+
+/* --- العمود الأيمن: نبذة عن المشروع --- */
+.aboutSection {
+    background-color: #fff;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+}
+
+.mainTitle {
+    font-size: 2.2rem;
+    color: var(--primary-green);
+    margin-bottom: 20px;
+    line-height: 1.4;
+}
+
+.aboutDescription {
+    font-size: 1.1rem;
+    color: #555;
+    line-height: 1.8;
+    margin-bottom: 25px;
+}
+
+.aboutImageContainer {
+    width: 100%;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 25px;
+}
+
+.aboutImage {
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+}
+
+.subTitle {
+    font-size: 1.5rem;
+    color: var(--text-black);
+    margin-bottom: 15px;
+    border-right: 3px solid var(--highlight-gold);
+    padding-right: 10px;
+}
+
+
+/* --- العمود الأيسر: نموذج التبرع --- */
+.donationSection {
+    background-color: #fff;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    position: sticky; /* ليبقى ثابتًا عند التمرير */
+    top: 20px;
+}
+
+.sectionTitle {
+    font-size: 1.8rem;
+    color: var(--primary-green);
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.amountOptions {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-bottom: 25px;
+}
+
+.amountButton {
+    padding: 15px 10px;
+    border: 1px solid var(--light-grey);
+    background-color: #fff;
+    color: var(--primary-green);
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1.1rem;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+.amountButton:hover, .activeAmount {
+    background-color: var(--primary-green);
+    color: #fff;
+    border-color: var(--primary-green);
+}
+
+.donationForm {
+    display: flex;
+    flex-direction: column;
+}
+
+.formLabel {
+    font-size: 1rem;
+    color: #666;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+.amountInput {
+    padding: 12px;
+    border: 1px solid var(--light-grey);
+    border-radius: 5px;
+    font-size: 1.2rem;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.amountInput:focus {
+    outline: none;
+    border-color: var(--highlight-gold);
+}
+
+.donateButton {
+    padding: 15px;
+    background-color: var(--highlight-gold);
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.donateButton:hover {
+    background-color: #b18a37;
+}
+
+.donateButton i {
+    margin-right: 8px;
+}
+
+.thankYouMessage {
+    text-align: center;
+    margin-top: 20px;
+    color: #777;
+    font-size: 0.9rem;
+}
+
+/* ✅ تصميم متجاوب للشاشات الصغيرة */
+@media (max-width: 992px) {
+    .pageLayout {
+        grid-template-columns: 1fr; /* عمود واحد فقط */
+    }
+
+    .donationSection {
+        position: static; /* إلغاء التثبيت */
+    }
+}

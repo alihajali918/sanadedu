@@ -1,0 +1,171 @@
+/* src/app/faq/page.module.css */
+
+/*
+    ملاحظة هامة: المتغيرات مثل --background-white, --primary-green, إلخ.
+    يجب أن تكون معرفة في ملف CSS عام (مثل app/globals.css) ويتم استيرادها في app/layout.tsx.
+    إذا لم تكن معرفة هناك، فإن هذه الستايلات لن تعمل بشكل صحيح.
+*/
+
+/* ==========================================================
+    أنماط صفحة الأسئلة الشائعة (FAQ Page Styles)
+    ========================================================== */
+
+.faqContainer {
+    background-color: var(--light-grey); /* خلفية خفيفة للصفحة بشكل عام */
+    padding-bottom: 50px;
+    color: var(--text-black); /* لون النص الافتراضي للصفحة */
+    min-height: 80vh; /* ارتفاع أدنى للصفحة */
+    font-family: 'Changa', sans-serif !important;
+}
+
+/* الأنماط العامة للحاوية (يمكن أن تكون في globals.css إذا كانت تستخدم على نطاق واسع) */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+/* قسم الـ Hero للصفحة */
+.heroSection {
+    background-color: var(--primary-green); /* خلفية خضراء لقسم الهيرو */
+    color: var(--background-white); /* نص أبيض في قسم الهيرو */
+    padding: 80px 0;
+    text-align: center;
+}
+
+.pageTitle {
+    font-family: var(--font-changa);
+    font-size: 3rem;
+    font-weight: bold;
+    margin-bottom: 20px;
+    color: var(--highlight-gold); /* عنوان الصفحة بلون ذهبي */
+}
+
+.pageDescription {
+    font-size: 1.1rem;
+    line-height: 1.7;
+    max-width: 700px;
+    margin: 0 auto 30px;
+    color: rgba(255, 255, 255, 0.9); /* وصف أبيض شفاف */
+}
+
+/* قسم قائمة الأسئلة الشائعة */
+.faqListSection {
+    padding: 50px 0;
+}
+
+.faqItem {
+    background-color: var(--background-white);
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    margin-bottom: 15px;
+    overflow: hidden; /* مهم لإخفاء المحتوى عند التصغير */
+    font-family: var(--font-changa);
+}
+
+.faqQuestion {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    padding: 18px 25px;
+    background-color: var(--background-white);
+    border: none;
+    cursor: pointer;
+    text-align: right; /* محاذاة النص لليمين */
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-black);
+    transition: background-color 0.2s ease;
+    font-family: var(--font-changa);
+}
+
+.faqQuestion:hover {
+    background-color: #f8f8f8;
+}
+
+.faqQuestion[aria-expanded="true"] {
+    background-color: var(--primary-green); /* خلفية خضراء عند الفتح */
+    color: var(--background-white); /* نص أبيض عند الفتح */
+}
+
+.arrowIcon {
+    display: inline-block;
+    width: 0;
+    height: 0;
+    margin-right: 10px; /* مسافة من النص */
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 6px solid var(--text-black); /* لون السهم الافتراضي */
+    transition: transform 0.3s ease;
+}
+
+.faqQuestion[aria-expanded="true"] .arrowIcon {
+    border-top-color: var(--background-white); /* لون السهم أبيض عند الفتح */
+    transform: rotate(180deg); /* تدوير السهم ليصبح لأعلى */
+    font-family: var(--font-changa);
+}
+
+.faqAnswer {
+    padding: 15px 25px 20px;
+    background-color: #fdfdfd; /* خلفية الإجابة */
+    border-top: 1px solid #eee;
+    color: #555;
+    font-size: 1rem;
+    line-height: 1.6;
+    text-align: right;
+}
+
+.faqAnswer p {
+    margin: 0;
+}
+
+.noFaqsMessage {
+    text-align: center;
+    font-size: 1.1rem;
+    color: #666;
+    margin-top: 30px;
+    padding: 15px;
+    background-color: var(--background-white);
+    border-radius: 8px;
+}
+
+/* قسم تشجيع التواصل */
+.contactPromptSection {
+    text-align: center;
+    padding-top: 30px;
+}
+
+.contactPromptSection p {
+    font-size: 1.1rem;
+    color: var(--text-black);
+}
+
+.contactLink {
+    color: var(--primary-green);
+    text-decoration: none;
+    font-weight: bold;
+    transition: color 0.2s ease;
+}
+
+.contactLink:hover {
+    color: var(--highlight-gold);
+}
+
+/* Media Queries */
+@media (max-width: 768px) {
+    .pageTitle {
+        font-size: 2.2rem;
+    }
+    .pageDescription {
+        font-size: 1rem;
+    }
+    .faqQuestion {
+        font-size: 1rem;
+        padding: 15px 20px;
+    }
+    .faqAnswer {
+        padding: 10px 20px 15px;
+        font-size: 0.9rem;
+    }
+}

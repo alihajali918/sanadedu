@@ -1,0 +1,166 @@
+/* src/app/(auth)/login/login.module.css */
+
+.authContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: calc(100vh - var(--header-height, 80px) - var(--footer-height, 100px)); /* يضمن احتلال المساحة المتاحة بعد الهيدر والفوتر */
+  background-color: var(--primary-green); /* لون خلفية فاتح للمنطقة */
+  padding: 40px 20px;
+  padding-top: 80px; /* لتعويض ارتفاع الهيدر الثابت */
+}
+
+.authCard {
+  background-color: var(--background-white);
+  padding: 40px;
+  border-radius: 10px;
+  box-shadow: 0 5px 25px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  max-width: 450px;
+  width: 100%;
+  direction: rtl; /* لضمان الاتجاه الصحيح للعناصر الداخلية */
+}
+
+.authCard h2 {
+  font-size: 2.2em;
+  color: var(--primary-green);
+  margin-bottom: 30px;
+  font-weight: 700;
+}
+
+.authForm .formGroup {
+  margin-bottom: 25px;
+  text-align: right; /* محاذاة التسميات لليمين */
+}
+
+.authForm label {
+  display: block;
+  font-size: 1.1em;
+  color: var(--text-dark);
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+.authForm input[type="email"],
+.authForm input[type="password"] {
+  width: 100%;
+  padding: 12px 15px;
+  border-bottom: 2px solid var(--highlight-gold) !important;
+  border: none;
+  border-radius: 8px;
+  font-size: 1em;
+  color: var(--text-black);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.authForm input[type="email"]:focus,
+.authForm input[type="password"]:focus {
+  border-color: var(--primary-green);
+  box-shadow: 0 0 0 3px rgba(74, 108, 71, 0.2); /* ظل خفيف للتركيز */
+  outline: none;
+}
+
+.authForm input::placeholder {
+  color: var(--text-light-grey);
+}
+
+.formActions {
+  display: flex;
+  flex-direction: column; /* الأزرار والروابط عمودية */
+  align-items: center;
+  margin-top: 30px;
+}
+
+.btnPrimary {
+  background-color: var(--primary-green);
+  color: var(--text-white) !important;
+  padding: 14px 25px;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.2em;
+  font-weight: 700;
+  font-family: var(--font-changa);
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  width: 100%; /* الزر يأخذ عرض النموذج بالكامل */
+  max-width: 300px; /* أقصى عرض للزر */
+}
+
+.btnPrimary:hover {
+  background-color: #3b5a38; /* لون أغمق قليلاً عند التمرير */
+  transform: translateY(-2px);
+}
+
+.forgotPasswordLink {
+  display: block; /* لضمان أخذ سطر جديد */
+  margin-top: 15px;
+  color: var(--secondary-color);
+  font-size: 0.95em;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.forgotPasswordLink:hover {
+  color: var(--primary-green);
+  text-decoration: underline;
+}
+
+.authSwitch {
+  margin-top: 30px;
+  font-size: 1em;
+  color: var(--text-dark);
+}
+
+.authSwitch a {
+  color: var(--primary-green);
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.3s ease, text-decoration 0.3s ease;
+}
+
+.authSwitch a:hover {
+  color: var(--secondary-color);
+  text-decoration: underline;
+}
+
+/* التعديلات للاستجابة على الشاشات الصغيرة */
+@media (max-width: 600px) {
+  .authContainer {
+    padding: 20px 15px;
+  }
+  .authCard {
+    padding: 25px;
+    box-shadow: 0 3px 15px rgba(0, 0, 0, 0.1);
+  }
+  .authCard h2 {
+    font-size: 1.8em;
+    margin-bottom: 25px;
+  }
+  .authForm input {
+    padding: 10px 12px;
+    font-size: 0.95em;
+  }
+  .btnPrimary {
+    padding: 12px 20px;
+    font-size: 1.1em;
+  }
+  .forgotPasswordLink {
+    font-size: 0.9em;
+  }
+  .authSwitch {
+    font-size: 0.9em;
+    margin-top: 25px;
+  }
+}
+.errorMessage {
+  color: #e74c3c; /* لون أحمر واضح للأخطاء */
+  background-color: #fdd; /* خلفية فاتحة لتمييز الرسالة */
+  border: 1px solid #e74c3c;
+  padding: 10px 15px;
+  border-radius: 8px;
+  margin-bottom: 15px;
+  text-align: center;
+  font-size: 0.95em;
+  font-weight: 500;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}

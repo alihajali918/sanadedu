@@ -1,0 +1,456 @@
+/* ==========================================================
+    Case Details Page Styles - Updated with Quality Badge
+   ========================================================== */
+
+/* Main Page Container */
+.caseDetailsPageContent {
+    background-color: var(--light-grey);
+    padding: 0;
+    padding-top: 100px;
+    padding-bottom: 40px;
+}
+
+/* Updated Layout Container */
+.splitLayoutContainer {
+    padding-top: 50px;
+    padding-bottom: 50px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+/* Main Content Area (Now fills the full container width) */
+.mainContentArea {
+    background-color: var(--background-white);
+    border-radius: 15px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+    padding: 40px;
+}
+
+/* Content Area */
+.caseTopInfoBarInsideContainer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--light-grey);
+    margin-bottom: 40px;
+}
+
+.schoolNameDisplay {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.schoolNameDisplay .schoolName {
+    font-family: var(--font-changa);
+    font-size: 2.2em;
+    color: var(--primary-green);
+    margin: 0;
+    text-align: right;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* New Quality Badge and Tooltip Styles */
+.qualityBadge {
+    position: relative;
+    display: inline-block;
+    cursor: pointer;
+    color: var(--highlight-gold);
+    font-size: 1.5rem;
+    line-height: 1;
+}
+
+.qualityBadge .tooltipText {
+    visibility: hidden;
+    width: 250px;
+    background-color: var(--text-black);
+    color: var(--background-white);
+    text-align: center;
+    border-radius: 6px;
+    padding: 10px;
+    position: absolute;
+    z-index: 10;
+    bottom: 150%;
+    left: 50%;
+    transform: translateX(-50%);
+    opacity: 0;
+    transition: opacity 0.3s, visibility 0.3s;
+    font-size: 0.8rem;
+    font-family: var(--font-changa);
+    white-space: normal;
+    line-height: 1.4;
+}
+
+.qualityBadge:hover .tooltipText {
+    visibility: visible;
+    opacity: 1;
+}
+
+.qualityBadge .tooltipText::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border-width: 5px;
+    border-style: solid;
+    border-color: var(--text-black) transparent transparent transparent;
+}
+
+
+.remainingFundsDisplay p {
+    font-size: 1.2em;
+    color: var(--text-black);
+    margin: 0;
+    white-space: nowrap;
+}
+
+.highlightGold {
+    color: var(--highlight-gold);
+    font-weight: bold;
+}
+.highlightGreen {
+    color: var(--primary-green);
+    font-weight: bold;
+}
+
+.directDonateInput {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.donateGeneralBtn {
+    padding: 10px 20px;
+    background-color: var(--highlight-gold);
+    color: var(--text-white);
+    border-radius: 5px;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+}
+.donateGeneralBtn:hover {
+    background-color: #b18a37;
+}
+
+/* Case Sub-Navigation (Tabs) */
+.caseSubNavSectionTabs {
+    margin-bottom: 40px;
+    background-color: var(--light-grey);
+    border-radius: 8px;
+    padding: 10px;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.caseSubNavSectionTabs .subNavContainer {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.caseSubNavSectionTabs .navItem {
+    flex-grow: 1;
+    text-align: center;
+    color: var(--text-black);
+    font-family: var(--font-changa);
+    font-weight: 600;
+    padding: 12px 15px;
+    border-radius: 6px;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    white-space: nowrap;
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+}
+
+.caseSubNavSectionTabs .navItem:hover {
+    background-color: rgba(0,0,0,0.05);
+    color: var(--primary-green);
+}
+
+.caseSubNavSectionTabs .navItem.active {
+    background-color: var(--primary-green);
+    color: var(--background-white);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.caseSubNavSectionTabs .navItem.active:hover {
+    background-color: var(--primary-green);
+    color: var(--background-white);
+}
+
+/* Tab Content Area */
+.tabContentArea {
+    min-height: 300px;
+    background-color: transparent;
+    padding: 0;
+    border-radius: 0;
+    box-shadow: none;
+    margin-top: 20px;
+}
+
+/* Category Tabs (Horizontal Scroll) */
+.categoryTabsContainer {
+    display: flex;
+    overflow-x: auto;
+    white-space: nowrap;
+    gap: 15px;
+    padding: 10px 0;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    border-bottom: 2px solid var(--light-grey);
+    margin-bottom: 40px;
+}
+
+.categoryTabsContainer::-webkit-scrollbar {
+    display: none;
+}
+
+.categoryTabItem {
+    flex-shrink: 0;
+    background-color: var(--light-grey);
+    color: var(--text-black);
+    border: 1px solid var(--light-grey);
+    border-radius: 50px;
+    padding: 10px 20px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--font-changa) !important;
+}
+
+.categoryTabItem:hover {
+    background-color: #e0e0e0;
+}
+
+.categoryTabItem.activeTab {
+    background-color: var(--primary-green);
+    color: var(--background-white);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.categoryTabItem.activeTab:hover {
+    background-color: var(--primary-green);
+    color: var(--background-white);
+}
+
+.categoryTabItem i {
+    font-size: 1.1rem;
+}
+
+/* Products/Needs Grid */
+.productsNeedsGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 25px;
+    justify-items: center;
+}
+
+/* Product Card - New Design */
+.productCardNewDesign {
+    background-color: var(--background-white);
+    border: 1px solid var(--light-grey);
+    border-radius: 15px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    overflow: hidden;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    position: relative;
+    width: 100%;
+}
+
+.productCardNewDesign:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+}
+
+.productImageWrapper {
+    width: 100%;
+    height: 120px;
+    position: relative;
+    overflow: hidden;
+    border-radius: 10px;
+    margin-bottom: 10px;
+}
+
+.productImageWrapper img {
+    object-fit: cover;
+}
+
+.productItemNameNew {
+    font-family: var(--font-changa);
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--text-black);
+    margin-bottom: 5px;
+    line-height: 1.2;
+}
+
+.productPriceAndControls {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    margin-top: 10px;
+}
+
+.productPriceGroup {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    margin-bottom: 10px;
+}
+
+.productPriceValue {
+    font-size: 1.4rem;
+    font-weight: bold;
+    color: var(--primary-green);
+}
+
+.quantityControlNew {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 120px;
+    background-color: var(--light-grey);
+    border-radius: 25px;
+    padding: 5px;
+    gap: 5px;
+}
+
+.quantityInputNew {
+    background: transparent;
+    border: none;
+    color: var(--text-black);
+    font-size: 1rem;
+    font-weight: bold;
+    width: 30px;
+    text-align: center;
+    -moz-appearance: textfield;
+}
+
+.quantityInputNew::-webkit-outer-spin-button,
+.quantityInputNew::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.quantityInputNew:focus {
+    outline: none;
+}
+
+.quantityBtn {
+    background-color: var(--background-white);
+    border: 1px solid var(--light-grey);
+    color: var(--text-black);
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.quantityBtn:hover {
+    background-color: var(--primary-green);
+    color: var(--background-white);
+}
+
+.quantityBtn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btnDonateNew {
+    background-color: var(--highlight-gold);
+    color: var(--text-white);
+    border: none;
+    border-radius: 25px;
+    width: calc(100% - 20px);
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    padding: 10px 15px;
+    margin-top: 15px;
+    font-family: var(--font-changa);
+}
+
+.btnDonateNew:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+    background-color: #b18a37;
+}
+
+/* General Case Details Blocks (for description, gallery, etc.) */
+.caseDescriptionBlock,
+.caseGalleryBlock {
+    background-color: var(--background-white);
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    margin-top: 40px;
+    border: 1px solid var(--light-grey);
+}
+
+.caseDescriptionBlock h2, .caseGalleryBlock h3 {
+    font-size: 1.8em;
+    color: var(--primary-green);
+    margin-bottom: 20px;
+    font-family: var(--font-changa);
+    text-align: right;
+}
+
+.caseDescriptionBlock p {
+    font-size: 1em;
+    line-height: 1.7;
+    color: var(--text-black);
+    margin-bottom: 10px;
+}
+.caseDescriptionBlock p strong {
+    color: var(--highlight-gold);
+}
+
+.caseGalleryGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 15px;
+}
+
+.galleryItem {
+    position: relative;
+    width: 100%;
+    padding-top: 75%;
+    overflow: hidden;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.galleryItem .responsiveImage {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}

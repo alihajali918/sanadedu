@@ -1,0 +1,63 @@
+/* src/components/specific/AchievementsSection/AchievementsSection.module.css */
+
+/* Achievements Section Styles */
+.achievementsSection { /* تم التغيير: achievements-section -> achievementsSection */
+    padding: 60px 0;
+    background-color: var(--background-white);
+    text-align: center;
+}
+
+.sectionTitle { /* تم التغيير: section-title -> sectionTitle */
+    font-size: 2.5em;
+    font-weight: 700;
+    color: var(--text-black);
+    margin-bottom: 50px;
+    text-align: center;
+}
+
+.achievementsGrid { /* تم التغيير: achievements-grid -> achievementsGrid */
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 30px;
+    justify-items: center;
+    align-items: start;
+}
+
+.achievementItem { /* تم التغيير: achievement-item -> achievementItem */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 20px;
+}
+
+.achievementIcon { /* تم التغيير: achievement-icon -> achievementIcon */
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background-color: var(--primary-green);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.achievementIcon i { /* تم التغيير: achievement-icon i -> achievementIcon i */
+    font-size: 3.5em;
+    color: var(--background-white);
+}
+
+.achievementNumber { /* تم التغيير: achievement-number -> achievementNumber */
+    font-size: 2.8em;
+    font-weight: 700;
+    color: var(--highlight-gold);
+    margin-bottom: 10px;
+}
+
+.achievementTitle { /* تم التغيير: achievement-title -> achievementTitle */
+    font-size: 1.1em;
+    font-weight: 600;
+    color: var(--text-black);
+    line-height: 1.4;
+}

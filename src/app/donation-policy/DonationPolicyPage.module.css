@@ -1,0 +1,108 @@
+/* src/app/donation-policy/DonationPolicyPage.module.css */
+
+.policyPage {
+    padding: 60px 0;
+    background-color: #f8f9fa;
+    direction: rtl;
+    font-family: 'Changa', sans-serif;
+}
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 40px;
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 5px 25px rgba(0, 0, 0, 0.07);
+}
+
+.pageTitle {
+    text-align: center;
+    font-size: 2.5rem;
+    color: var(--primary-green);
+    margin-bottom: 40px;
+    border-bottom: 2px solid var(--highlight-gold);
+    padding-bottom: 20px;
+}
+
+.policySection {
+    margin-bottom: 30px;
+}
+
+.sectionTitle {
+    font-size: 1.8rem;
+    color: var(--text-black);
+    margin-bottom: 15px;
+    padding-right: 15px;
+    border-right: 4px solid var(--primary-green);
+}
+
+.policySection p {
+    font-size: 1.1rem;
+    line-height: 1.8;
+    color: #555;
+    margin-bottom: 10px;
+}
+
+.supportList, .policyList {
+    list-style: none;
+    padding-right: 20px;
+    margin-top: 15px;
+}
+
+.supportList li, .policyList li {
+    font-size: 1.1rem;
+    color: #555;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.supportList i {
+    color: var(--highlight-gold);
+    font-size: 1.2rem;
+    width: 25px; /* For alignment */
+    text-align: center;
+}
+
+.policyList li::before {
+    content: '•';
+    color: var(--primary-green);
+    font-weight: bold;
+    display: inline-block;
+    width: 1em;
+    margin-left: -1em;
+}
+
+.agreementSection {
+    margin-top: 40px;
+    padding: 20px;
+    background-color: #f1f8e9; /* Light green background */
+    border-radius: 8px;
+    border-right: 4px solid #8bc34a; /* Brighter green border */
+}
+
+.agreementSection .sectionTitle {
+    border-color: #8bc34a;
+}
+
+.backButtonContainer {
+    text-align: center;
+    margin-top: 40px;
+}
+
+.backButton {
+    display: inline-block;
+    padding: 12px 30px;
+    background-color: var(--primary-green);
+    color: var(--background-white);
+    border-radius: 5px;
+    text-decoration: none;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+}
+
+.backButton:hover {
+    background-color: var(--highlight-gold);
+}

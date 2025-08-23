@@ -1,0 +1,87 @@
+/* src/app/globals.css */
+
+/* ==========================================================
+   متغيرات الألوان (Color Variables)
+   ========================================================== */
+:root {
+    --primary-green: #4A6C47;        /* الأخضر الزيتي */
+    --cta-red: #B02E30;              /* الأحمر القاني لزر التبرع */
+    --highlight-gold: #CDA349;       /* الذهبي للإبراز */
+    --hover-gold:#ab883e;            /* الذهبي عند التمرير */
+    --background-white: #FFFFFF;     /* الأبيض للخلفيات */
+    --text-black: #1C1C1C;           /* الأسود المحايد للنصوص */
+    --text-white: #fff;               /* الأبيض للنصوص */
+    --light-grey: #F8F9FA;           /* للحدود أو بعض الخلفيات الفاتحة جداً */
+    --text-grey: #6c757d;            /* الرمادي للنصوص الثانوية */
+    --font-changa: var(--font-changa);
+
+}
+/* ==========================================================
+   الأنماط العامة وإعادة الضبط (Global Styles & Resets)
+   ========================================================== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    height: 100%; /* لضمان أن html و body يأخذان ارتفاع 100% من الشاشة */
+    overflow-x: hidden; /* لمنع التمرير الأفقي غير المرغوب فيه */
+    font-family: 'Changa', sans-serif !important;
+}
+
+body {
+    font-family: 'Changa', sans-serif !important; /* تم تحديث الخط إلى Changa */
+    direction: rtl; /* للتأكد من الاتجاه من اليمين لليسار */
+    unicode-bidi: embed; /* لضمان تطبيق الاتجاه بشكل صحيح */
+    text-align: right; /* محاذاة النص لليمين */
+    color: var(--text-black);
+    background-color: var(--background-white);
+    padding-top: 100px; /* هذا البادينغ لتعويض ارتفاع الهيدر الثابت */
+    font-feature-settings: "lnum"; /* لضمان استخدام الأرقام الغربية (lining numbers) */
+    font-variant-numeric: lining-nums; /* لضمان استخدام الأرقام الغربية (lining numbers) */
+}
+
+/* لمنع التمرير عندما تكون قائمة الموبايل مفتوحة */
+body.no-scroll {
+    overflow: hidden;
+}
+main {
+  padding-top: 10px; /* لتعويض ارتفاع الهيدر الثابت */
+}
+/* نمط لـ SVG (من كودك الأصلي) */
+.cls-1 {
+    fill: var(--primary-green);
+    stroke: var(--background-white);
+}
+
+a {
+    text-decoration: none;
+    color: inherit; /* ليرث اللون من العنصر الأب */
+}
+
+ul {
+    list-style: none;
+}
+
+/* ==========================================================
+   أنماط التخطيط والفئات المساعدة (Layout & Utility Classes)
+   ========================================================== */
+.container {
+    max-width: 1200px; /* عرض أقصى للمحتوى */
+    margin: 0 auto; /* توسيط المحتوى */
+    padding: 0 15px; /* هذا البادينغ كما أرسلته أنت */
+}
+
+/* أزرار الـ CTA الأساسية */
+.btn {
+    display: inline-block;
+    padding: 15px 30px; /* تم تعديل الـ padding هنا */
+    border-radius: 5px; /* حواف دائرية بسيطة */
+    transition: background-color 0.3s ease, color 0.3s ease;
+    font-weight: bold;
+    font-family: 'Changa', sans-serif; /* تم تحديث الخط إلى Changa */
+    text-align: center;
+}
+

@@ -1,0 +1,201 @@
+/* src/app/dashboard/profile/profile.module.css */
+
+.profileContainer {
+  padding: 20px;
+  background-color: var(--background-white);
+  border-radius: 10px;
+  box-shadow: 0 5px 25px rgba(0, 0, 0, 0.05);
+  direction: rtl; /* لضمان الاتجاه الصحيح للنص العربي */
+}
+
+.profileTitle {
+  font-size: 2.2em;
+  color: var(--primary-green);
+  margin-bottom: 15px;
+  text-align: right;
+  font-weight: 700;
+}
+
+.profileDescription {
+  font-size: 1em;
+  color: var(--text-dark);
+  margin-bottom: 30px;
+  line-height: 1.6;
+  text-align: right;
+}
+
+.profileCard {
+  background-color: var(--light-grey);
+  padding: 30px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  border-right: 5px solid var(--primary-green);
+}
+
+.profileDetails {
+  margin-bottom: 20px;
+}
+
+.detailItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.detailItem:last-child {
+  border-bottom: none;
+}
+
+.detailItem strong {
+  color: var(--primary-green);
+  font-weight: 600;
+  flex-basis: 40%; /* لتوزيع المساحة بين العنوان والقيمة */
+  text-align: right;
+  padding-left: 10px; /* مسافة عن القيمة */
+}
+
+.detailItem span {
+  color: var(--text-black);
+  flex-basis: 60%;
+  text-align: left;
+}
+
+.editButton {
+  background-color: var(--primary-green);
+  color: var(--text-white);
+  padding: 12px 25px;
+  border: none;
+  border-radius: 5px;
+  font-size: 1em;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  margin-top: 20px;
+  display: block; /* لجعل الزر يأخذ سطر كامل */
+  width: fit-content; /* ليأخذ عرض المحتوى فقط */
+  margin-right: auto; /* لجعله في المنتصف أو لليسار في RTL */
+  margin-left: auto; /* لجعله في المنتصف أو لليمين في RTL */
+  font-family: var(--font-changa);
+}
+
+.editButton:hover {
+  background-color: #3b5a38;
+  transform: translateY(-1px);
+}
+
+/* ستايلات وضع التعديل (النموذج) */
+.profileForm .formGroup {
+  margin-bottom: 15px;
+}
+
+.profileForm label {
+  display: block;
+  font-weight: 600;
+  color: var(--primary-green);
+  margin-bottom: 8px;
+  text-align: right;
+}
+
+.profileForm .formInput {
+  width: 100%;
+  padding: 10px 15px;
+  border: 1px solid var(--border-light);
+  border-radius: 5px;
+  font-size: 1em;
+  color: var(--text-black);
+  background-color: var(--background-white);
+  box-sizing: border-box; /* لضمان أن البادينغ لا يزيد العرض الكلي */
+  text-align: right; /* محاذاة النص داخل الإدخال */
+}
+
+.profileForm .formInput:focus {
+  border-color: var(--primary-green);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(60, 118, 61, 0.2); /* ظل خفيف عند التركيز */
+}
+
+.profileForm .formInput[disabled] {
+  background-color: #e9ecef;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.profileForm .formActions {
+  display: flex;
+  justify-content: flex-end; /* محاذاة الأزرار لليسار في RTL */
+  gap: 15px;
+  margin-top: 25px;
+}
+
+.saveButton, .cancelButton {
+  padding: 12px 25px;
+  border: none;
+  border-radius: 5px;
+  font-size: 1em;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.saveButton {
+  background-color: var(--primary-green);
+  color: var(--white-color);
+}
+
+.saveButton:hover {
+  background-color: #3b5a38;
+  transform: translateY(-1px);
+}
+
+.cancelButton {
+  background-color: var(--secondary-color); /* لون ثانوي أو رمادي */
+  color: var(--white-color);
+}
+
+.cancelButton:hover {
+  background-color: #5a7a57;
+  transform: translateY(-1px);
+}
+
+/* التعديلات للاستجابة على الشاشات الصغيرة */
+@media (max-width: 768px) {
+  .profileContainer {
+    padding: 15px;
+  }
+  .profileTitle {
+    font-size: 1.8em;
+  }
+  .profileDescription {
+    font-size: 0.9em;
+  }
+  .profileCard {
+    padding: 20px;
+  }
+  .detailItem {
+    flex-direction: column; /* عمودي على الشاشات الصغيرة */
+    align-items: flex-end; /* محاذاة لليمين */
+    padding: 10px 0;
+  }
+  .detailItem strong {
+    flex-basis: auto;
+    width: 100%;
+    margin-bottom: 5px;
+  }
+  .detailItem span {
+    flex-basis: auto;
+    width: 100%;
+    text-align: right;
+  }
+  .editButton {
+    width: 100%; /* الزر يأخذ عرض كامل على الجوال */
+    margin-left: 0;
+    margin-right: 0;
+  }
+  .profileForm .formActions {
+    flex-direction: column;
+    gap: 10px;
+  }
+  .saveButton, .cancelButton {
+    width: 100%;
+  }
+}

@@ -26,7 +26,6 @@
 }
 
 html, body {
-    height: 100%; /* لضمان أن html و body يأخذان ارتفاع 100% من الشاشة */
     overflow-x: hidden; /* لمنع التمرير الأفقي غير المرغوب فيه */
     font-family: 'Changa', sans-serif !important;
 }

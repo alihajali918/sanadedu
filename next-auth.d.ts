@@ -1,57 +1,45 @@
-// next-auth.d.ts
-import { DefaultSession, DefaultUser } from "next-auth";
-import { JWT } from "next-auth/jwt";
+// src/types/next-auth.d.ts (or types/next-auth.d.ts)
+import NextAuth from "next-auth";
+import { JWT } from "next-auth/jwt"; // Import JWT type
 
-// قم بتوسيع أنواع البيانات الافتراضية لـ NextAuth لإضافة خصائصنا المخصصة
+// Declare module augmentation for 'next-auth'
 declare module "next-auth" {
-  /**
-   * تعريف كائن الجلسة (Session) المتاح في جانب العميل.
-   * أضفنا خاصية 'wordpress' هنا لتضمين الـ JWT ومعرف المستخدم من ووردبريس.
-   */
+  // Extend the default Session object
   interface Session {
     user: {
-      wordpress: {
-        token: string;
-        userId: number;
-      };
-    } & DefaultSession["user"]; // دمج مع الخصائص الافتراضية للمستخدم في الجلسة
+      /** The user's WordPress JWT token. */
+      wordpressJwt?: string;
+      /** The user's WordPress ID. */
+      wordpressUserId?: string;
+      // You can add other WordPress-specific user data here if needed
+      // e.g., role, capabilities, etc.
+    } & DefaultSession["user"]; // Keep existing properties of DefaultSession user
   }
 
-  /**
-   * تعريف كائن المستخدم (User) الذي يُمرر بين دوال الـ Callbacks.
-   * هذه الخاصية اختيارية لأنها قد لا تكون موجودة في جميع سياقات المستخدم.
-   */
+  // Extend the default User object (used in signIn, jwt callbacks)
   interface User {
-    wordpress?: {
-      token: string;
-      userId: number;
-    };
+    /** The user's WordPress JWT token. */
+    wordpressJwt?: string;
+    /** The user's WordPress ID. */
+    wordpressUserId?: string;
+    /** The user's WordPress display name. */
+    wordpressUserName?: string;
+    /** The user's WordPress email. */
+    wordpressUserEmail?: string;
   }
 }
 
-// قم بتوسيع نوع الرمز (JWT) لتضمين بيانات ووردبريس.
+// Declare module augmentation for 'next-auth/jwt'
 declare module "next-auth/jwt" {
-  /**
-   * تعريف الرمز (JWT) الذي يُخزَّن داخليًا بواسطة NextAuth على الخادم.
-   * أضفنا خاصية 'wordpress' لتمرير بيانات الـ JWT الخاصة بنا.
-   */
+  // Extend the default JWT token
   interface JWT {
-    wordpress?: {
-      token: string;
-      userId: number;
-    };
-  }
-}
-
-// قم بتوسيع نوع ملف تعريف Google لإضافة خصائص الاسم الأول والأخير.
-declare module "next-auth/providers/google" {
-  /**
-   * تعريف ملف تعريف Google (GoogleProfile) لتضمين الأسماء.
-   * 'given_name' و 'family_name' هي خصائص عادة ما تأتي من ملف تعريف Google.
-   */
-  interface GoogleProfile extends Profile {
-    given_name?: string; // الاسم الأول
-    family_name?: string; // الاسم الأخير
-    sub: string;         // المعرف الفريد من Google (مثل socialId)
+    /** The user's WordPress JWT token. */
+    wordpressJwt?: string;
+    /** The user's WordPress ID. */
+    wordpressUserId?: string;
+    /** The user's WordPress display name. */
+    wordpressUserName?: string;
+    /** The user's WordPress email. */
+    wordpressUserEmail?: string;
   }
 }

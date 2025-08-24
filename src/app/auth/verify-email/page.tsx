@@ -10,22 +10,29 @@ import { useAuth } from '@/app/context/AuthContext';
 const WORDPRESS_API_ROOT = process.env.NEXT_PUBLIC_WORDPRESS_API_ROOT;
 
 const VerifyEmailPage: React.FC = () => {
+    // === رسالة تصحيح جديدة هنا ===
+    console.log('[VerifyEmailPage] Component is rendering.');
+
   const searchParams = useSearchParams();
   const router = useRouter();
   const [verificationStatus, setVerificationStatus] = useState('جارٍ التحقق من بريدك الإلكتروني...');
   const [isSuccess, setIsSuccess] = useState(false);
   const { login } = useAuth();
-  const [username, setUsername] = useState<string | null>(null); // هذا يمثل 'user_login' من الـ URL
+  const [username, setUsername] = useState<string | null>(null);
 
   useEffect(() => {
+    console.log('[VerifyEmailPage] useEffect is running.'); // رسالة تصحيح إضافية داخل useEffect
     const key = searchParams.get('key');
-    const userFromUrl = searchParams.get('user'); // استخدم اسم متغير مختلف لتجنب الالتباس
+    const userFromUrl = searchParams.get('user');
 
-    setUsername(userFromUrl); // قم بتحديث حالة اسم المستخدم من الـ URL
+    console.log('[VerifyEmailPage] URL Params - key:', key ? '***key-present***' : '***key-missing***', 'user:', userFromUrl);
+
+    setUsername(userFromUrl);
 
     if (!key || !userFromUrl) {
       setVerificationStatus('رمز التحقق أو اسم المستخدم مفقود. يرجى التأكد من أن الرابط صحيح.');
       setIsSuccess(false);
+      console.error('[VerifyEmailPage] Missing URL parameters: key or user.');
       return;
     }
 
@@ -33,12 +40,15 @@ const VerifyEmailPage: React.FC = () => {
       if (!WORDPRESS_API_ROOT) {
         setVerificationStatus('خطأ في الإعداد: عنوان API غير موجود. يرجى التحقق من متغير البيئة.');
         setIsSuccess(false);
-        console.error('Environment variable NEXT_PUBLIC_WORDPRESS_API_ROOT is not set.');
+        console.error('[VerifyEmailPage] Environment variable NEXT_PUBLIC_WORDPRESS_API_ROOT is not set.');
         return;
       }
 
       try {
         const wpVerifyApiUrl = `${WORDPRESS_API_ROOT}/sanad/v1/verify-email`;
+        console.log('[VerifyEmailPage] Sending verification request to:', wpVerifyApiUrl);
+        console.log('[VerifyEmailPage] Request body:', { key: key ? '***key-present***' : '***key-missing***', user: userFromUrl });
+
 
         const response = await fetch(wpVerifyApiUrl, {
           method: 'POST',
@@ -49,33 +59,37 @@ const VerifyEmailPage: React.FC = () => {
         });
 
         const data = await response.json();
-        // يمكنك طباعة الـ data هنا للتحقق من الاستجابة
-        // console.log('API Response Data:', data);
+        console.log('[VerifyEmailPage] API Response Data:', data);
+
 
         if (response.ok && data.token) {
           const userLocale = data.user_locale || 'en-US';
-          // === التعديل هنا: استخدام data.user_email بدلاً من username ===
+          console.log('[VerifyEmailPage] Verification successful. Calling login function...');
           login(data.token, data.user_display_name, data.user_email, userLocale);
+          console.log('[VerifyEmailPage] Login function called. Preparing for redirection...');
+
 
           setVerificationStatus(data.message || 'تم تفعيل حسابك بنجاح! أنت الآن مسجل دخول.');
           setIsSuccess(true);
           
           setTimeout(() => {
+            console.log('[VerifyEmailPage] Redirecting to /donor/dashboard');
             router.push('/donor/dashboard');
           }, 2000);
         } else {
+          console.error('[VerifyEmailPage] Verification failed:', data.message);
           setVerificationStatus(data.message || 'فشل تفعيل الحساب. يرجى المحاولة لاحقاً أو التواصل مع الدعم.');
           setIsSuccess(false);
         }
       } catch (error) {
         setVerificationStatus('حدث خطأ في الاتصال بالسيرفر. يرجى المحاولة لاحقاً.');
         setIsSuccess(false);
-        console.error('Email verification API call error:', error);
+        console.error('[VerifyEmailPage] Email verification API call error:', error);
       }
     };
 
     verifyEmail();
-  }, [searchParams, router, login]); // لا تحتاج لإضافة username إلى مصفوفة التبعيات هنا
+  }, [searchParams, router, login]);
 
   return (
     <div className={styles.authContainer}>

@@ -8,7 +8,7 @@ import { useRouter } from 'next/navigation';
 
 import styles from '@/app/cases/[id]/page.module.css';
 import { useCart, CartItem } from '@/app/context/CartContext';
-import { Need, CaseItem } from 'lib/types'; // استيراد الأنواع من ملف types.ts الجديد
+import { Need, CaseItem } from 'lib/types';
 
 interface CaseDetailsContentProps {
   caseItem: CaseItem;
@@ -34,7 +34,7 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({ caseItem }) => 
 
   const [donationQuantities, setDonationQuantities] = useState<{ [key: string]: number }>(() => {
     const initialQuantities = caseItem?.needs.reduce((acc, need) => {
-      acc[String(need.id)] = 1; // تعيين الكمية الافتراضية إلى 1 لكل احتياج
+      acc[String(need.id)] = 1;
       return acc;
     }, {} as { [key: string]: number }) || {};
     return initialQuantities;
@@ -64,7 +64,7 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({ caseItem }) => 
     const quantity = donationQuantities[need.id.toString()] || 0;
     if (quantity > 0) {
       const itemToAdd: CartItem = {
-        id: `${caseItem.id}-${need.id}`, // معرف فريد للعنصر في السلة (مزيج من معرف الحالة ومعرف الاحتياج)
+        id: `${caseItem.id}-${need.id}`,
         institutionId: caseItem.id.toString(),
         institutionName: caseItem.title,
         needId: need.id.toString(),
@@ -74,7 +74,7 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({ caseItem }) => 
         quantity: quantity,
         totalPrice: quantity * need.unitPrice,
       };
-      addItem(itemToAdd); // هذه الدالة هي التي تحتاج إلى منطق التحديث
+      addItem(itemToAdd);
       console.log(`تم إضافة ${quantity} من "${itemToAdd.itemName}" إلى سلة التبرعات!`);
     } else {
       console.log("الرجاء تحديد كمية أكبر من الصفر.");
@@ -92,7 +92,7 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({ caseItem }) => 
       const remainingQuantity = need.quantity - need.funded;
       if (remainingQuantity > 0) {
         const itemToAdd: CartItem = {
-          id: `${caseItem.id}-${need.id}`, // معرف فريد للعنصر في السلة
+          id: `${caseItem.id}-${need.id}`,
           institutionId: caseItem.id.toString(),
           institutionName: caseItem.title,
           needId: need.id.toString(),
@@ -102,7 +102,7 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({ caseItem }) => 
           quantity: remainingQuantity,
           totalPrice: remainingQuantity * need.unitPrice,
         };
-        addItem(itemToAdd); // هذه الدالة هي التي تحتاج إلى منطق التحديث
+        addItem(itemToAdd);
         itemsAddedCount++;
         totalAmountToDonate += remainingQuantity * need.unitPrice;
       }
@@ -119,39 +119,48 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({ caseItem }) => 
     <main className={styles.caseDetailsPageContent}>
       <div className={`container`}>
         <div className={styles.mainContentArea}>
-          {/* شريط معلومات الحالة العلوي */}
           <div className={styles.caseTopInfoBarInsideContainer}>
-            <div className={styles.schoolNameDisplay}>
-              <h2 className={styles.schoolName}>
-                {caseItem.title}
+            {/* القسم الأيمن */}
+            <div className={styles.leftSection}>
+              <h2 className={styles.schoolName}>{caseItem.title}</h2>
+              <p className={styles.licensingInfo}>
                 <span className={styles.qualityBadge}>
                   <i className="fas fa-check-circle"></i>
-                  <span className={styles.tooltipText}>تصريح رسمي من وزارة الخارجية – قسم التنسيق للعمل الإنساني (HAC) لتوثيق المدارس ميدانيًا.</span>
                 </span>
-              </h2>
+                تصريح رسمي من وزارة الخارجية – قسم التنسيق للعمل الإنساني (HAC) لتوثيق المدارس ميدانيًا.
+              </p>
+              <p className={styles.educationalPricing}>
+                <span className={styles.qualityBadge}>
+                  <i className="fas fa-check-circle"></i>
+                </span>
+                تسعير وزارة التربية والتعليم
+              </p>
             </div>
-            <div className={styles.remainingFundsDisplay}>
-              <p>المتبقي: <span className={styles.highlightGold}>{formatCurrencyWestern(caseItem.fundNeeded - caseItem.fundRaised)}</span> من أصل <span className={styles.highlightGreen}>{formatCurrencyWestern(caseItem.fundNeeded)}</span></p>
-            </div>
-            <div className={styles.directDonateInput}>
-              <button className={`${styles.requestDetailsBtn} btn`}>طلب تفصيل الاحتياج <i className="fas fa-list-alt"></i></button>
-              <button onClick={handleDonateAllRemainingNeeds} className={`${styles.donateGeneralBtn} btn btn-cta-primary`}>تبني المؤسسة <i className="fas fa-heart"></i></button>
+
+            {/* القسم الأيسر */}
+            <div className={styles.rightSection}>
+              <div className={styles.remainingFundsDisplay}>
+                <p>المتبقي: <span className={styles.highlightGold}>{formatCurrencyWestern(caseItem.fundNeeded - caseItem.fundRaised)}</span> من أصل <span className={styles.highlightGreen}>{formatCurrencyWestern(caseItem.fundNeeded)}</span></p>
+              </div>
+              <div className={styles.directDonateInput}>
+                <button className={`${styles.requestDetailsBtn} btn`}>طلب تفصيل الاحتياج <i className="fas fa-list-alt"></i></button>
+                <button onClick={handleDonateAllRemainingNeeds} className={`${styles.donateGeneralBtn} btn btn-cta-primary`}>تبني المؤسسة <i className="fas fa-heart"></i></button>
+              </div>
             </div>
           </div>
 
-          {/* شريط التبويبات الرئيسي */}
+          {/* شريط التبويبات الرئيسي - تم إضافة الزر هنا */}
           <div className={styles.caseSubNavSectionTabs}>
             <div className={styles.subNavContainer}>
               <button className={`${styles.navItem} ${mainContentTab === 'products' ? styles.active : ''}`} onClick={() => setMainContentTab('products')}>صفحة المنتجات</button>
               <button className={`${styles.navItem} ${mainContentTab === 'about' ? styles.active : ''}`} onClick={() => setMainContentTab('about')}>عن المدرسة + توثيق وصور</button>
+              <button className={`${styles.navItem} ${mainContentTab === 'inquiries' ? styles.active : ''}`} onClick={() => setMainContentTab('inquiries')}>أسئلة واستفسارات</button>
             </div>
           </div>
 
-          {/* محتوى التبويبات */}
           <div className={styles.tabContentArea}>
             {mainContentTab === 'products' && (
               <div className={styles.productsNeedsGridTab}>
-                {/* Product Categories Tabs */}
                 <div className={`${styles.categoryTabsContainer} mb-40`}>
                   {Object.keys(needsByCategory).length > 0 ? (
                     Object.keys(needsByCategory).map((categoryName) => {
@@ -172,8 +181,6 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({ caseItem }) => 
                     <p className={`text-center ${styles.noProductsMessage}`}>لا توجد فئات متاحة.</p>
                   )}
                 </div>
-
-                {/* Products List */}
                 {selectedCategory && (
                   <div className={`${styles.productsListSection} mt-40`}>
                     <h3 className={styles.productCategoryTitle}>{selectedCategory}</h3>
@@ -250,7 +257,7 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({ caseItem }) => 
                 )}
               </div>
             )}
-
+            {/* المحتوى الخاص بـ "عن المدرسة" */}
             {mainContentTab === 'about' && (
               <div className={`${styles.aboutSchoolTabContent} ${styles.tabPane} py-40`}>
                 <h2 className="section-title text-center">عن المدرسة + توثيق وصور</h2>
@@ -270,6 +277,16 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({ caseItem }) => 
                       </div>
                     ))}
                   </div>
+                </div>
+              </div>
+            )}
+            {/* المحتوى الخاص بـ "أسئلة واستفسارات" */}
+            {mainContentTab === 'inquiries' && (
+              <div className={`${styles.inquiriesTabContent} ${styles.tabPane} py-40`}>
+                <h2 className="section-title text-center">أسئلة واستفسارات</h2>
+                <div className={`${styles.inquiriesBlock} mb-40`}>
+                  <p>هنا يمكنك إضافة محتوى صفحة الأسئلة والاستفسارات.</p>
+                  <p>يمكن أن يتضمن نموذجًا للأسئلة الشائعة أو نموذج اتصال.</p>
                 </div>
               </div>
             )}

@@ -23,7 +23,7 @@ const handler = NextAuth({
 
       if (account?.provider === "google") {
         try {
-        const wordpressApiUrl = `${process.env.NEXT_PUBLIC_WORDPRESS_API_URL}/sanad/v1/google-auth-test`;
+        const wordpressApiUrl = `${process.env.NEXT_PUBLIC_WORDPRESS_API_URL}/sanad/v1/social-auth-process`;
 
           const response = await fetch(wordpressApiUrl, {
             method: "POST",

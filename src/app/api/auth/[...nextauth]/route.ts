@@ -1,17 +1,17 @@
 // ==========================================================
-// الملف: src/app/api/auth/[...nextauth]/route.ts
-// الوصف: مسار API لـ NextAuth.js للتعامل مع استدعاءات المصادقة (callbacks).
-// يقوم هذا الملف بإعداد مصادقة Google OAuth ويدير إنشاء الجلسة،
-// ويشمل الآن رمز JWT الخاص بـ WordPress في جلسة NextAuth.
+// FILE: src/app/api/auth/[...nextauth]/route.ts
+// DESCRIPTION: NextAuth.js API route for handling authentication callbacks.
+// This sets up Google OAuth and handles session creation, now including
+// the WordPress JWT token in the NextAuth session.
 // ==========================================================
 
-// --- الاستيرادات الأساسية ---
-// تأكد من استيراد NextAuth كدالة افتراضية
+// --- CORE IMPORTS ---
+// Ensure NextAuth is imported as the default function
 import NextAuth from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 
-// --- إعداد NEXTAUTH ---
-const handler = NextAuth({ // NextAuth يتم استدعاؤها الآن بشكل صحيح كدالة هنا
+// --- NEXTAUTH CONFIGURATION ---
+const handler = NextAuth({ // NextAuth is now correctly called as a function here
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID as string,
@@ -19,7 +19,7 @@ const handler = NextAuth({ // NextAuth يتم استدعاؤها الآن بشك
     }),
   ],
   callbacks: {
-    // وظيفة رد الاتصال signIn: تتعامل مع مصادقة المستخدم والتفاعل مع الواجهة الخلفية لـ WordPress
+    // signIn callback: Handles user authentication and interaction with WordPress backend
     async signIn({ user, account, profile }) {
       if (account?.provider === "google") {
         try {
@@ -31,7 +31,7 @@ const handler = NextAuth({ // NextAuth يتم استدعاؤها الآن بشك
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
-              googleId: profile?.sub, // المعرف الفريد لمستخدم Google
+              googleId: profile?.sub, // Google user's unique ID
               email: user.email,
               name: user.name,
             }),
@@ -40,31 +40,31 @@ const handler = NextAuth({ // NextAuth يتم استدعاؤها الآن بشك
           const data = await response.json();
 
           if (response.ok && data.token && data.user_id) {
-            // إثراء كائن 'user' ببيانات WordPress المحددة
-            // سيتم تمرير هذه البيانات إلى وظيفة رد الاتصال 'jwt'
+            // Augment the 'user' object with WordPress specific data
+            // This data will be passed to the 'jwt' callback
             (user as any).wordpressJwt = data.token;
             (user as any).wordpressUserId = data.user_id;
             (user as any).wordpressUserName = data.user_display_name;
             (user as any).wordpressUserEmail = data.user_email;
 
-            return true; // السماح لـ NextAuth بإكمال عملية تسجيل الدخول.
+            return true; // Allow NextAuth to complete the sign-in process.
           } else {
-            console.error("خطأ من الواجهة الخلفية لـ WordPress أثناء مصادقة Google:", data);
-            return false; // منع تسجيل الدخول إذا فشلت معالجة WordPress
+            console.error("Error from WordPress backend during Google Auth:", data);
+            return false; // Prevent sign-in if WordPress processing fails
           }
         } catch (error) {
-          console.error("فشل الاتصال بالواجهة الخلفية لـ WordPress لمصادقة Google:", error);
-          return false; // منع تسجيل الدخول عند حدوث خطأ في الشبكة
+          console.error("Failed to connect to WordPress backend for Google Auth:", error);
+          return false; // Prevent sign-in on network error
         }
       }
-      return true; // السماح بتسجيل الدخول للموفرين الآخرين إن وجدوا
+      return true; // Allow sign-in for other providers if any
     },
 
-    // وظيفة رد الاتصال jwt: تعالج رمز JWT الذي يخزنه NextAuth
+    // jwt callback: Manipulates the JWT token that NextAuth stores
     async jwt({ token, user }) {
-      // إذا كان 'user' موجودًا، فهذا يعني حدوث تسجيل دخول جديد أو تحديث لبيانات المستخدم
+      // If 'user' exists, it means a new sign-in or user data update occurred
       if (user) {
-        // نقل بيانات WordPress المحددة من 'user' إلى 'token'
+        // Transfer WordPress specific data from 'user' to the 'token'
         token.wordpressJwt = (user as any).wordpressJwt;
         token.wordpressUserId = (user as any).wordpressUserId;
         token.wordpressUserName = (user as any).wordpressUserName;
@@ -73,9 +73,9 @@ const handler = NextAuth({ // NextAuth يتم استدعاؤها الآن بشك
       return token;
     },
 
-    // وظيفة رد الاتصال session: تعرض البيانات المخصصة من رمز JWT إلى جلسة جانب العميل
+    // session callback: Exposes custom data from the JWT token to the client-side session
     async session({ session, token }) {
-      // إضافة بيانات WordPress المحددة من 'token' إلى 'session.user'
+      // Add WordPress specific data from 'token' to 'session.user'
       if (token.wordpressJwt) {
         (session.user as any).wordpressJwt = token.wordpressJwt;
       }
@@ -83,20 +83,20 @@ const handler = NextAuth({ // NextAuth يتم استدعاؤها الآن بشك
         (session.user as any).wordpressUserId = token.wordpressUserId;
       }
       if (token.wordpressUserName) {
-        session.user.name = token.wordpressUserName; // (اختياري) تجاوز الاسم الافتراضي
+        session.user.name = token.wordpressUserName; // Optionally overwrite the default name
       }
       if (token.wordpressUserEmail) {
-        session.user.email = token.wordpressUserEmail; // (اختياري) تجاوز البريد الإلكتروني الافتراضي
+        session.user.email = token.wordpressUserEmail; // Optionally overwrite the default email
       }
       return session;
     },
   },
   pages: {
-    signIn: "/auth/login", // إعادة التوجيه إلى صفحة تسجيل الدخول المخصصة لدينا
-    error: "/auth/error", // (اختياري) صفحة خطأ مخصصة لأخطاء NextAuth
+    signIn: "/auth/login", // Redirects to our custom login page
+    error: "/auth/error", // Optional: A custom error page for NextAuth errors
   },
 });
 
-// --- تصدير المعالجات (EXPORTR HANDLERS) ---
-// تصدير المعالج لطلبات GET و POST
+// --- EXPORT HANDLERS ---
+// Export the handler for both GET and POST requests
 export { handler as GET, handler as POST };

@@ -9,6 +9,10 @@ import Link from 'next/link';
 import React, { useState } from 'react';
 import styles from '../login/login.module.css'; // Reusing login/signup styles for consistency
 
+// تحديد متغير البيئة لعنوان الـ API
+// يجب التأكد أن هذا المتغير متاح في ملف .env.local وعلى Vercel
+const WORDPRESS_API_ROOT = process.env.NEXT_PUBLIC_WORDPRESS_API_ROOT;
+
 const ForgotPasswordPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [message, setMessage] = useState(null);
@@ -21,9 +25,18 @@ const ForgotPasswordPage: React.FC = () => {
     setIsError(false);
     setIsLoading(true);
 
+    // التحقق من وجود متغير البيئة
+    if (!WORDPRESS_API_ROOT) {
+      setMessage('خطأ في الإعداد: عنوان API غير موجود. يرجى التحقق من متغير البيئة.');
+      setIsError(true);
+      setIsLoading(false);
+      console.error('Environment variable NEXT_PUBLIC_WORDPRESS_API_ROOT is not set.');
+      return;
+    }
+
     try {
-      // IMPORTANT: This URL must point to your custom WordPress API endpoint for forgot password request.
-      const wpForgotPasswordApiUrl = 'https://sanadedu.org/backend/wp-json/sanad/v1/forgot-password';
+      // تم تحديث هذا السطر لاستخدام متغير البيئة بدلاً من الرابط الثابت
+      const wpForgotPasswordApiUrl = `${WORDPRESS_API_ROOT}/sanad/v1/forgot-password`;
 
       const response = await fetch(wpForgotPasswordApiUrl, {
         method: 'POST',

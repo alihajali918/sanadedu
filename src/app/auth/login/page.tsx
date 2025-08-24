@@ -12,6 +12,10 @@ import styles from './login.module.css'; // Import CSS module for styling
 import { useRouter } from 'next/navigation'; // Import useRouter for redirection
 import { useAuth } from '@/app/context/AuthContext'; // <--- تم إضافة هذا الاستيراد
 
+// تحديد متغير البيئة لعنوان الـ API
+// يجب التأكد أن هذا المتغير متاح في ملف .env.local وعلى Vercel
+const WORDPRESS_API_ROOT = process.env.NEXT_PUBLIC_WORDPRESS_API_ROOT;
+
 const LoginPage: React.FC = () => {
   // State variables to manage form inputs and UI feedback
   const [email, setEmail] = useState('');
@@ -28,10 +32,17 @@ const LoginPage: React.FC = () => {
     setError(null); // Clear previous errors
     setIsLoading(true); // Set loading state to true
 
+    // التحقق من وجود متغير البيئة
+    if (!WORDPRESS_API_ROOT) {
+      setError('خطأ في الإعداد: عنوان API غير موجود. يرجى التحقق من متغير البيئة.');
+      setIsLoading(false);
+      console.error('Environment variable NEXT_PUBLIC_WORDPRESS_API_ROOT is not set.');
+      return;
+    }
+
     try {
-      // IMPORTANT: This URL must point to your JWT Authentication plugin's endpoint.
-      // Based on our setup, it should be correct now.
-      const wpLoginApiUrl = 'https://sanadedu.org/backend/wp-json/jwt-auth/v1/token';
+      // تم تحديث هذا السطر لاستخدام متغير البيئة بدلاً من الرابط الثابت
+      const wpLoginApiUrl = `${WORDPRESS_API_ROOT}/jwt-auth/v1/token`;
       
       // Make a POST request to the WordPress JWT authentication endpoint
       const response = await fetch(wpLoginApiUrl, {

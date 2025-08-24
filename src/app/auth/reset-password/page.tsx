@@ -10,6 +10,10 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation'; // Import necessary hooks for URL params and navigation
 import styles from '../login/login.module.css'; // Reusing login/signup styles for consistency
 
+// تحديد متغير البيئة لعنوان الـ API
+// يجب التأكد أن هذا المتغير متاح في ملف .env.local وعلى Vercel
+const WORDPRESS_API_ROOT = process.env.NEXT_PUBLIC_WORDPRESS_API_ROOT;
+
 const ResetPasswordPage: React.FC = () => {
   const searchParams = useSearchParams(); // Hook to access URL query parameters
   const router = useRouter(); // Hook for programmatic navigation
@@ -63,10 +67,18 @@ const ResetPasswordPage: React.FC = () => {
 
     setIsLoading(true); // Set loading state
 
+    // التحقق من وجود متغير البيئة
+    if (!WORDPRESS_API_ROOT) {
+      setMessage('خطأ في الإعداد: عنوان API غير موجود. يرجى التحقق من متغير البيئة.');
+      setIsError(true);
+      setIsLoading(false);
+      console.error('Environment variable NEXT_PUBLIC_WORDPRESS_API_ROOT is not set.');
+      return;
+    }
+
     try {
-      // IMPORTANT: This URL must point to your custom WordPress API endpoint for password reset submission.
-      // It uses the 'sanad/v1/reset-password' endpoint from our custom plugin.
-      const wpResetPasswordApiUrl = 'https://sanadedu.org/backend/wp-json/sanad/v1/reset-password';
+      // تم تحديث هذا السطر لاستخدام متغير البيئة بدلاً من الرابط الثابت
+      const wpResetPasswordApiUrl = `${WORDPRESS_API_ROOT}/sanad/v1/reset-password`;
 
       // Make a POST request to the WordPress API
       const response = await fetch(wpResetPasswordApiUrl, {

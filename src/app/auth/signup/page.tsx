@@ -12,6 +12,10 @@ import styles from './signup.module.css'; // Import CSS module for styling
 import { useRouter } from 'next/navigation'; // Import useRouter for redirection
 import { signIn } from "next-auth/react"; // Import signIn function from next-auth
 
+// تحديد متغير البيئة لعنوان الـ API
+// يجب التأكد أن هذا المتغير متاح في ملف .env.local وعلى Vercel
+const WORDPRESS_API_ROOT = process.env.NEXT_PUBLIC_WORDPRESS_API_ROOT;
+
 const SignupPage: React.FC = () => {
   // State variables to manage form inputs and UI feedback
   const [fullName, setFullName] = useState('');
@@ -51,9 +55,17 @@ const SignupPage: React.FC = () => {
 
     setIsLoading(true); // Set loading state to true
 
+    // التحقق من وجود متغير البيئة
+    if (!WORDPRESS_API_ROOT) {
+      setError('خطأ في الإعداد: عنوان API غير موجود. يرجى التحقق من متغير البيئة.');
+      setIsLoading(false);
+      console.error('Environment variable NEXT_PUBLIC_WORDPRESS_API_ROOT is not set.');
+      return;
+    }
+
     try {
-      // IMPORTANT: This URL must point to your custom WordPress API endpoint for email registration.
-      const wpSignupApiUrl = 'https://sanadedu.org/backend/wp-json/sanad/v1/register'; 
+      // تم تحديث هذا السطر لاستخدام متغير البيئة بدلاً من الرابط الثابت
+      const wpSignupApiUrl = `${WORDPRESS_API_ROOT}/sanad/v1/register`; 
       
       // Make a POST request to the WordPress API
       const response = await fetch(wpSignupApiUrl, {

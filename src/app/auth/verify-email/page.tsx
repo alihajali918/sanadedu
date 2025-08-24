@@ -11,6 +11,10 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link'; // Import the Link component
 import styles from '../login/login.module.css'; // Reusing login/signup styles
 
+// تحديد متغير البيئة لعنوان الـ API
+// يجب التأكد أن هذا المتغير متاح في ملف .env.local وعلى Vercel
+const WORDPRESS_API_ROOT = process.env.NEXT_PUBLIC_WORDPRESS_API_ROOT;
+
 const VerifyEmailPage: React.FC = () => {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -27,10 +31,17 @@ const VerifyEmailPage: React.FC = () => {
     }
 
     const verifyEmail = async () => {
+      // التحقق من وجود متغير البيئة
+      if (!WORDPRESS_API_ROOT) {
+        setVerificationStatus('خطأ في الإعداد: عنوان API غير موجود. يرجى التحقق من متغير البيئة.');
+        setIsSuccess(false);
+        console.error('Environment variable NEXT_PUBLIC_WORDPRESS_API_ROOT is not set.');
+        return;
+      }
+
       try {
-        // IMPORTANT: This URL must point to your custom WordPress API endpoint for email verification.
-        // It uses the 'sanad/v1/verify-email' endpoint from our custom plugin.
-        const wpVerifyApiUrl = 'https://sanadedu.org/backend/wp-json/sanad/v1/verify-email';
+        // تم تحديث هذا السطر لاستخدام متغير البيئة بدلاً من الرابط الثابت
+        const wpVerifyApiUrl = `${WORDPRESS_API_ROOT}/sanad/v1/verify-email`;
 
         const response = await fetch(wpVerifyApiUrl, {
           method: 'POST', // Use POST for security when sending tokens

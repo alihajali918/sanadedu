@@ -227,3 +227,75 @@
   padding: 5px;
   border-radius: 50%;
 }
+/*
+* هذا الكود يضيف تنسيقات لـ div الأيقونة داخل حقل الإدخال
+*/
+
+.iconInputGroup {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.iconInputGroup input {
+  /* زيادة المسافة الداخلية (padding) من جهة الأيقونة لتجنب تداخل النص */
+  padding-left: 45px;
+}
+
+.inputIcon {
+  position: absolute;
+  left: 15px; /* المسافة من اليسار (لكي تظهر الأيقونة قبل النص) */
+  color: #888;
+  font-size: 1.2rem;
+  pointer-events: none; /* لتجنب التفاعل مع الأيقونة عند الضغط */
+}
+
+/*
+* لا تنسى تعديل خصائص الـinput الأساسية لتشمل خصائص تنسيق الأيقونة
+*/
+.formGroup input,
+.formGroup .phoneInput, 
+.formGroup .phoneInputContainer .form-control,
+.iconInputGroup input { /* إضافة هذه القاعدة */
+  width: 100%;
+  padding: 10px 15px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 1rem;
+  background-color: #f9f9f9;
+  box-sizing: border-box;
+}
+
+/* تعديل خصائص الـinput عند التركيز */
+.formGroup input::placeholder {
+  font-family: var(--font-changa);
+}
+/*
+ * الكود الموجود أصلاً
+*/
+
+.formGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+/*
+ * تعديل هنا:
+ * - جعل حقل البريد الإلكتروني يمتد على صف كامل.
+ * - تخصيص مساحة لحقول الاسم وكلمة المرور.
+*/
+.formGrid > div:nth-child(1),
+.formGrid > div:nth-child(2),
+.formGrid > div:nth-child(4),
+.formGrid > div:nth-child(5) {
+  grid-column: span 1;
+}
+
+.formGrid > div:nth-child(3) {
+  grid-column: 1 / -1; /* هذا يجعل حقل الايميل يمتد على صف كامل */
+}
+
+/*
+ * باقي الكود بدون تغيير
+*/

@@ -1,9 +1,3 @@
-// ==========================================================
-// FILE: src/app/(auth)/verify-email/page.tsx
-// DESCRIPTION: Page to handle email verification process.
-// Extracts token from URL and calls WordPress API.
-// ==========================================================
-
 "use client";
 
 import React, { useEffect, useState } from 'react';
@@ -22,10 +16,12 @@ const VerifyEmailPage: React.FC = () => {
   const [isSuccess, setIsSuccess] = useState(false);
 
   useEffect(() => {
-    const token = searchParams.get('token'); // Get the token from the URL query parameters
+    // استخراج 'key' و 'user' من معلمات URL
+    const key = searchParams.get('key');
+    const username = searchParams.get('user');
 
-    if (!token) {
-      setVerificationStatus('رمز التحقق مفقود. يرجى التأكد من أن الرابط صحيح.');
+    if (!key || !username) {
+      setVerificationStatus('رمز التحقق أو اسم المستخدم مفقود. يرجى التأكد من أن الرابط صحيح.');
       setIsSuccess(false);
       return;
     }
@@ -40,15 +36,15 @@ const VerifyEmailPage: React.FC = () => {
       }
 
       try {
-        // تم تحديث هذا السطر لاستخدام متغير البيئة بدلاً من الرابط الثابت
         const wpVerifyApiUrl = `${WORDPRESS_API_ROOT}/sanad/v1/verify-email`;
 
         const response = await fetch(wpVerifyApiUrl, {
-          method: 'POST', // Use POST for security when sending tokens
+          method: 'POST', // التأكد من استخدام POST
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ token }), // Send the token in the request body
+          // إرسال 'key' و 'user' في جسم الطلب
+          body: JSON.stringify({ key, user: username }), 
         });
 
         const data = await response.json();
@@ -56,7 +52,7 @@ const VerifyEmailPage: React.FC = () => {
         if (response.ok) {
           setVerificationStatus(data.message || 'تم تفعيل حسابك بنجاح! يمكنك الآن تسجيل الدخول.');
           setIsSuccess(true);
-          // Redirect to login page after a short delay
+          // إعادة التوجيه إلى صفحة تسجيل الدخول بعد تأخير قصير
           setTimeout(() => {
             router.push('/auth/login');
           }, 3000);

@@ -334,7 +334,6 @@ font-size: 1rem;
 font-weight: bold;
 width: 30px;
 text-align: center;
--moz-appearance: textfield;
 }
 
 .quantityInputNew::-webkit-outer-spin-button,

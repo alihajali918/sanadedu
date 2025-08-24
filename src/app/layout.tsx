@@ -68,17 +68,8 @@ const AppProviders = ({ children }: { children: React.ReactNode }) => {
       <Header /> 
       {/* Page Content: This is where the specific page content will be rendered. */}
       {children}
-      {/* Footer Component: Appears at the bottom of every page. */}
-      {/* Moved inside providers to access AuthContext and LocaleContext */}
-      <Footer />
-    </LocaleProvider>
-  );
-};
 
-
-// --- ROOT LAYOUT COMPONENT ---
-// This is the main layout component that wraps every page in your Next.js application.
-// `children` prop represents the content of the specific page being rendered.
+<Footer /></LocaleProvider>);};
 export default function RootLayout({
   children,
 }: Readonly<{

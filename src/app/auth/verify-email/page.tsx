@@ -15,15 +15,15 @@ const VerifyEmailPage: React.FC = () => {
   const [verificationStatus, setVerificationStatus] = useState('جارٍ التحقق من بريدك الإلكتروني...');
   const [isSuccess, setIsSuccess] = useState(false);
   const { login } = useAuth();
-  const [username, setUsername] = useState<string | null>(null);
+  const [username, setUsername] = useState<string | null>(null); // هذا يمثل 'user_login' من الـ URL
 
   useEffect(() => {
     const key = searchParams.get('key');
-    const user = searchParams.get('user');
+    const userFromUrl = searchParams.get('user'); // استخدم اسم متغير مختلف لتجنب الالتباس
 
-    setUsername(user);
+    setUsername(userFromUrl); // قم بتحديث حالة اسم المستخدم من الـ URL
 
-    if (!key || !user) {
+    if (!key || !userFromUrl) {
       setVerificationStatus('رمز التحقق أو اسم المستخدم مفقود. يرجى التأكد من أن الرابط صحيح.');
       setIsSuccess(false);
       return;
@@ -45,21 +45,21 @@ const VerifyEmailPage: React.FC = () => {
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ key, user: user }),
+          body: JSON.stringify({ key, user: userFromUrl }),
         });
 
         const data = await response.json();
+        // يمكنك طباعة الـ data هنا للتحقق من الاستجابة
+        // console.log('API Response Data:', data);
 
-        // الشرط الذي يتحقق من وجود رمز المصادقة (token)
         if (response.ok && data.token) {
-          // استخدام دالة login من سياق المصادقة لتخزين الرمز
           const userLocale = data.user_locale || 'en-US';
-          login(data.token, data.user_display_name, user, userLocale);
+          // === التعديل هنا: استخدام data.user_email بدلاً من username ===
+          login(data.token, data.user_display_name, data.user_email, userLocale);
 
           setVerificationStatus(data.message || 'تم تفعيل حسابك بنجاح! أنت الآن مسجل دخول.');
           setIsSuccess(true);
           
-          // التوجيه المباشر إلى لوحة التحكم
           setTimeout(() => {
             router.push('/donor/dashboard');
           }, 2000);
@@ -75,7 +75,7 @@ const VerifyEmailPage: React.FC = () => {
     };
 
     verifyEmail();
-  }, [searchParams, router, login, username]);
+  }, [searchParams, router, login]); // لا تحتاج لإضافة username إلى مصفوفة التبعيات هنا
 
   return (
     <div className={styles.authContainer}>

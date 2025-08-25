@@ -264,7 +264,7 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({ caseItem }) => 
                 <div className={`${styles.caseDescriptionBlock} mb-40`}>
                   <h3 className="section-subtitle">وصف الحالة</h3>
                   <p>{caseItem.description}</p>
-                  <p><strong>المحافظة:</strong> {caseItem.governorate}، <strong>المدينة:</strong> {caseItem.city}</p>
+                  <p><strong>المحافظة:</strong> {caseItem.city}، <strong>المدينة:</strong> {caseItem.governorate}</p>
                   <p><strong>نوع المؤسسة:</strong> {caseItem.type}</p>
                   <p><strong>درجة الاحتياج:</strong> {caseItem.needLevel}</p>
                 </div>

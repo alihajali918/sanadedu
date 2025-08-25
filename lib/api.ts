@@ -67,16 +67,15 @@ const schoolsSchema = z.object({
         number_of_students: z.union([z.coerce.number(), z.string().transform(() => NaN)]).optional().nullable(),
         number_of_staff: z.union([z.coerce.number(), z.string().transform(() => NaN)]).optional().nullable(),
         number_of_classrooms: z.union([z.coerce.number(), z.string().transform(() => NaN)]).optional().nullable(),
-        total_needed: z.union([z.coerce.number(), z.string().transform(() => NaN)]).optional().nullable(),
-        total_donated: z.union([z.coerce.number(), z.string().transform(() => NaN)]).optional().nullable(),
+        total_needed: z.union([z.coerce.number(), z.string().transform(() => NaN), z.literal('')]).optional().nullable(),
+        total_donated: z.union([z.coerce.number(), z.string().transform(() => NaN), z.literal('')]).optional().nullable(),
         project_status: z.string().optional(),
         selected_project_needs: z.union([
             z.array(z.object({
                 ID: z.number(),
                 post_title: z.string(),
             })),
-            z.null(),
-            z.string()
+            z.null()
         ]).optional(),
         project_needs_quantities_text: z.string().optional(),
         gallery_images: z.union([
@@ -100,7 +99,6 @@ const mosquesSchema = z.object({
     acf: z.object({
         mosque_name: z.string().optional(),
         location_data: z.any().optional(),
-        // 🛠️ تم الإصلاح: التعامل مع NaN أو القيم غير الرقمية
         number_of_floors: z.union([z.coerce.number(), z.string().transform(() => NaN)]).optional().nullable(),
         number_of_worshippers: z.object({
             regular_days: z.union([z.coerce.number(), z.string().transform(() => NaN)]).optional().nullable(),
@@ -118,16 +116,15 @@ const mosquesSchema = z.object({
                 z.null()
             ]).optional(),
         }).optional(),
-        total_needed: z.union([z.coerce.number(), z.string().transform(() => NaN)]).optional().nullable(),
-        total_donated: z.union([z.coerce.number(), z.string().transform(() => NaN)]).optional().nullable(),
+        total_needed: z.union([z.coerce.number(), z.string().transform(() => NaN), z.literal('')]).optional().nullable(),
+        total_donated: z.union([z.coerce.number(), z.string().transform(() => NaN), z.literal('')]).optional().nullable(),
         project_status: z.string().optional(),
         selected_project_needs: z.union([
             z.array(z.object({
                 ID: z.number(),
                 post_title: z.string(),
             })),
-            z.null(),
-            z.string()
+            z.null()
         ]).optional(),
         project_needs_quantities_text: z.string().optional(),
         gallery_images: z.union([
@@ -233,8 +230,10 @@ const formatSchoolData = async (caseItem: z.infer<typeof schoolsSchema>): Promis
     if (acf.project_needs_quantities_text) {
         const pairs = acf.project_needs_quantities_text.split(',');
         pairs.forEach(pair => {
-            const [needId, quantity] = pair.split('=').map(s => s.trim());
-            if (needId && quantity) {
+            // إضافة مرونة في التحليل
+            const trimmedPair = pair.trim();
+            const [needId, quantity] = trimmedPair.split('=').map(s => s.trim());
+            if (needId && quantity && !isNaN(Number(quantity))) {
                 quantitiesMap.set(String(needId), Number(quantity));
             }
         });
@@ -318,8 +317,10 @@ const formatMosqueData = async (caseItem: z.infer<typeof mosquesSchema>): Promis
     if (acf.project_needs_quantities_text) {
         const pairs = acf.project_needs_quantities_text.split(',');
         pairs.forEach(pair => {
-            const [needId, quantity] = pair.split('=').map(s => s.trim());
-            if (needId && quantity) {
+            // إضافة مرونة في التحليل
+            const trimmedPair = pair.trim();
+            const [needId, quantity] = trimmedPair.split('=').map(s => s.trim());
+            if (needId && quantity && !isNaN(Number(quantity))) {
                 quantitiesMap.set(String(needId), Number(quantity));
             }
         });
@@ -399,24 +400,34 @@ export const getMosqueNeedsList = unstable_cache(
     { revalidate: 3600 }
 );
 
+// الدالة المُعدلة لـ getCaseById
 export async function getCaseById(id: number): Promise<CaseItem | null> {
+    let caseData = null;
+    let postType = null;
+
+    // 1. محاولة جلب بيانات من نقطة نهاية المدارس أولاً
     const schoolsData = await fetchWordPressData(`schools/${id}`, new URLSearchParams('_embed'));
-    const mosquesData = await fetchWordPressData(`mosques/${id}`, new URLSearchParams('_embed'));
-
-    let caseData;
-    let postType;
-
     if (schoolsData && typeof schoolsData.id === 'number') {
         caseData = schoolsData;
         postType = 'schools';
-    } else if (mosquesData && typeof mosquesData.id === 'number') {
-        caseData = mosquesData;
-        postType = 'mosques';
-    } else {
+    }
+
+    // 2. إذا فشل الطلب الأول، جرب نقطة نهاية المساجد
+    if (!caseData) {
+        const mosquesData = await fetchWordPressData(`mosques/${id}`, new URLSearchParams('_embed'));
+        if (mosquesData && typeof mosquesData.id === 'number') {
+            caseData = mosquesData;
+            postType = 'mosques';
+        }
+    }
+    
+    // 3. إذا لم يتم العثور على بيانات في أي من النقطتين، أرجع null
+    if (!caseData) {
         console.error(`فشل في جلب بيانات الحالة لـ ID: ${id}`);
         return null;
     }
-    
+
+    // 4. معالجة البيانات التي تم جلبها بنجاح
     if (postType === 'schools') {
         const parsedCase = schoolsSchema.safeParse(caseData);
         if (!parsedCase.success) {
@@ -424,7 +435,7 @@ export async function getCaseById(id: number): Promise<CaseItem | null> {
             return null;
         }
         return await formatSchoolData(parsedCase.data);
-    } else { // postType === 'mosques'
+    } else if (postType === 'mosques') {
         const parsedCase = mosquesSchema.safeParse(caseData);
         if (!parsedCase.success) {
             console.error("فشل في التحقق من بيانات الحالة (مساجد):", parsedCase.error);
@@ -432,6 +443,8 @@ export async function getCaseById(id: number): Promise<CaseItem | null> {
         }
         return await formatMosqueData(parsedCase.data);
     }
+    
+    return null; // Fallback in case of unexpected logic
 }
 
 /**

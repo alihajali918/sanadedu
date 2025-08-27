@@ -9,8 +9,8 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation'; // For using useRouter for redirection
 // تم إزالة استيراد Header هنا لأنه يتم تضمينه في RootLayout
-// import Header from '@/components/common/Header/Header'; 
-import { useAuth } from '@/app/context/AuthContext'; 
+
+import { useSession, signOut } from 'next-auth/react'; // <--- تم التعديل: استخدام useSession و signOut من NextAuth
 import styles from './dashboard.module.css'; // Import the dashboard specific styles
 
 // Define the DashboardLayout props
@@ -20,14 +20,20 @@ interface DashboardLayoutProps {
 
 const DonorDashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   const router = useRouter();
-  const { isAuthenticated, logout, isLoadingAuth } = useAuth(); 
+  // const { isAuthenticated, logout, isLoadingAuth } = useAuth(); // <--- تم الإزالة: لم نعد نستخدم useAuth
+  const { data: session, status } = useSession(); // <--- جديد: استخدام useSession
+
+  const isAuthenticated = status === "authenticated"; // تعريف isAuthenticated بناءً على status
+  const isLoadingAuth = status === "loading"; // تعريف isLoadingAuth بناءً على status
 
   // useEffect to handle redirection based on authentication status
   useEffect(() => {
     if (!isLoadingAuth && !isAuthenticated) {
-      router.push('/auth/login'); // Redirect to the login page if not authenticated
+      // استخدام signOut من NextAuth.js لإعادة التوجيه إلى صفحة الدخول
+      // هذا يضمن مسح الجلسة بشكل صحيح قبل إعادة التوجيه
+      signOut({ redirect: true, callbackUrl: '/auth/login' }); 
     }
-  }, [isLoadingAuth, isAuthenticated, router]);
+  }, [isLoadingAuth, isAuthenticated, router]); // <--- تم تعديل التبعيات
 
   // Show a loading screen while checking authentication
   if (isLoadingAuth) {
@@ -46,11 +52,6 @@ const DonorDashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
 
   return (
     <>
-      {/* ❌ تم إزالة استدعاء Header من هنا! 
-         الهيدر الرئيسي يتم تضمينه بالفعل في RootLayout (src/app/layout.tsx)
-      */}
-      {/* <Header /> */} 
-
       <div className={styles.dashboardContainer}>
         {/* The Sidebar */}
         <aside className={styles.sidebar}>
@@ -78,8 +79,8 @@ const DonorDashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                 </Link>
               </li>
               <li>
-                {/* هذا الزر لتسجيل الخروج الفعلي */}
-                <button onClick={logout} className={styles.logoutButton}> 
+                {/* هذا الزر لتسجيل الخروج الفعلي باستخدام signOut من NextAuth */}
+                <button onClick={() => signOut({ callbackUrl: '/auth/login' })} className={styles.logoutButton}> 
                   تسجيل الخروج
                 </button>
               </li>

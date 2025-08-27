@@ -1,11 +1,13 @@
+// ==========================================================
 // FILE: src/app/donor/dashboard/settings/page.tsx
 // DESCRIPTION: Settings page component for the donor dashboard.
 // Allows authenticated users to change password and manage notification preferences.
+// ==========================================================
 'use client';
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/app/context/AuthContext'; // لاستخدام معلومات المستخدم وتوكن المصادقة
+import { useSession, signOut } from 'next-auth/react'; // <--- تم التعديل: استخدام useSession و signOut من NextAuth
 import styles from './settings.module.css'; // تأكد من إنشاء هذا الملف
 
 // تعريف واجهة لبيانات الإعدادات (تفضيلات الإشعارات فقط)
@@ -21,7 +23,8 @@ const WORDPRESS_API_BASE_URL = process.env.NEXT_PUBLIC_WORDPRESS_API_ROOT || 'ht
 
 const DonorSettingsPage: React.FC = () => {
     const router = useRouter();
-    const { isAuthenticated, isLoadingAuth, logout } = useAuth();
+    // const { isAuthenticated, isLoadingAuth, logout } = useAuth(); // <--- تم الإزالة: لم نعد نستخدم useAuth
+    const { data: session, status } = useSession(); // <--- جديد: استخدام useSession
 
     const [settingsData, setSettingsData] = useState<UserSettingsData | null>(null);
     const [currentPassword, setCurrentPassword] = useState('');
@@ -35,6 +38,9 @@ const DonorSettingsPage: React.FC = () => {
     const [error, setError] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
 
+    const isAuthenticated = status === "authenticated"; // تعريف isAuthenticated بناءً على status
+    const isLoadingAuth = status === "loading"; // تعريف isLoadingAuth بناءً على status
+
     // useEffect لجلب تفضيلات الإشعارات عند تحميل الصفحة
     useEffect(() => {
         if (!isLoadingAuth && !isAuthenticated) {
@@ -42,17 +48,19 @@ const DonorSettingsPage: React.FC = () => {
             return;
         }
 
-        if (isAuthenticated) {
+        if (isAuthenticated && session?.user) { // <--- استخدام session.user للتحقق من وجود بيانات المستخدم
             const fetchUserSettings = async () => {
                 setIsLoading(true);
                 setError('');
                 try {
-                    const authToken = localStorage.getItem('authToken');
+                    const authToken = session.user.wordpressJwt; // <--- استخدام wordpressJwt من جلسة NextAuth
                     if (!authToken) {
-                        throw new Error('لا يوجد توكن مصادقة. يرجى تسجيل الدخول.');
+                        throw new Error('لا يوجد توكن مصادقة في الجلسة. يرجى تسجيل الدخول.');
                     }
 
                     // 🚀 تم تحديث نقطة API لجلب بيانات الملف الشخصي والإعدادات
+                    // هذه النقطة نهاية قد لا تعيد emailNotifications و smsNotifications مباشرة.
+                    // ستحتاج إلى التأكد من أن الـ backend الخاص بك يرسلها، أو جلبها من نقطة نهاية مخصصة للإعدادات.
                     const apiUrl = `${WORDPRESS_API_BASE_URL}/sanad/v1/user/full-profile`;
 
                     const response = await fetch(apiUrl, {
@@ -70,13 +78,14 @@ const DonorSettingsPage: React.FC = () => {
 
                     const data = await response.json();
                     setSettingsData({
-                        emailNotifications: data.emailNotifications || false, // افتراضي false إذا لم يتم إرجاعها
-                        smsNotifications: data.smsNotifications || false,    // افتراضي false إذا لم يتم إرجاعها
+                        // <--- تأكد من أن الـ backend يعيد هذه الحقول
+                        emailNotifications: data.emailNotifications ?? false, // استخدام nullish coalescing لتجنب undefined
+                        smsNotifications: data.smsNotifications ?? false,    // افتراضي false إذا لم يتم إرجاعها
                     });
                 } catch (err: any) { // تم إضافة "any" لتجنب خطأ TypeScript
                     setError(err.message || 'حدث خطأ أثناء جلب بيانات الإعدادات.');
                     console.error('Error fetching user settings:', err);
-                    logout();
+                    signOut({ redirect: true, callbackUrl: '/auth/login' }); // <--- استخدام signOut من NextAuth
                 } finally {
                     setIsLoading(false);
                 }
@@ -84,7 +93,7 @@ const DonorSettingsPage: React.FC = () => {
 
             fetchUserSettings();
         }
-    }, [isAuthenticated, isLoadingAuth, router, logout]);
+    }, [isAuthenticated, isLoadingAuth, session, router]); // <--- تم تعديل التبعيات
 
     // دالة لتغيير كلمة المرور
     const handleChangePassword = async (e: React.FormEvent) => {
@@ -105,9 +114,9 @@ const DonorSettingsPage: React.FC = () => {
         }
 
         try {
-            const authToken = localStorage.getItem('authToken');
+            const authToken = session?.user?.wordpressJwt; // <--- استخدام wordpressJwt من جلسة NextAuth
             if (!authToken) {
-                throw new Error('لا يوجد توكن مصادقة. يرجى تسجيل الدخول.');
+                throw new Error('لا يوجد توكن مصادقة في الجلسة. يرجى تسجيل الدخول.');
             }
 
             // 🚀 تم تحديث نقطة API لتغيير كلمة المرور
@@ -152,12 +161,14 @@ const DonorSettingsPage: React.FC = () => {
         if (!settingsData) return;
 
         try {
-            const authToken = localStorage.getItem('authToken');
+            const authToken = session?.user?.wordpressJwt; // <--- استخدام wordpressJwt من جلسة NextAuth
             if (!authToken) {
-                throw new Error('لا يوجد توكن مصادقة. يرجى تسجيل الدخول.');
+                throw new Error('لا يوجد توكن مصادقة في الجلسة. يرجى تسجيل الدخول.');
             }
 
             // 🚀 تم تحديث نقطة API لتحديث الملف الشخصي
+            // تأكد من أن نقطة النهاية هذه (user/update-profile) تدعم تحديث تفضيلات الإشعارات.
+            // إذا لم يكن الأمر كذلك، ستحتاج إلى نقطة نهاية API مخصصة في WordPress لذلك.
             const apiUrl = `${WORDPRESS_API_BASE_URL}/sanad/v1/user/update-profile`;
 
             const response = await fetch(apiUrl, {

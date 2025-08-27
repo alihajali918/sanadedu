@@ -10,9 +10,9 @@ import Link from 'next/link';
 import React, { useState } from 'react';
 import styles from './login.module.css'; // Import CSS module for styling
 import { useRouter } from 'next/navigation'; // Import useRouter for redirection
-import { useAuth } from '@/app/context/AuthContext'; // <--- تم إضافة هذا الاستيراد
+import { signIn } from 'next-auth/react'; // <--- جديد: استيراد signIn من NextAuth.js بدلاً من useAuth
 
-// تحديد متغير البيئة لعنوان الـ API
+// تحديد متغير البيئة لعنوان الـ API (لم يعد يستخدم مباشرة لعملية تسجيل الدخول في NextAuth)
 // يجب التأكد أن هذا المتغير متاح في ملف .env.local وعلى Vercel
 const WORDPRESS_API_ROOT = process.env.NEXT_PUBLIC_WORDPRESS_API_ROOT;
 
@@ -22,9 +22,9 @@ const LoginPage: React.FC = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null); // To display error messages
   const [isLoading, setIsLoading] = useState(false); // To manage loading state for the button
-  
+
   const router = useRouter(); // Initialize useRouter hook for navigation
-  const { login } = useAuth(); // <--- تم إضافة هذا السطر لاستخدام دالة login من السياق
+  // const { login } = useAuth(); // <--- تم إزالة: لم نعد نستخدم useAuth
 
   // Function to handle form submission (login attempt)
   const handleLogin = async (e) => {
@@ -32,56 +32,44 @@ const LoginPage: React.FC = () => {
     setError(null); // Clear previous errors
     setIsLoading(true); // Set loading state to true
 
-    // التحقق من وجود متغير البيئة
-    if (!WORDPRESS_API_ROOT) {
+    // التحقق من وجود متغير البيئة (هذا التحقق أصبح أقل أهمية هنا لأن NextAuth يتعامل مع API)
+    // ولكنه جيد لإظهار رسائل خطأ واضحة
+    if (!process.env.NEXT_PUBLIC_WORDPRESS_API_URL) { // نستخدم NEXT_PUBLIC_WORDPRESS_API_URL كما هو في route.ts
       setError('خطأ في الإعداد: عنوان API غير موجود. يرجى التحقق من متغير البيئة.');
       setIsLoading(false);
-      console.error('Environment variable NEXT_PUBLIC_WORDPRESS_API_ROOT is not set.');
+      console.error('Environment variable NEXT_PUBLIC_WORDPRESS_API_URL is not set.');
       return;
     }
 
     try {
-      // تم تحديث هذا السطر لاستخدام متغير البيئة بدلاً من الرابط الثابت
-      const wpLoginApiUrl = `${WORDPRESS_API_ROOT}/jwt-auth/v1/token`;
-      
-      // Make a POST request to the WordPress JWT authentication endpoint
-      const response = await fetch(wpLoginApiUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          username: email, // JWT plugin usually accepts email or username
-          password: password,
-        }),
+      // **********************************************
+      // التعديل هنا: استخدام signIn من NextAuth.js لـ Credential Provider
+      // ستحتاج إلى إعداد Credential Provider في ملف route.ts الخاص بك
+      // NextAuth سيتولى إرسال بيانات الاعتماد إلى نقطة نهاية WordPress JWT
+      const result = await signIn('credentials', {
+        redirect: false, // لا تقوم بإعادة التوجيه تلقائيًا، سنتعامل معها يدوياً
+        email: email, // NextAuth سيرسل هذا كـ username عادةً لـ jwt-auth/v1/token
+        password: password,
+        // يمكنك إضافة callbackUrl هنا إذا كنت تريد إعادة التوجيه إلى صفحة معينة بعد النجاح
       });
 
-      const data = await response.json(); // Parse the JSON response from WordPress
-
-      if (response.ok) {
-        // Login successful!
-        console.log('Login successful:', data);
+      if (result?.error) {
+        // فشل تسجيل الدخول
+        console.error('Login failed:', result.error);
         // **********************************************
-        // التعديل هنا: تمرير تفضيل اللغة إذا كان الـ API يعيده (مثلاً data.user_locale)
-        // افترضنا أن الـ Backend يرسل حقل 'locale' في بيانات الرد بعد تسجيل الدخول.
-        // يجب أن تتأكد من أن الـ Backend لديك يرسل هذا الحقل.
-        const userLocale = data.user_locale || 'en-US'; // استخدم 'en-US' كافتراضي في حال لم يتم إرساله
-        login(data.token, data.user_display_name, email, userLocale); // Pass token, name, email, and locale to context
+        // التعديل هنا: رسالة خطأ أكثر تحديداً
+        setError('البريد الإلكتروني أو كلمة المرور غير صحيحة.');
         // **********************************************
-
-        // Redirect the user to their donor dashboard or home page
-        router.push('/donor/dashboard'); 
       } else {
-        // Handle login errors from the API
-        // **********************************************
-        // التعديل هنا: تغيير رسالة الخطأ لتكون أكثر عمومية
-        setError('البريد الإلكتروني أو كلمة المرور غير صحيحة.'); 
-        // **********************************************
+        // تسجيل دخول ناجح (NextAuth سيتولى الجلسة)
+        console.log('Login successful with NextAuth credentials.');
+        router.push('/donor/dashboard'); // إعادة توجيه المستخدم إلى لوحة التحكم الخاصة به
       }
+      // **********************************************
     } catch (err) {
-      // Catch any network errors or issues with the fetch request
+      // Catch any network errors or issues
       setError('حدث خطأ في الاتصال. يرجى المحاولة لاحقاً.');
-      console.error('Login API call error:', err); // Log the full error for debugging
+      console.error('Login process error:', err); // Log the full error for debugging
     } finally {
       setIsLoading(false); // Reset loading state
     }
@@ -92,7 +80,7 @@ const LoginPage: React.FC = () => {
       <div className={styles.authCard}>
         <h2>تسجيل الدخول</h2>
         {/* Display error messages */}
-        {error && <div className={styles.errorMessage}>{error}</div>} {/* <--- التعديل هنا */}
+        {error && <div className={styles.errorMessage}>{error}</div>}
         
         <form className={styles.authForm} onSubmit={handleLogin}>
           {/* Email input field */}
@@ -132,6 +120,15 @@ const LoginPage: React.FC = () => {
             </button>
           </div>
         </form>
+        {/* زر تسجيل الدخول باستخدام Google (يمكنك إضافة نمط له) */}
+        <div className={styles.formActions}>
+          <button 
+            onClick={() => signIn('google', { callbackUrl: '/donor/dashboard' })}
+            className={`${styles.btnPrimary} ${styles.googleButton}`} // أضف أنماطاً مناسبة
+          >
+            تسجيل الدخول باستخدام Google
+          </button>
+        </div>
         {/* Link to signup page */}
         <p className={styles.authSwitch}>
           لا تملك حسابًا؟{' '}

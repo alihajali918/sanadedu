@@ -1,12 +1,14 @@
+// ==========================================================
 // FILE: src/app/donor/dashboard/profile/page.tsx
 // DESCRIPTION: Donor profile page component.
 // Fetches and displays authenticated user's full profile data from backend.
 // Allows editing and saving profile information.
+// ==========================================================
 'use client';
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/app/context/AuthContext'; // لاستخدام معلومات المستخدم وتوكن المصادقة
+import { useSession, signOut } from 'next-auth/react'; // <--- تم التعديل: استخدام useSession و signOut من NextAuth
 import { useLocale } from '@/app/context/LocaleContext'; // لتنسيق التاريخ والأرقام
 import styles from './profile.module.css'; // تأكد من إنشاء هذا الملف
 
@@ -28,7 +30,8 @@ const WORDPRESS_API_BASE_URL = process.env.NEXT_PUBLIC_WORDPRESS_API_ROOT || 'ht
 
 const DonorProfilePage: React.FC = () => {
     const router = useRouter();
-    const { user, isAuthenticated, isLoadingAuth, logout } = useAuth(); // جلب معلومات المستخدم وحالة المصادقة
+    // const { user, isAuthenticated, isLoadingAuth, logout } = useAuth(); // <--- تم الإزالة: لم نعد نستخدم useAuth
+    const { data: session, status } = useSession(); // <--- جديد: استخدام useSession
     const { formatCurrency } = useLocale(); // جلب دالة تنسيق العملة
 
     const [profileData, setProfileData] = useState<UserProfileData | null>(null);
@@ -38,6 +41,9 @@ const DonorProfilePage: React.FC = () => {
     const [error, setError] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
 
+    const isAuthenticated = status === "authenticated"; // تعريف isAuthenticated بناءً على status
+    const isLoadingAuth = status === "loading"; // تعريف isLoadingAuth بناءً على status
+
     // useEffect لجلب بيانات الملف الشخصي الكاملة عند تحميل الصفحة أو تغير حالة المصادقة
     useEffect(() => {
         if (!isLoadingAuth && !isAuthenticated) {
@@ -45,14 +51,14 @@ const DonorProfilePage: React.FC = () => {
             return;
         }
 
-        if (isAuthenticated && user) {
+        if (isAuthenticated && session?.user) { // <--- استخدام session.user بدلاً من user القديم
             const fetchUserProfile = async () => {
                 setIsLoading(true);
                 setError('');
                 try {
-                    const authToken = localStorage.getItem('authToken');
+                    const authToken = session.user.wordpressJwt; // <--- استخدام wordpressJwt من جلسة NextAuth
                     if (!authToken) {
-                        throw new Error('لا يوجد توكن مصادقة. يرجى تسجيل الدخول.');
+                        throw new Error('لا يوجد توكن مصادقة في الجلسة. يرجى تسجيل الدخول.');
                     }
 
                     // 🚀 تم تحديث نقطة API لجلب الملف الشخصي الكامل لاستخدام متغير البيئة
@@ -92,8 +98,8 @@ const DonorProfilePage: React.FC = () => {
                 } catch (err: any) { // تم إضافة "any" لتجنب خطأ TypeScript
                     setError(err.message || 'حدث خطأ أثناء جلب بيانات الملف الشخصي.');
                     console.error('Error fetching user profile:', err);
-                    // في حالة الخطأ، من الأفضل مسح التوكن وإعادة توجيه المستخدم
-                    logout(); // استخدام دالة logout من السياق
+                    // في حالة الخطأ، من الأفضل مسح الجلسة وإعادة توجيه المستخدم
+                    signOut({ redirect: true, callbackUrl: '/auth/login' }); // <--- استخدام signOut من NextAuth
                 } finally {
                     setIsLoading(false);
                 }
@@ -101,7 +107,7 @@ const DonorProfilePage: React.FC = () => {
 
             fetchUserProfile();
         }
-    }, [isAuthenticated, isLoadingAuth, user, router, logout]);
+    }, [isAuthenticated, isLoadingAuth, session, router]); // <--- تم تعديل التبعيات
 
     // دالة لتحديث قيم حقول النموذج عند التعديل
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -119,9 +125,9 @@ const DonorProfilePage: React.FC = () => {
         if (!profileData) return;
 
         try {
-            const authToken = localStorage.getItem('authToken');
+            const authToken = session?.user?.wordpressJwt; // <--- استخدام wordpressJwt من جلسة NextAuth
             if (!authToken) {
-                throw new Error('لا يوجد توكن مصادقة. يرجى تسجيل الدخول.');
+                throw new Error('لا يوجد توكن مصادقة في الجلسة. يرجى تسجيل الدخول.');
             }
 
             // 🚀 تم تحديث نقطة API لتحديث الملف الشخصي لاستخدام متغير البيئة

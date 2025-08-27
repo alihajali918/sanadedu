@@ -1,12 +1,15 @@
+// ==========================================================
 // FILE: src/app/donor/dashboard/page.tsx
 // DESCRIPTION: Overview page for the donor dashboard.
 // This page provides a welcome message and a summary for the authenticated donor.
+// ==========================================================
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '@/app/context/AuthContext'; // لاستخدام معلومات المستخدم وتوكن المصادقة
+import { useSession, signOut } from 'next-auth/react'; // <--- تم التعديل: استخدام useSession و signOut من NextAuth
 import { useLocale } from '@/app/context/LocaleContext'; // لتنسيق العملة والأرقام
 import styles from './dashboard.module.css'; // استخدام نفس ستايلات الداشبورد العامة
+import { useRouter } from 'next/navigation'; // لاستخدام useRouter لإعادة التوجيه
 
 // تعريف واجهة لبيانات ملخص المتبرع (يمكن توسيعها حسب ما يعيده الـ Backend)
 interface DonorSummaryData {
@@ -20,25 +23,36 @@ interface DonorSummaryData {
 const WORDPRESS_API_ROOT = process.env.NEXT_PUBLIC_WORDPRESS_API_URL || 'https://cms.sanadedu.org/wp-json';
 
 const DonorDashboardOverviewPage: React.FC = () => {
-    const { user, isAuthenticated, isLoadingAuth } = useAuth(); // جلب معلومات المستخدم وحالة المصادقة
+    // const { user, isAuthenticated, isLoadingAuth } = useAuth(); // <--- تم الإزالة: لم نعد نستخدم useAuth
+    const { data: session, status } = useSession(); // <--- جديد: استخدام useSession
     const { formatCurrency } = useLocale(); // جلب دالة تنسيق العملة
+    const router = useRouter(); // لاستخدام useRouter لإعادة التوجيه
 
     const [summaryData, setSummaryData] = useState<DonorSummaryData | null>(null);
     const [isLoadingData, setIsLoadingData] = useState(true);
     const [error, setError] = useState('');
 
+    const isAuthenticated = status === "authenticated"; // تعريف isAuthenticated بناءً على status
+    const isLoadingAuth = status === "loading"; // تعريف isLoadingAuth بناءً على status
+
     // useEffect لجلب بيانات ملخص المتبرع بعد المصادقة
     useEffect(() => {
+        // إذا لم يتم التحقق من المصادقة بعد، أو لم يكن المستخدم مصادقاً عليه، أعد التوجيه
+        if (!isLoadingAuth && !isAuthenticated) {
+            signOut({ redirect: true, callbackUrl: '/auth/login' });
+            return;
+        }
+
         // تأكد من أن المستخدم مصادق عليه وأن بياناته جاهزة
-        if (!isLoadingAuth && isAuthenticated && user) {
+        if (isAuthenticated && session?.user) { // <--- استخدام session.user بدلاً من user القديم
             const fetchDonorSummary = async () => {
                 setIsLoadingData(true);
                 setError('');
                 try {
-                    // جلب التوكن من localStorage (أو يمكن تمريره من AuthContext إذا كان متاحاً في السياق)
-                    const authToken = localStorage.getItem('authToken');
+                    // جلب التوكن من جلسة NextAuth
+                    const authToken = session.user.wordpressJwt; // <--- استخدام wordpressJwt من جلسة NextAuth
                     if (!authToken) {
-                        setError('لا يوجد توكن مصادقة. يرجى تسجيل الدخول.');
+                        setError('لا يوجد توكن مصادقة في الجلسة. يرجى تسجيل الدخول.');
                         setIsLoadingData(false);
                         return;
                     }
@@ -65,6 +79,7 @@ const DonorDashboardOverviewPage: React.FC = () => {
                 } catch (err: any) { // تم إضافة "any" لتجنب خطأ TypeScript
                     setError(err.message || 'حدث خطأ أثناء جلب بيانات الملخص.');
                     console.error('Error fetching donor summary:', err);
+                    signOut({ redirect: true, callbackUrl: '/auth/login' }); // <--- استخدام signOut لإعادة التوجيه
                 } finally {
                     setIsLoadingData(false);
                 }
@@ -72,7 +87,7 @@ const DonorDashboardOverviewPage: React.FC = () => {
 
             fetchDonorSummary();
         }
-    }, [isAuthenticated, isLoadingAuth, user]); // يعاد تشغيله عند تغير حالة المصادقة أو بيانات المستخدم
+    }, [isAuthenticated, isLoadingAuth, session, router]); // <--- تم تعديل التبعيات
 
     // عرض حالة التحميل
     if (isLoadingData) {
@@ -97,7 +112,7 @@ const DonorDashboardOverviewPage: React.FC = () => {
 
     return (
         <div className={styles.dashboardContent}>
-            <h1 className={styles.pageTitle}>مرحباً بك، {user?.name || user?.email}!</h1>
+            <h1 className={styles.pageTitle}>مرحباً بك، {session?.user?.name || session?.user?.email || 'متبرع'}!</h1> {/* <--- استخدام session.user */}
             <p className={styles.pageDescription}>
                 هنا يمكنك متابعة نشاطك في &quot;سند&quot; والاطلاع على أحدث المشاريع والإنجازات.
             </p>

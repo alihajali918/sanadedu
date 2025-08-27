@@ -1,8 +1,6 @@
 // ==========================================================
 // FILE: src/app/api/auth/[...nextauth]/route.ts
 // DESCRIPTION: NextAuth.js API route for handling authentication callbacks.
-// This sets up Google OAuth and handles session creation, now including
-// the WordPress JWT token and Credential Provider for traditional login.
 // ==========================================================
 
 // --- CORE IMPORTS ---
@@ -28,19 +26,39 @@ const handler = NextAuth({
           return null;
         }
 
-        const wordpressApiUrl = `${process.env.NEXT_PUBLIC_WORDPRESS_API_URL}/jwt-auth/v1/token`;
+        // الخطوة 1: البحث عن اسم المستخدم (user login) باستخدام البريد الإلكتروني
+        const userSearchApiUrl = `${process.env.NEXT_PUBLIC_WORDPRESS_API_URL}/wp/v2/users?search=${credentials.email}&per_page=1`;
 
         try {
-          const response = await fetch(wordpressApiUrl, {
+          const userSearchResponse = await fetch(userSearchApiUrl, {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          });
+
+          const userSearchData = await userSearchResponse.json();
+          if (!userSearchResponse.ok || userSearchData.length === 0) {
+            console.error("User not found for the provided email.");
+            return null;
+          }
+
+          // الخطوة 2: استخراج اسم المستخدم (user_login) الفعلي
+          const wordpressUsername = userSearchData[0].slug;
+          if (!wordpressUsername) {
+            console.error("Could not retrieve WordPress username from API.");
+            return null;
+          }
+
+          // الخطوة 3: المصادقة باستخدام اسم المستخدم المستخرج وكلمة المرور
+          const wordpressTokenApiUrl = `${process.env.NEXT_PUBLIC_WORDPRESS_API_URL}/jwt-auth/v1/token`;
+          const response = await fetch(wordpressTokenApiUrl, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
-              // ***** تم التعديل هنا: استخدام البريد الإلكتروني كاسم مستخدم *****
-              // هذا يعيد الكود إلى استخدام البريد الإلكتروني كـ username
-              // كما هو متوقع عادةً من إضافة JWT.
-              username: credentials.email, // <--- تم تغيير هذا السطر
+              username: wordpressUsername,
               password: credentials.password,
             }),
           });
@@ -95,16 +113,6 @@ const handler = NextAuth({
             }
           }
 
-          console.log("User data from Google:", {
-            email: user.email,
-            fullName: user.name,
-            givenName: (profile as any)?.given_name,
-            familyName: (profile as any)?.family_name,
-            derivedFirstName: firstName,
-            derivedLastName: lastName,
-            googleId: profile?.sub
-          });
-
           const response = await fetch(wordpressApiUrl, {
             method: "POST",
             headers: {
@@ -127,9 +135,6 @@ const handler = NextAuth({
             (user as any).wordpressUserName = data.user_display_name || user.name;
             (user as any).wordpressUserEmail = data.user_email || user.email;
             (user as any).wordpressUserLocale = data.user_locale || "en-US";
-
-            console.log("WordPress API response success:", data);
-
             return true;
           } else {
             console.error("Error from WordPress backend during Google Auth:", data);
@@ -142,7 +147,6 @@ const handler = NextAuth({
       }
       return true;
     },
-
     async jwt({ token, user }) {
       if (user) {
         token.wordpressJwt = (user as any).wordpressJwt;
@@ -153,7 +157,6 @@ const handler = NextAuth({
       }
       return token;
     },
-
     async session({ session, token }) {
       if (token.wordpressJwt) {
         (session.user as any).wordpressJwt = token.wordpressJwt;

@@ -1,4 +1,3 @@
-// src/components/CaseDetailsContent.tsx
 'use client';
 
 import React, { useState } from 'react';
@@ -165,6 +164,7 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({ caseItem }) => 
                   {Object.keys(needsByCategory).length > 0 ? (
                     Object.keys(needsByCategory).map((categoryName) => {
                       const firstNeedInCat = needsByCategory[categoryName][0];
+                      // هذا هو السطر الذي تم تعديله
                       const categoryIcon = firstNeedInCat?.icon || "fas fa-box-open";
                       return (
                         <button 
@@ -172,6 +172,7 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({ caseItem }) => 
                           className={`${styles.categoryTabItem} ${selectedCategory === categoryName ? styles.activeTab : ''}`}
                           onClick={() => setSelectedCategory(categoryName)}
                         >
+                          {/* تأكد من أن الكود يستدعي الأيقونة من الكائن بشكل صحيح */}
                           <i className={categoryIcon}></i>
                           <span>{categoryName}</span>
                         </button>

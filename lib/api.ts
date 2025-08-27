@@ -19,7 +19,9 @@ export async function fetchWordPressData(endpoint: string, params: URLSearchPara
     try {
         const response = await fetch(url.toString(), { next: { revalidate: 3600 } });
         if (!response.ok) {
-            console.error(`واجهة برمجة تطبيقات ووردبريس (WordPress API) أرجعت خطأ لـ ${url}: ${response.status} ${response.statusText}`);
+            if (response.status !== 404) {
+                console.error(`واجهة برمجة تطبيقات ووردبريس (WordPress API) أرجعت خطأ لـ ${url}: ${response.status} ${response.statusText}`);
+            }
             return null;
         }
         const data = await response.json();
@@ -36,6 +38,7 @@ const embeddedTermSchema = z.object({
     name: z.string(),
     slug: z.string(),
     taxonomy: z.string(),
+    acf: z.any().optional(), // تم إضافة acf للسماح بوجود حقول مخصصة
 });
 
 // schema لكائن الصورة من ACF
@@ -156,14 +159,31 @@ const needItemDetailSchema = z.object({
     }).optional(),
 });
 
+/**
+ * دالة مساعدة لجلب أيقونة الفئة من حقول ACF الخاصة بالتصنيف.
+ * @param term كائن التصنيف المضمن (embedded term object)
+ * @returns كلاس الأيقونة أو قيمة افتراضية
+ */
+const getTermIcon = (term: z.infer<typeof embeddedTermSchema>): string => {
+    // تحقق من وجود حقول ACF والأيقونة
+    if (term.acf && term.acf.category_icon) {
+        return term.acf.category_icon;
+    }
+    return 'fas fa-box-open'; // أيقونة افتراضية
+};
+
 const formatNeedItemDetailData = (needItem: z.infer<typeof needItemDetailSchema>): Need => {
     const acf = needItem.acf || {};
     const terms = needItem._embedded?.['wp:term']?.flat() || [];
     
+    // البحث عن فئة الاحتياج في المصطلحات المضمنة
     const needsCategoryTerms = terms.filter(term => term.taxonomy === 'school_needs_categories' || term.taxonomy === 'mosque_needs_categories');
-
+    
     const category = needsCategoryTerms.length > 0 ? needsCategoryTerms[0].name : 'غير محدد';
-    const icon = 'fas fa-box-open';
+    
+    // جلب الأيقونة من أول فئة تم العثور عليها
+    const icon = needsCategoryTerms.length > 0 ? getTermIcon(needsCategoryTerms[0]) : 'fas fa-box-open';
+    
     const description = '';
 
     let imageUrl = '/images/default-need.jpg';
@@ -402,32 +422,27 @@ export const getMosqueNeedsList = unstable_cache(
 
 // الدالة المُعدلة لـ getCaseById
 export async function getCaseById(id: number): Promise<CaseItem | null> {
+    const [schoolsResult, mosquesResult] = await Promise.allSettled([
+        fetchWordPressData(`schools/${id}`, new URLSearchParams('_embed')),
+        fetchWordPressData(`mosques/${id}`, new URLSearchParams('_embed'))
+    ]);
+
     let caseData = null;
     let postType = null;
 
-    // 1. محاولة جلب بيانات من نقطة نهاية المدارس أولاً
-    const schoolsData = await fetchWordPressData(`schools/${id}`, new URLSearchParams('_embed'));
-    if (schoolsData && typeof schoolsData.id === 'number') {
-        caseData = schoolsData;
+    if (schoolsResult.status === 'fulfilled' && schoolsResult.value && typeof schoolsResult.value.id === 'number') {
+        caseData = schoolsResult.value;
         postType = 'schools';
+    } else if (mosquesResult.status === 'fulfilled' && mosquesResult.value && typeof mosquesResult.value.id === 'number') {
+        caseData = mosquesResult.value;
+        postType = 'mosques';
     }
 
-    // 2. إذا فشل الطلب الأول، جرب نقطة نهاية المساجد
-    if (!caseData) {
-        const mosquesData = await fetchWordPressData(`mosques/${id}`, new URLSearchParams('_embed'));
-        if (mosquesData && typeof mosquesData.id === 'number') {
-            caseData = mosquesData;
-            postType = 'mosques';
-        }
-    }
-    
-    // 3. إذا لم يتم العثور على بيانات في أي من النقطتين، أرجع null
     if (!caseData) {
         console.error(`فشل في جلب بيانات الحالة لـ ID: ${id}`);
         return null;
     }
 
-    // 4. معالجة البيانات التي تم جلبها بنجاح
     if (postType === 'schools') {
         const parsedCase = schoolsSchema.safeParse(caseData);
         if (!parsedCase.success) {
@@ -443,8 +458,8 @@ export async function getCaseById(id: number): Promise<CaseItem | null> {
         }
         return await formatMosqueData(parsedCase.data);
     }
-    
-    return null; // Fallback in case of unexpected logic
+
+    return null;
 }
 
 /**
@@ -454,7 +469,7 @@ export const getCases = unstable_cache(
     async (): Promise<CaseItem[]> => {
         const schoolsData = await fetchWordPressData('schools', new URLSearchParams('_embed'));
         const mosquesData = await fetchWordPressData('mosques', new URLSearchParams('_embed'));
-        
+
         const allCases: CaseItem[] = [];
 
         if (schoolsData && Array.isArray(schoolsData)) {
@@ -466,7 +481,7 @@ export const getCases = unstable_cache(
                 console.error("فشل في التحقق من بيانات المدارس:", parsedSchools.error);
             }
         }
-        
+
         if (mosquesData && Array.isArray(mosquesData)) {
             const parsedMosques = z.array(mosquesSchema).safeParse(mosquesData);
             if (parsedMosques.success) {

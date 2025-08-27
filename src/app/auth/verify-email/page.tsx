@@ -63,35 +63,49 @@ const VerifyEmailPage: React.FC = () => {
                 const data = await response.json();
                 console.log('[VerifyEmailPage] API Response Data:', data);
 
-                if (response.ok && data.token) {
-                    console.log('[VerifyEmailPage] Verification successful. Attempting NextAuth signIn with JWT...');
-                    const result = await signIn('jwt-token', {
-                        redirect: false,
-                        token: data.token,
-                        user_id: data.user_id,
-                        user_display_name: data.user_display_name,
-                        user_email: data.user_email,
-                        user_locale: data.user_locale || 'en-US',
-                    });
+                // **********************************************
+                // التعديل هنا: فحص حالة الاستجابة بشكل أكثر دقة
+                // إذا كانت الاستجابة ناجحة من WordPress (response.ok)
+                // ورسالة النجاح تشير إلى التحقق، ولكن لا يوجد توكن،
+                // فسنعرض رسالة النجاح ونطلب من المستخدم تسجيل الدخول يدوياً.
+                if (response.ok) {
+                    setVerificationStatus(data.message || 'تم تفعيل حسابك بنجاح!');
+                    setIsSuccess(true);
 
-                    if (result?.error) {
-                        console.error('[VerifyEmailPage] NextAuth signIn failed after verification:', result.error);
-                        setVerificationStatus('تم تفعيل حسابك، ولكن فشل تسجيل الدخول التلقائي. يرجى تسجيل الدخول يدوياً.');
-                        setIsSuccess(true);
-                        // إعادة التوجيه إلى صفحة تسجيل الدخول إذا فشل signIn التلقائي
-                        router.push('/auth/login'); // <--- تم إزالة setTimeout
+                    if (data.token) {
+                        console.log('[VerifyEmailPage] Verification successful. Attempting NextAuth signIn with JWT...');
+                        const result = await signIn('jwt-token', {
+                            redirect: false,
+                            token: data.token,
+                            user_id: data.user_id,
+                            user_display_name: data.user_display_name,
+                            user_email: data.user_email,
+                            user_locale: data.user_locale || 'en-US',
+                        });
+
+                        if (result?.error) {
+                            console.error('[VerifyEmailPage] NextAuth signIn failed after verification:', result.error);
+                            setVerificationStatus('تم تفعيل حسابك، ولكن فشل تسجيل الدخول التلقائي. يرجى تسجيل الدخول يدوياً.');
+                            // إعادة التوجيه إلى صفحة تسجيل الدخول إذا فشل signIn التلقائي
+                            router.push('/auth/login');
+                        } else {
+                            console.log('[VerifyEmailPage] NextAuth signIn successful. Redirecting to /donor/dashboard');
+                            router.push('/donor/dashboard');
+                        }
                     } else {
-                        console.log('[VerifyEmailPage] NextAuth signIn successful. Preparing for redirection...');
-                        setVerificationStatus(data.message || 'تم تفعيل حسابك بنجاح! أنت الآن مسجل دخول.');
-                        setIsSuccess(true);
-                        // إعادة التوجيه مباشرة إلى الداشبورد
-                        router.push('/donor/dashboard'); // <--- تم إزالة setTimeout
+                        // تم التحقق بنجاح ولكن لا يوجد توكن، لذا نطلب من المستخدم تسجيل الدخول يدوياً
+                        console.warn('[VerifyEmailPage] Verification successful but no token received. User needs to log in manually.');
+                        setVerificationStatus(data.message + ' يرجى تسجيل الدخول الآن.');
+                        // يمكن إعادة التوجيه لصفحة تسجيل الدخول هنا أيضاً
+                        router.push('/auth/login');
                     }
                 } else {
+                    // إذا كانت الاستجابة غير ناجحة من WordPress
                     console.error('[VerifyEmailPage] Verification failed:', data.message);
                     setVerificationStatus(data.message || 'فشل تفعيل الحساب. يرجى المحاولة لاحقاً أو التواصل مع الدعم.');
                     setIsSuccess(false);
                 }
+                // **********************************************
             } catch (error) {
                 setVerificationStatus('حدث خطأ في الاتصال بالسيرفر. يرجى المحاولة لاحقاً.');
                 setIsSuccess(false);

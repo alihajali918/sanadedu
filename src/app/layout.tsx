@@ -6,7 +6,7 @@
 // Now exclusively uses NextAuth's SessionProvider for authentication.
 // ==========================================================
 
-"use client"; // Mark this file as a Client Component because it uses React Context
+"use client"; // Mark this file as a Client Component because it uses React Hooks
 
 // --- CORE IMPORTS ---
 import "./globals.css"; // Global CSS styles for the entire application
@@ -17,8 +17,8 @@ import Header from "../components/common/Header/Header";
 import Footer from "../components/common/Footer/Footer";
 import LoadingPage from "../components/common/Loading/LoadingPage"; // Preloader for initial page load
 import { CartProvider } from "./context/CartContext"; // CartProvider for shopping cart state
-// import { AuthProvider, useAuth } from "./context/AuthContext"; // <--- تم إزالة: لا نستخدم AuthProvider الخاص بك
-import { LocaleProvider, useLocale } from "./context/LocaleContext"; // <--- NEW: LocaleProvider for language/locale state (useLocale أضيف للLocaleProvider المعدّل أدناه)
+// import { AuthProvider, useAuth } from "./context/AuthContext"; // <--- هذا السطر تم إزالته بالكامل
+import { LocaleProvider, useLocale } from "./context/LocaleContext"; // LocaleProvider for language/locale state
 
 // --- FONT AWESOME (Icons) ---
 import "@fortawesome/fontawesome-free/css/all.min.css";
@@ -27,7 +27,7 @@ import "@fortawesome/fontawesome-free/css/all.min.css";
 import { Changa, Cairo } from "next/font/google";
 
 // --- NEXT-AUTH ---
-import { useSession, signIn, signOut, SessionProvider } from "next-auth/react"; // <--- استيراد SessionProvider و useSession
+import { useSession, signIn, signOut, SessionProvider } from "next-auth/react"; // استيراد SessionProvider و useSession
 
 // Define Changa font (for headings)
 const changa = Changa({
@@ -45,12 +45,12 @@ const cairo = Cairo({
   display: "swap",
 });
 
-// --- AppProviders Component (معدّل لاستخدام useSession) ---
+// --- AppProviders Component (مُعدّل لاستخدام useSession) ---
 // هذا المكون يلف جميع الـ providers الأخرى ويتأكد من الترتيب الصحيح
 // كما يتعامل مع حالة التحميل الأولية للمصادقة باستخدام NextAuth's useSession
 const AppProviders = ({ children }: { children: React.ReactNode }) => {
-  // const { user, isLoadingAuth } = useAuth(); // <--- تم إزالة: لا نستخدم useAuth()
-  const { data: session, status } = useSession(); // <--- جديد: استخدام useSession() من NextAuth.js
+  // const { user, isLoadingAuth } = useAuth(); // <--- هذا السطر تم إزالته بالكامل
+  const { data: session, status } = useSession(); // جديد: استخدام useSession() من NextAuth.js
 
   // إظهار مؤشر تحميل بسيط أثناء التحقق من حالة المصادقة
   if (status === "loading") { // useSession() يوفر "loading" لحالة التحقق
@@ -75,11 +75,11 @@ const AppProviders = ({ children }: { children: React.ReactNode }) => {
   // LocaleProvider يلف المحتوى الرئيسي ويتلقى الـ locale الأولي من `session.user`
   // هذا يضمن تعيين الـ locale بناءً على تفضيل المستخدم المصادق عليه
   return (
-    <LocaleProvider initialLocale={session?.user?.locale || "en-US"}> {/* <--- استخدام session.user?.locale */}
-      {/* Header Component: Appears at the top of every page. */}
-      {/* Moved inside providers to access AuthContext and LocaleContext */}
+    <LocaleProvider initialLocale={session?.user?.locale || "en-US"}> {/* استخدام session.user?.locale */}
+      {/* Header Component: يظهر في الجزء العلوي من كل صفحة. */}
+      {/* تم نقله داخل الـ providers للوصول إلى LocaleContext و NextAuth Session */}
       <Header />
-      {/* Page Content: This is where the specific page content will be rendered. */}
+      {/* محتوى الصفحة: هنا يتم عرض محتوى الصفحة المحدد. */}
       {children}
       <Footer />
     </LocaleProvider>
@@ -93,18 +93,18 @@ export default function RootLayout({
 }>) {
   return (
     // ==========================================================
-    // REACT FRAGMENT: Wraps all elements as a single parent.
+    // REACT FRAGMENT: يلف جميع العناصر كعنصر أب واحد.
     // ==========================================================
     <>
       {/* ========================================================== */}
-      {/* LOADING PAGE COMPONENT (PRELOADER) */}
-      {/* هذا يبقى خارج هيكل الـ HTML الرئيسي */}
+      {/* مكون صفحة التحميل (PRELOADER) */}
+      {/* يتم عرضه عالمياً، خارج هيكل الـ HTML الرئيسي، أثناء التحميل الأولي للصفحة */}
       {/* ========================================================== */}
       <LoadingPage />
 
       {/* ========================================================== */}
-      {/* HTML DOCUMENT STRUCTURE */}
-      {/* Base HTML tag with language, direction, and font CSS variables. */}
+      {/* هيكل وثيقة HTML */}
+      {/* علامة HTML الأساسية مع متغيرات CSS للغة، الاتجاه، والخط. */}
       {/* ========================================================== */}
       <html
         lang="ar"
@@ -112,9 +112,8 @@ export default function RootLayout({
         className={`${changa.variable} ${cairo.variable}`}
       >
         {/* ========================================================== */}
-        {/* HEAD SECTION */}
-        {/* Contains metadata, external CSS links (like Font Awesome). */}
-        {/* ========================================================== */}
+        {/* قسم HEAD */}
+        {/* يحتوي على البيانات الوصفية، روابط CSS الخارجية (مثل Font Awesome). */}
         <head>
           <link
             rel="stylesheet"
@@ -127,10 +126,9 @@ export default function RootLayout({
         </head>
 
         {/* ========================================================== */}
-        {/* BODY SECTION */}
-        {/* Contains the main visible content of the page. */}
+        {/* قسم BODY */}
+        {/* يحتوي على المحتوى المرئي الرئيسي للصفحة. */}
         {/* الآن، SessionProvider هو أول Provider يلف كل شيء */}
-        {/* ========================================================== */}
         <body>
           {/* SessionProvider من next-auth/react هو الآن الـ Provider الخارجي المسؤول عن المصادقة */}
           <SessionProvider>

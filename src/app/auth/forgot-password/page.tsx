@@ -36,7 +36,7 @@ const ForgotPasswordPage: React.FC = () => {
 
     try {
       // تم تحديث هذا السطر لاستخدام متغير البيئة بدلاً من الرابط الثابت
-      const wpForgotPasswordApiUrl = `${WORDPRESS_API_ROOT}/sanad/v1/forgot-password`;
+      const wpForgotPasswordApiUrl = `${WORDPRESS_API_ROOT}/sanad/v1/user/request-password-reset`; // ✅ تم التغيير هنا
 
       const response = await fetch(wpForgotPasswordApiUrl, {
         method: 'POST',

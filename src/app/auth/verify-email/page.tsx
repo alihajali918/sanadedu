@@ -78,17 +78,14 @@ const VerifyEmailPage: React.FC = () => {
                         console.error('[VerifyEmailPage] NextAuth signIn failed after verification:', result.error);
                         setVerificationStatus('تم تفعيل حسابك، ولكن فشل تسجيل الدخول التلقائي. يرجى تسجيل الدخول يدوياً.');
                         setIsSuccess(true);
-                        setTimeout(() => {
-                            router.push('/auth/login');
-                        }, 2000);
+                        // إعادة التوجيه إلى صفحة تسجيل الدخول إذا فشل signIn التلقائي
+                        router.push('/auth/login'); // <--- تم إزالة setTimeout
                     } else {
                         console.log('[VerifyEmailPage] NextAuth signIn successful. Preparing for redirection...');
                         setVerificationStatus(data.message || 'تم تفعيل حسابك بنجاح! أنت الآن مسجل دخول.');
                         setIsSuccess(true);
-                        setTimeout(() => {
-                            console.log('[VerifyEmailPage] Redirecting to /donor/dashboard');
-                            router.push('/donor/dashboard');
-                        }, 2000);
+                        // إعادة التوجيه مباشرة إلى الداشبورد
+                        router.push('/donor/dashboard'); // <--- تم إزالة setTimeout
                     }
                 } else {
                     console.error('[VerifyEmailPage] Verification failed:', data.message);

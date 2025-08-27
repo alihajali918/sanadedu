@@ -1,218 +1,125 @@
 // ==========================================================
-// FILE: src/app/api/auth/[...nextauth]/route.ts
-// DESCRIPTION: NextAuth.js API route for handling authentication callbacks.
-// This sets up Google OAuth and handles session creation, now including
-// the WordPress JWT token and Credential Provider for traditional login.
+// FILE: src/app/(auth)/verify-email/page.tsx
+// DESCRIPTION: Email verification page component.
+// Handles user email verification with WordPress REST API.
 // ==========================================================
+"use client"; // Marks this as a Client Component for hooks like useState and useRouter.
 
-// --- CORE IMPORTS ---
-import NextAuth from "next-auth";
-import GoogleProvider from "next-auth/providers/google";
-import CredentialsProvider from "next-auth/providers/credentials";
+import React, { useEffect, useState } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
+import Link from 'next/link';
+import styles from '../login/login.module.css';
+import { signIn } from 'next-auth/react'; // <--- استيراد signIn من NextAuth.js
 
-// --- NEXTAUTH CONFIGURATION ---
-const handler = NextAuth({
-  providers: [
-    GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID as string,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
-    }),
-    // CredentialsProvider لتسجيل الدخول التقليدي (بالبريد الإلكتروني وكلمة المرور)
-    CredentialsProvider({
-      id: "credentials", // تحديد ID لـ CredentialsProvider
-      name: "WordPress Credentials",
-      credentials: {
-        email: { label: "Email", type: "text" },
-        password: { label: "Password", type: "password" },
-      },
-      async authorize(credentials, req) {
-        if (!credentials?.email || !credentials?.password) {
-          return null;
+// تحديد متغير البيئة لعنوان الـ API
+const WORDPRESS_API_ROOT = process.env.NEXT_PUBLIC_WORDPRESS_API_ROOT;
+
+const VerifyEmailPage: React.FC = () => {
+    console.log('[VerifyEmailPage] Component is rendering.');
+
+    const searchParams = useSearchParams();
+    const router = useRouter();
+    const [verificationStatus, setVerificationStatus] = useState('جارٍ التحقق من بريدك الإلكتروني...');
+    const [isSuccess, setIsSuccess] = useState(false);
+    const [username, setUsername] = useState<string | null>(null);
+
+    useEffect(() => {
+        console.log('[VerifyEmailPage] useEffect is running.');
+        const key = searchParams.get('key');
+        const userFromUrl = searchParams.get('user');
+
+        console.log('[VerifyEmailPage] URL Params - key:', key ? '***key-present***' : '***key-missing***', 'user:', userFromUrl);
+
+        setUsername(userFromUrl);
+
+        if (!key || !userFromUrl) {
+            setVerificationStatus('رمز التحقق أو اسم المستخدم مفقود. يرجى التأكد من أن الرابط صحيح.');
+            setIsSuccess(false);
+            console.error('[VerifyEmailPage] Missing URL parameters: key or user.');
+            return;
         }
 
-        const wordpressApiUrl = `${process.env.NEXT_PUBLIC_WORDPRESS_API_URL}/jwt-auth/v1/token`;
-
-        try {
-          const response = await fetch(wordpressApiUrl, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              username: credentials.email,
-              password: credentials.password,
-            }),
-          });
-
-          const data = await response.json();
-
-          if (response.ok && data.token && data.user_id) {
-            const user = {
-              id: data.user_id,
-              name: data.user_display_name || credentials.email,
-              email: data.user_email || credentials.email,
-              wordpressJwt: data.token,
-              wordpressUserId: data.user_id,
-              wordpressUserName: data.user_display_name,
-              wordpressUserEmail: data.user_email,
-              wordpressUserLocale: data.user_locale || "en-US",
-            };
-            return user;
-          } else {
-            console.error("Error from WordPress backend during Credentials Auth:", data);
-            return null;
-          }
-        } catch (error) {
-          console.error("Failed to connect to WordPress backend for Credentials Auth:", error);
-          return null;
-        }
-      },
-    }),
-    // <--- جديد: CredentialsProvider مخصص لقبول JWT مباشرة
-    CredentialsProvider({
-      id: "jwt-token", // ID فريد لهذا الـ Provider
-      name: "JWT Token Login",
-      credentials: {
-        token: { label: "JWT Token", type: "text" }, // نتوقع JWT هنا
-        email: { label: "Email", type: "text" }, // يمكن أن يكون مفيداً للربط
-        name: { label: "Name", type: "text" }, // يمكن أن يكون مفيداً للربط
-        user_id: { label: "User ID", type: "text" }, // يمكن أن يكون مفيداً للربط
-        user_display_name: { label: "User Display Name", type: "text" },
-        user_email: { label: "User Email", type: "text" },
-        user_locale: { label: "User Locale", type: "text" },
-      },
-      async authorize(credentials, req) {
-        if (!credentials?.token) {
-          return null;
-        }
-        // هنا، لا نحتاج للتحقق من الـ JWT مع WordPress مرة أخرى
-        // لأننا نفترض أن الـ JWT القادم من `verify-email` صالح بالفعل.
-        // يمكننا ببساطة بناء كائن المستخدم من البيانات المتاحة.
-        const user = {
-          id: credentials.user_id,
-          name: credentials.user_display_name || credentials.name || credentials.email,
-          email: credentials.user_email || credentials.email,
-          wordpressJwt: credentials.token,
-          wordpressUserId: credentials.user_id,
-          wordpressUserName: credentials.user_display_name || credentials.name,
-          wordpressUserEmail: credentials.user_email || credentials.email,
-          wordpressUserLocale: credentials.user_locale || "en-US",
-        };
-        return user;
-      },
-    }),
-    // <--- نهاية إضافة CredentialsProvider لـ JWT
-  ],
-  callbacks: {
-    async signIn({ user, account, profile }) {
-      if (account?.provider === "google") {
-        try {
-          const wordpressApiUrl = `${process.env.NEXT_PUBLIC_WORDPRESS_API_URL}/sanad/v1/social-auth-process`;
-
-          let firstName = '';
-          let lastName = '';
-
-          if ((profile as any)?.given_name) {
-            firstName = (profile as any).given_name;
-          }
-          if ((profile as any)?.family_name) {
-            lastName = (profile as any).family_name;
-          } else if (user.name) {
-            const nameParts = user.name.split(' ');
-            if (nameParts.length > 1) {
-              firstName = nameParts[0];
-              lastName = nameParts.slice(1).join(' ');
-            } else {
-              firstName = nameParts[0];
-              lastName = '';
+        const verifyEmail = async () => {
+            if (!WORDPRESS_API_ROOT) {
+                setVerificationStatus('خطأ في الإعداد: عنوان API غير موجود. يرجى التحقق من متغير البيئة.');
+                setIsSuccess(false);
+                console.error('[VerifyEmailPage] Environment variable NEXT_PUBLIC_WORDPRESS_API_ROOT is not set.');
+                return;
             }
-          }
 
-          console.log("User data from Google:", {
-            email: user.email,
-            fullName: user.name,
-            givenName: (profile as any)?.given_name,
-            familyName: (profile as any)?.family_name,
-            derivedFirstName: firstName,
-            derivedLastName: lastName,
-            googleId: profile?.sub
-          });
+            try {
+                const wpVerifyApiUrl = `${WORDPRESS_API_ROOT}/sanad/v1/verify-email`;
+                console.log('[VerifyEmailPage] Sending verification request to:', wpVerifyApiUrl);
+                console.log('[VerifyEmailPage] Request body:', { key: key ? '***key-present***' : '***key-missing***', user: userFromUrl });
 
-          const response = await fetch(wordpressApiUrl, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              socialId: profile?.sub,
-              email: user.email,
-              firstName: firstName,
-              lastName: lastName,
-              provider: 'google',
-            }),
-          });
+                const response = await fetch(wpVerifyApiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ key, user: userFromUrl }),
+                });
 
-          const data = await response.json();
+                const data = await response.json();
+                console.log('[VerifyEmailPage] API Response Data:', data);
 
-          if (response.ok && data.token && data.user_id) {
-            (user as any).wordpressJwt = data.token;
-            (user as any).wordpressUserId = data.user_id;
-            (user as any).wordpressUserName = data.user_display_name || user.name;
-            (user as any).wordpressUserEmail = data.user_email || user.email;
-            (user as any).wordpressUserLocale = data.user_locale || "en-US";
+                if (response.ok && data.token) {
+                    console.log('[VerifyEmailPage] Verification successful. Attempting NextAuth signIn with JWT...');
+                    const result = await signIn('jwt-token', {
+                        redirect: false,
+                        token: data.token,
+                        user_id: data.user_id,
+                        user_display_name: data.user_display_name,
+                        user_email: data.user_email,
+                        user_locale: data.user_locale || 'en-US',
+                    });
 
-            console.log("WordPress API response success:", data);
+                    if (result?.error) {
+                        console.error('[VerifyEmailPage] NextAuth signIn failed after verification:', result.error);
+                        setVerificationStatus('تم تفعيل حسابك، ولكن فشل تسجيل الدخول التلقائي. يرجى تسجيل الدخول يدوياً.');
+                        setIsSuccess(true);
+                        setTimeout(() => {
+                            router.push('/auth/login');
+                        }, 2000);
+                    } else {
+                        console.log('[VerifyEmailPage] NextAuth signIn successful. Preparing for redirection...');
+                        setVerificationStatus(data.message || 'تم تفعيل حسابك بنجاح! أنت الآن مسجل دخول.');
+                        setIsSuccess(true);
+                        setTimeout(() => {
+                            console.log('[VerifyEmailPage] Redirecting to /donor/dashboard');
+                            router.push('/donor/dashboard');
+                        }, 2000);
+                    }
+                } else {
+                    console.error('[VerifyEmailPage] Verification failed:', data.message);
+                    setVerificationStatus(data.message || 'فشل تفعيل الحساب. يرجى المحاولة لاحقاً أو التواصل مع الدعم.');
+                    setIsSuccess(false);
+                }
+            } catch (error) {
+                setVerificationStatus('حدث خطأ في الاتصال بالسيرفر. يرجى المحاولة لاحقاً.');
+                setIsSuccess(false);
+                console.error('[VerifyEmailPage] Email verification API call error:', error);
+            }
+        };
 
-            return true;
-          } else {
-            console.error("Error from WordPress backend during Google Auth:", data);
-            return false;
-          }
-        } catch (error) {
-          console.error("Failed to connect to WordPress backend for Google Auth:", error);
-          return false;
-        }
-      }
-      // إذا كان الـ provider هو 'credentials' أو 'jwt-token'، فإننا نعود بـ true هنا
-      // لأن المصادقة قد تمت بالفعل في دالة authorize الخاصة بالـ Provider
-      return true;
-    },
+        verifyEmail();
+    }, [searchParams, router]);
 
-    async jwt({ token, user }) {
-      if (user) {
-        token.wordpressJwt = (user as any).wordpressJwt;
-        token.wordpressUserId = (user as any).wordpressUserId;
-        token.wordpressUserName = (user as any).wordpressUserName;
-        token.wordpressUserEmail = (user as any).wordpressUserEmail;
-        token.locale = (user as any).wordpressUserLocale;
-      }
-      return token;
-    },
+    return (
+        <div className={styles.authContainer}>
+            <div className={styles.authCard}>
+                <h2>تفعيل البريد الإلكتروني</h2>
+                <p className={isSuccess ? styles.successMessage : styles.errorMessage}>
+                    {verificationStatus}
+                </p>
+                {!isSuccess && (
+                    <p className={styles.authSwitch}>
+                        <Link href="/auth/signup">العودة إلى صفحة التسجيل</Link>
+                    </p>
+                )}
+            </div>
+        </div>
+    );
+};
 
-    async session({ session, token }) {
-      if (token.wordpressJwt) {
-        (session.user as any).wordpressJwt = token.wordpressJwt;
-      }
-      if (token.wordpressUserId) {
-        (session.user as any).wordpressUserId = token.wordpressUserId;
-      }
-      if (token.wordpressUserName) {
-        session.user.name = token.wordpressUserName;
-      }
-      if (token.wordpressUserEmail) {
-        session.user.email = token.wordpressUserEmail;
-      }
-      if (token.locale) {
-        (session.user as any).locale = token.locale;
-      }
-      return session;
-    },
-  },
-  pages: {
-    signIn: "/auth/login",
-    error: "/auth/error",
-  },
-});
-
-// --- EXPORT HANDLERS ---
-export { handler as GET, handler as POST };
+export default VerifyEmailPage;

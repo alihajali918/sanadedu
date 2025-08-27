@@ -2,7 +2,7 @@
 // FILE: src/app/api/auth/[...nextauth]/route.ts
 // DESCRIPTION: NextAuth.js API route for handling authentication callbacks.
 // This sets up Google OAuth and handles session creation, now including
-// the WordPress JWT token in the NextAuth session.
+// the WordPress JWT token and user locale in the NextAuth session.
 // ==========================================================
 
 // --- CORE IMPORTS ---
@@ -49,7 +49,6 @@ const handler = NextAuth({ // NextAuth is now correctly called as a function her
           }
           // --- نهاية التعديل لتقسيم الاسم ---
 
-          // يمكنك إضافة console.log هنا لتأكيد أن firstName و lastName تم إعدادهما بشكل صحيح
           console.log("User data from Google:", {
             email: user.email,
             fullName: user.name, // الاسم الكامل الأصلي من Google
@@ -59,7 +58,6 @@ const handler = NextAuth({ // NextAuth is now correctly called as a function her
             derivedLastName: lastName,
             googleId: profile?.sub
           });
-
 
           const response = await fetch(wordpressApiUrl, {
             method: "POST",
@@ -84,8 +82,8 @@ const handler = NextAuth({ // NextAuth is now correctly called as a function her
             (user as any).wordpressUserId = data.user_id;
             (user as any).wordpressUserName = data.user_display_name || user.name; // استخدام display_name من ووردبريس إذا توفر، وإلا الاسم الأصلي
             (user as any).wordpressUserEmail = data.user_email || user.email;
+            (user as any).wordpressUserLocale = data.user_locale || "en-US"; // <--- جديد: إضافة Locale من استجابة ووردبريس
 
-            // يمكنك إضافة console.log هنا لتأكيد استجابة WordPress
             console.log("WordPress API response success:", data);
 
             return true; // Allow NextAuth to complete the sign-in process.
@@ -110,6 +108,7 @@ const handler = NextAuth({ // NextAuth is now correctly called as a function her
         token.wordpressUserId = (user as any).wordpressUserId;
         token.wordpressUserName = (user as any).wordpressUserName;
         token.wordpressUserEmail = (user as any).wordpressUserEmail;
+        token.locale = (user as any).wordpressUserLocale; // <--- جديد: نقل Locale إلى التوكن الداخلي
       }
       return token;
     },
@@ -128,6 +127,9 @@ const handler = NextAuth({ // NextAuth is now correctly called as a function her
       }
       if (token.wordpressUserEmail) {
         session.user.email = token.wordpressUserEmail; // Optionally overwrite the default email
+      }
+      if (token.locale) {
+        (session.user as any).locale = token.locale; // <--- جديد: نقل Locale إلى كائن الجلسة
       }
       return session;
     },

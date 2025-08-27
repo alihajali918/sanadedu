@@ -3,21 +3,22 @@
 // DESCRIPTION: Root Layout Component for Sanad Website
 // This component wraps all pages, imports global styles,
 // defines fonts, and includes core UI elements (Header, Footer, LoadingPage).
-// Now includes AuthProvider, LocaleProvider, CartProvider, and NextAuth's SessionProvider.
+// Now exclusively uses NextAuth's SessionProvider for authentication.
 // ==========================================================
 
 "use client"; // Mark this file as a Client Component because it uses React Context
 
 // --- CORE IMPORTS ---
 import "./globals.css"; // Global CSS styles for the entire application
+import React, { ReactNode } from "react"; // استيراد ReactNode بشكل صريح
 
 // --- UI COMPONENT IMPORTS ---
 import Header from "../components/common/Header/Header";
 import Footer from "../components/common/Footer/Footer";
 import LoadingPage from "../components/common/Loading/LoadingPage"; // Preloader for initial page load
 import { CartProvider } from "./context/CartContext"; // CartProvider for shopping cart state
-import { AuthProvider, useAuth } from "./context/AuthContext"; // <--- NEW: AuthProvider and useAuth hook
-import { LocaleProvider } from "./context/LocaleContext"; // <--- NEW: LocaleProvider for language/locale state
+// import { AuthProvider, useAuth } from "./context/AuthContext"; // <--- تم إزالة: لا نستخدم AuthProvider الخاص بك
+import { LocaleProvider, useLocale } from "./context/LocaleContext"; // <--- NEW: LocaleProvider for language/locale state (useLocale أضيف للLocaleProvider المعدّل أدناه)
 
 // --- FONT AWESOME (Icons) ---
 import "@fortawesome/fontawesome-free/css/all.min.css";
@@ -26,7 +27,7 @@ import "@fortawesome/fontawesome-free/css/all.min.css";
 import { Changa, Cairo } from "next/font/google";
 
 // --- NEXT-AUTH ---
-import { SessionProvider } from "next-auth/react"; // SessionProvider for NextAuth (if used)
+import { useSession, signIn, signOut, SessionProvider } from "next-auth/react"; // <--- استيراد SessionProvider و useSession
 
 // Define Changa font (for headings)
 const changa = Changa({
@@ -44,14 +45,15 @@ const cairo = Cairo({
   display: "swap",
 });
 
-// --- AppProviders Component ---
-// This component wraps all other providers and ensures correct order
-// It also handles the initial loading state for authentication
+// --- AppProviders Component (معدّل لاستخدام useSession) ---
+// هذا المكون يلف جميع الـ providers الأخرى ويتأكد من الترتيب الصحيح
+// كما يتعامل مع حالة التحميل الأولية للمصادقة باستخدام NextAuth's useSession
 const AppProviders = ({ children }: { children: React.ReactNode }) => {
-  const { user, isLoadingAuth } = useAuth(); // Get user and loading state from AuthContext
+  // const { user, isLoadingAuth } = useAuth(); // <--- تم إزالة: لا نستخدم useAuth()
+  const { data: session, status } = useSession(); // <--- جديد: استخدام useSession() من NextAuth.js
 
-  // Show a simple loading indicator while authentication status is being checked
-  if (isLoadingAuth) {
+  // إظهار مؤشر تحميل بسيط أثناء التحقق من حالة المصادقة
+  if (status === "loading") { // useSession() يوفر "loading" لحالة التحقق
     return (
       <div
         style={{
@@ -69,10 +71,11 @@ const AppProviders = ({ children }: { children: React.ReactNode }) => {
     );
   }
 
+  // يمكننا الآن الوصول إلى بيانات المستخدم من `session.user`
+  // LocaleProvider يلف المحتوى الرئيسي ويتلقى الـ locale الأولي من `session.user`
+  // هذا يضمن تعيين الـ locale بناءً على تفضيل المستخدم المصادق عليه
   return (
-    // LocaleProvider wraps the main content and receives the initial locale from AuthContext
-    // This ensures locale is set based on the authenticated user's preference
-    <LocaleProvider initialLocale={user?.locale}>
+    <LocaleProvider initialLocale={session?.user?.locale || "en-US"}> {/* <--- استخدام session.user?.locale */}
       {/* Header Component: Appears at the top of every page. */}
       {/* Moved inside providers to access AuthContext and LocaleContext */}
       <Header />
@@ -82,6 +85,7 @@ const AppProviders = ({ children }: { children: React.ReactNode }) => {
     </LocaleProvider>
   );
 };
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -94,7 +98,7 @@ export default function RootLayout({
     <>
       {/* ========================================================== */}
       {/* LOADING PAGE COMPONENT (PRELOADER) */}
-      {/* This renders globally, outside the main HTML structure, during initial page load */}
+      {/* هذا يبقى خارج هيكل الـ HTML الرئيسي */}
       {/* ========================================================== */}
       <LoadingPage />
 
@@ -125,21 +129,17 @@ export default function RootLayout({
         {/* ========================================================== */}
         {/* BODY SECTION */}
         {/* Contains the main visible content of the page. */}
-        {/* All main providers are nested here in the correct order */}
+        {/* الآن، SessionProvider هو أول Provider يلف كل شيء */}
         {/* ========================================================== */}
         <body>
-          {/* AuthProvider comes first as other providers/components might depend on authentication status */}
-          <AuthProvider>
-            {/* SessionProvider from next-auth/react is nested inside AuthProvider if it uses AuthContext */}
-            {/* If NextAuth is independent, it can be outside AuthProvider */}
-            <SessionProvider>
-              {/* CartProvider is for shopping cart state */}
-              <CartProvider>
-                {/* AppProviders component encapsulates Header, children (page content), and Footer */}
-                <AppProviders>{children}</AppProviders>
-              </CartProvider>
-            </SessionProvider>
-          </AuthProvider>
+          {/* SessionProvider من next-auth/react هو الآن الـ Provider الخارجي المسؤول عن المصادقة */}
+          <SessionProvider>
+            {/* CartProvider لأجل حالة عربة التسوق */}
+            <CartProvider>
+              {/* AppProviders Component يلف الـ Header، children (محتوى الصفحة)، والـ Footer */}
+              <AppProviders>{children}</AppProviders>
+            </CartProvider>
+          </SessionProvider>
         </body>
       </html>
     </>

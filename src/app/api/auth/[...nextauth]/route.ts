@@ -8,7 +8,7 @@
 // --- CORE IMPORTS ---
 import NextAuth from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
-import CredentialsProvider from "next-auth/providers/credentials"; // <--- جديد: استيراد CredentialsProvider
+import CredentialsProvider from "next-auth/providers/credentials";
 
 // --- NEXTAUTH CONFIGURATION ---
 const handler = NextAuth({
@@ -17,7 +17,6 @@ const handler = NextAuth({
       clientId: process.env.GOOGLE_CLIENT_ID as string,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
     }),
-    // <--- جديد: إضافة CredentialsProvider لتسجيل الدخول التقليدي
     CredentialsProvider({
       name: "WordPress Credentials",
       credentials: {
@@ -38,7 +37,9 @@ const handler = NextAuth({
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
-              username: credentials.email, // JWT plugin عادةً ما يقبل email كـ username
+              // ***** التعديل هنا: استخدم اسم المستخدم الفعلي بدلاً من البريد الإلكتروني *****
+              // ستحتاج إلى استبدال "your_actual_wordpress_username" باسم المستخدم الخاص بك في ووردبريس.
+              username: "your_actual_wordpress_username", // <--- قم بتغيير هذا السطر
               password: credentials.password,
             }),
           });
@@ -46,8 +47,6 @@ const handler = NextAuth({
           const data = await response.json();
 
           if (response.ok && data.token && data.user_id) {
-            // عند تسجيل الدخول بنجاح عبر Credentials، قم بإنشاء كائن user
-            // الذي سيتم تمريره إلى jwt callback
             const user = {
               id: data.user_id,
               name: data.user_display_name || credentials.email,
@@ -56,26 +55,22 @@ const handler = NextAuth({
               wordpressUserId: data.user_id,
               wordpressUserName: data.user_display_name,
               wordpressUserEmail: data.user_email,
-              wordpressUserLocale: data.user_locale || "en-US", // افترض أن الـ Backend يرسل locale
+              wordpressUserLocale: data.user_locale || "en-US",
             };
             return user;
           } else {
             console.error("Error from WordPress backend during Credentials Auth:", data);
-            return null; // فشل المصادقة
+            return null;
           }
         } catch (error) {
           console.error("Failed to connect to WordPress backend for Credentials Auth:", error);
-          return null; // خطأ في الشبكة
+          return null;
         }
       },
     }),
-    // <--- نهاية إضافة CredentialsProvider
   ],
   callbacks: {
-    // signIn callback: Handles user authentication and interaction with WordPress backend
     async signIn({ user, account, profile }) {
-      // هذا الـ callback سيتم استدعاؤه أيضاً لـ CredentialsProvider
-      // إذا كان الـ provider هو 'credentials'، فإن `user` سيحتوي بالفعل على بياناتنا المخصصة
       if (account?.provider === "google") {
         try {
           const wordpressApiUrl = `${process.env.NEXT_PUBLIC_WORDPRESS_API_URL}/sanad/v1/social-auth-process`;
@@ -144,16 +139,11 @@ const handler = NextAuth({
           return false;
         }
       }
-      // إذا كان الـ provider هو 'credentials'، فإننا نعود بـ true هنا
-      // لأن المصادقة قد تمت بالفعل في دالة authorize الخاصة بـ CredentialsProvider
       return true;
     },
 
-    // jwt callback: Manipulates the JWT token that NextAuth stores
     async jwt({ token, user }) {
-      // If 'user' exists, it means a new sign-in or user data update occurred
       if (user) {
-        // Transfer WordPress specific data from 'user' to the 'token'
         token.wordpressJwt = (user as any).wordpressJwt;
         token.wordpressUserId = (user as any).wordpressUserId;
         token.wordpressUserName = (user as any).wordpressUserName;
@@ -163,9 +153,7 @@ const handler = NextAuth({
       return token;
     },
 
-    // session callback: Exposes custom data from the JWT token to the client-side session
     async session({ session, token }) {
-      // Add WordPress specific data from 'token' to 'session.user'
       if (token.wordpressJwt) {
         (session.user as any).wordpressJwt = token.wordpressJwt;
       }

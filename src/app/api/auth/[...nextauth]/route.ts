@@ -37,9 +37,10 @@ const handler = NextAuth({
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
-              // ***** التعديل هنا: استخدم اسم المستخدم الفعلي بدلاً من البريد الإلكتروني *****
-              // ستحتاج إلى استبدال "your_actual_wordpress_username" باسم المستخدم الخاص بك في ووردبريس.
-              username: "your_actual_wordpress_username", // <--- قم بتغيير هذا السطر
+              // ***** تم التعديل هنا: استخدام البريد الإلكتروني كاسم مستخدم *****
+              // هذا يعيد الكود إلى استخدام البريد الإلكتروني كـ username
+              // كما هو متوقع عادةً من إضافة JWT.
+              username: credentials.email, // <--- تم تغيير هذا السطر
               password: credentials.password,
             }),
           });

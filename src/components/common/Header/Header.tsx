@@ -10,7 +10,7 @@ import Image from 'next/image';
 import { useState, useEffect } from 'react';
 // تأكد من صحة مسار استيراد CartContext الخاص بك
 import { useCart } from '@/app/context/CartContext';
-import { useAuth } from '@/app/context/AuthContext'; // <--- هذا هو الاستيراد المهم
+import { useSession, signOut } from 'next-auth/react'; // <--- تم التعديل: استخدام useSession و signOut من NextAuth
 import styles from './Header.module.css'; // استيراد الستايلات ككائن 'styles'
 
 
@@ -22,9 +22,10 @@ const Header = () => {
   const [openMobileDropdown, setOpenMobileDropdown] = useState<number | null>(null);
 
   // **********************************************
-  // استخدام هوك useAuth لجلب حالة المصادقة ووظيفة تسجيل الخروج
-  // هذا هو الذي يجعل الهيدر يتفاعل مع تغيير حالة المصادقة
-  const { isAuthenticated, user, logout, isLoadingAuth } = useAuth(); 
+  // استخدام هوك useSession لجلب حالة المصادقة ووظيفة تسجيل الخروج
+  const { data: session, status } = useSession(); // <--- تم التعديل: استخدام useSession
+  const isAuthenticated = status === "authenticated"; // تعريف isAuthenticated بناءً على status
+  const isLoadingAuth = status === "loading"; // تعريف isLoadingAuth بناءً على status
   // **********************************************
 
   // استخدام هوك سلة التبرعات لجلب عدد العناصر الإجمالي
@@ -56,10 +57,10 @@ const Header = () => {
   }, [isMobileMenuOpen]);
 
   // **********************************************
-  // تم إزالة جزء المحاكاة المؤقت لأنه أصبح غير ضروري مع استخدام AuthContext
+  // تم إزالة جزء المحاكاة المؤقت لأنه أصبح غير ضروري مع استخدام NextAuth.js
   // **********************************************
 
-  // إذا كانت حالة المصادقة قيد التحميل، يمكنك عرض أيقونة تحميل أو لا شيء
+  // إذا كانت حالة المصادقة قيد التحميل، يمكن عرض أيقونة تحميل أو لا شيء
   // لا نرجع null هنا بشكل صارم، لأننا نريد أن يتم تحديث الهيدر بمجرد أن تصبح
   // حالة isAuthenticated صحيحة، حتى لو كانت isLoadingAuth لا تزال صحيحة للحظة.
   if (isLoadingAuth) {
@@ -91,11 +92,12 @@ const Header = () => {
               <>
                 {/* عرض اسم المستخدم أو بريده الإلكتروني */}
                 <Link href="/donor/dashboard" className={styles.topLink} onClick={() => setIsMobileMenuOpen(false)}>
-                  <i className="fas fa-user"></i> &nbsp; {user?.name || user?.email}
+                  <i className="fas fa-user"></i> &nbsp; {session?.user?.name || session?.user?.email} {/* <--- استخدام session.user */}
                 </Link>
                 <button
                   onClick={() => {
-                    logout(); // استخدام دالة logout من السياق
+                    signOut({ callbackUrl: '/auth/login' }); // <--- استخدام signOut من NextAuth
+                    setIsMobileMenuOpen(false); // إغلاق قائمة الجوال عند تسجيل الخروج
                   }}
                   className={`${styles.topLink} ${styles.logoutButton}`} 
                 >
@@ -138,9 +140,9 @@ const Header = () => {
           {/* إضافة أيقونة الدخول للموبايل تستخدم حالة المصادقة */}
           {isAuthenticated ? (
              <Link href="/donor/dashboard" className={styles.authIconMobile} aria-label="حسابي" onClick={() => setIsMobileMenuOpen(false)}>
-                <i className="fas fa-user"></i>
+               <i className="fas fa-user"></i>
              </Link>
-          ) : (
+           ) : (
             <Link href="/auth/login" className={styles.authIconMobile} aria-label="الدخول" onClick={() => setIsMobileMenuOpen(false)}>
               <i className="fas fa-user"></i>
             </Link>
@@ -188,7 +190,7 @@ const Header = () => {
               <li>
                 <button
                   onClick={() => {
-                    logout(); 
+                    signOut({ callbackUrl: '/auth/login' }); // <--- استخدام signOut من NextAuth
                     toggleMobileMenu(); 
                   }}
                   className={styles.mobileNavLink}
@@ -252,8 +254,8 @@ const Header = () => {
           </li>
 
           <li><Link href="/support-staff" className={`${styles.btn} ${styles.btnCtaPrimary}`} onClick={toggleMobileMenu}>ادعم الكادر</Link></li>
-          <li><Link href="/request-documentation">طلب توثيق المؤسسة</Link></li>
-          <li><Link href="/latest-donors">آخر المتبرعين</Link></li>
+          <li><Link href="/request-documentation" onClick={toggleMobileMenu}>طلب توثيق المؤسسة</Link></li>
+          <li><Link href="/latest-donors" onClick={toggleMobileMenu}>آخر المتبرعين</Link></li>
 
           <li><Link href="/contact" onClick={toggleMobileMenu}>تواصل معنا</Link></li>
           <li><Link href="/faq" onClick={toggleMobileMenu}>الأسئلة الشائعة</Link></li>

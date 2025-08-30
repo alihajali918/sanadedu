@@ -1,217 +1,237 @@
 // ==========================================================
 // FILE: src/app/api/auth/[...nextauth]/route.ts
-// DESCRIPTION: NextAuth.js API route for handling authentication callbacks.
-// This sets up Google OAuth and handles session creation, including
-// the WordPress JWT token and Credential Provider for traditional login.
+// DESCRIPTION: NextAuth.js route with Google + Credentials (WordPress).
+// إصلاح: التعامل مع استجابة WP التي تُرجع token بدون user_id
+// عبر طلب لاحق إلى wp/v2/users/me لاستخراج المعرّف.
 // ==========================================================
 
-// --- CORE IMPORTS ---
 import NextAuth from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
 
-// --- NEXTAUTH CONFIGURATION ---
+const WORDPRESS_BASE_URL = process.env.NEXT_PUBLIC_WORDPRESS_API_URL as string;
+// مثال متوقّع: https://cms.sanadedu.org/wp-json
+
+if (!WORDPRESS_BASE_URL) {
+  console.warn("[NextAuth] Warning: NEXT_PUBLIC_WORDPRESS_API_URL is not set.");
+}
+
+async function fetchWpCurrentUserId(jwt: string): Promise<number | null> {
+  try {
+    // إذا كان WORDPRESS_BASE_URL = ".../wp-json"
+    // فـ users/me = ".../wp-json/wp/v2/users/me"
+    const url = `${WORDPRESS_BASE_URL}/wp/v2/users/me`;
+    const resp = await fetch(url, {
+      headers: { Authorization: `Bearer ${jwt}` },
+      cache: "no-store",
+    });
+    if (!resp.ok) {
+      console.error("[WP users/me] HTTP", resp.status);
+      return null;
+    }
+    const me = await resp.json();
+    // عادة يرجع { id, name, slug, ... }
+    if (me?.id) return Number(me.id);
+    return null;
+  } catch (e) {
+    console.error("[WP users/me] fetch error:", e);
+    return null;
+  }
+}
+
 const handler = NextAuth({
   providers: [
-    // Google OAuth Provider
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID as string,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
     }),
-    // Credentials Provider for WordPress traditional login
+
     CredentialsProvider({
       name: "WordPress Credentials",
       credentials: {
-        email: { label: "Email", type: "text" },
+        email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
       },
-      async authorize(credentials, req) {
+      async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
-          console.error("Credentials: Email or password missing.");
+          console.error("[Credentials] Missing email or password.");
           return null;
         }
 
-        // Step 1: Search for the WordPress username (user_login) using the provided email
-        const userSearchApiUrl = `${process.env.NEXT_PUBLIC_WORDPRESS_API_URL}/wp/v2/users?search=${credentials.email}&per_page=1`;
+        const tokenUrl = `${WORDPRESS_BASE_URL}/jwt-auth/v1/token`;
 
         try {
-          const userSearchResponse = await fetch(userSearchApiUrl, {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-            },
-          });
-
-          const userSearchData = await userSearchResponse.json();
-          if (!userSearchResponse.ok || userSearchData.length === 0) {
-            console.error("Credentials Auth: User not found for the provided email.");
-            // Important: Return null to signify failed authorization
-            return null;
-          }
-
-          // Step 2: Extract the actual WordPress username (slug typically matches user_login)
-          const wordpressUsername = userSearchData[0].slug;
-          if (!wordpressUsername) {
-            console.error("Credentials Auth: Could not retrieve WordPress username from API.");
-            return null;
-          }
-
-          // Step 3: Authenticate with WordPress JWT endpoint using the retrieved username and password
-          const wordpressTokenApiUrl = `${process.env.NEXT_PUBLIC_WORDPRESS_API_URL}/jwt-auth/v1/token`;
-          const response = await fetch(wordpressTokenApiUrl, {
+          const response = await fetch(tokenUrl, {
             method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              username: wordpressUsername, // Use the actual WordPress username here
+              username: credentials.email,
               password: credentials.password,
             }),
           });
 
           const data = await response.json();
+          console.log("[Credentials] WP Response:", data);
 
-          if (response.ok && data.token && data.user_id) {
-            // If authentication is successful, construct the user object
-            const user = {
-              id: data.user_id.toString(), // NextAuth expects string ID
-              name: data.user_display_name || credentials.email,
-              email: data.user_email || credentials.email,
-              wordpressJwt: data.token,
-              wordpressUserId: data.user_id,
-              wordpressUserName: data.user_display_name,
-              wordpressUserEmail: data.user_email,
-              wordpressUserLocale: data.user_locale || "en-US",
-            };
-            return user; // Return the user object for successful authorization
-          } else {
-            // Handle specific WordPress JWT errors (e.g., email not verified)
-            if (data.code === 'rest_email_not_verified') {
-                console.error("Credentials Auth Error: Email not verified for user:", credentials.email);
-                // You might want to throw a specific error here or return null with a message
-                throw new Error("Email not verified. Please check your inbox.");
+          // 1) إن جاء token فقط بدون user_id، نجيب المعرّف من users/me
+          if (data?.token) {
+            let wpUserId = data?.user_id;
+            if (!wpUserId) {
+              wpUserId = await fetchWpCurrentUserId(data.token);
             }
-            console.error("Error from WordPress backend during Credentials Auth:", data);
-            return null; // Return null for general authentication failure
+
+            if (wpUserId) {
+              const user = {
+                id: String(wpUserId),
+                name: data.user_display_name || credentials.email,
+                email: data.user_email || credentials.email,
+                wordpressJwt: data.token,
+                wordpressUserId: Number(wpUserId),
+                wordpressUserName: data.user_display_name || credentials.email,
+                wordpressUserEmail: data.user_email || credentials.email,
+                wordpressUserLocale: data.user_locale || "en-US",
+              };
+              return user as any;
+            }
+
+            // لو فشلنا في جلب id رغم وجود token نعتبره خطأ
+            console.error("[Credentials] Got token but couldn't resolve user_id.");
+            return null;
           }
-        } catch (error: any) {
-          console.error("Failed to connect to WordPress backend for Credentials Auth:", error.message);
-          // Propagate specific error messages if needed
-          if (error.message.includes("Email not verified")) {
-              throw error; // Re-throw to be caught by NextAuth error page
+
+          // 2) أخطاء مخصّصة
+          if (data?.code === "rest_email_not_verified") {
+            throw new Error("Email not verified. Please check your inbox.");
           }
-          return null; // Return null for connection/other errors
+
+          console.error("[Credentials] WP backend error (no token):", data);
+          return null;
+        } catch (err: any) {
+          console.error("[Credentials] WP connect error:", err?.message || err);
+          if (String(err?.message || "").includes("Email not verified")) {
+            throw err; // يسمح بوصول الرسالة للواجهة عبر result.error
+          }
+          return null;
         }
       },
     }),
   ],
+
   callbacks: {
-    // This callback is called when a user signs in.
-    // It's crucial for both Google and Credentials providers to populate the 'user' object with WordPress data.
     async signIn({ user, account, profile }) {
-      if (account?.provider === "google") {
-        try {
-          const wordpressApiUrl = `${process.env.NEXT_PUBLIC_WORDPRESS_API_URL}/sanad/v1/social-auth-process`;
+      if (account?.provider !== "google") return true;
 
-          let firstName = '';
-          let lastName = '';
+      try {
+        const socialUrl = `${WORDPRESS_BASE_URL}/sanad/v1/social-auth-process`;
 
-          if ((profile as any)?.given_name) {
-            firstName = (profile as any).given_name;
-          }
-          if ((profile as any)?.family_name) {
-            lastName = (profile as any).family_name;
-          } else if (user.name) {
-            const nameParts = user.name.split(' ');
-            if (nameParts.length > 1) {
-              firstName = nameParts[0];
-              lastName = nameParts.slice(1).join(' ');
-            } else {
-              firstName = nameParts[0];
-              lastName = '';
-            }
-          }
+        let firstName = "";
+        let lastName = "";
+        const anyProfile = profile as any;
 
-          const response = await fetch(wordpressApiUrl, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              socialId: profile?.sub,
-              email: user.email,
-              firstName: firstName,
-              lastName: lastName,
-              provider: 'google',
-            }),
-          });
-
-          const data = await response.json();
-
-          if (response.ok && data.token && data.user_id) {
-            // Attach WordPress specific data to the NextAuth 'user' object
-            // This data will then be available in the 'jwt' callback
-            (user as any).wordpressJwt = data.token;
-            (user as any).wordpressUserId = data.user_id;
-            (user as any).wordpressUserName = data.user_display_name || user.name;
-            (user as any).wordpressUserEmail = data.user_email || user.email;
-            (user as any).wordpressUserLocale = data.user_locale || "en-US";
-            return true; // Successfully processed Google sign-in
+        if (anyProfile?.given_name) firstName = anyProfile.given_name;
+        if (anyProfile?.family_name) {
+          lastName = anyProfile.family_name;
+        } else if (user.name) {
+          const parts = user.name.split(" ");
+          if (parts.length > 1) {
+            firstName = firstName || parts[0];
+            lastName = parts.slice(1).join(" ");
           } else {
-            console.error("Error from WordPress backend during Google Auth:", data);
-            return false; // Failed to process Google sign-in with WordPress
+            firstName = firstName || parts[0];
+            lastName = "";
           }
-        } catch (error) {
-          console.error("Failed to connect to WordPress backend for Google Auth:", error);
-          return false; // Failed to connect
         }
+
+        const response = await fetch(socialUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            socialId: (profile as any)?.sub,
+            email: user.email,
+            firstName,
+            lastName,
+            provider: "google",
+          }),
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data?.token) {
+          (user as any).wordpressJwt = data.token;
+
+          // نفس فكرة الـ credentials: لو ما فيه user_id حاول نجيبه
+          let wpUserId = data?.user_id;
+          if (!wpUserId) {
+            wpUserId = await fetchWpCurrentUserId(data.token);
+          }
+
+          (user as any).wordpressUserId = wpUserId ?? null;
+          (user as any).wordpressUserName =
+            data.user_display_name || user.name || "";
+          (user as any).wordpressUserEmail = data.user_email || user.email || "";
+          (user as any).wordpressUserLocale = data.user_locale || "en-US";
+          return true;
+        }
+
+        console.error("[Google] WP backend error:", data);
+        return false;
+      } catch (error) {
+        console.error("[Google] Failed to connect WP social-auth:", error);
+        return false;
       }
-      // For CredentialsProvider, the user object is already populated in the authorize function,
-      // so we just return true here to allow the sign-in.
-      return true;
     },
 
-    // This callback is called whenever a JSON Web Token is created or updated.
-    // It adds custom WordPress data to the JWT.
     async jwt({ token, user }) {
       if (user) {
-        // 'user' is populated from the 'authorize' function (Credentials) or 'signIn' (Google)
-        token.wordpressJwt = (user as any).wordpressJwt;
-        token.wordpressUserId = (user as any).wordpressUserId;
-        token.wordpressUserName = (user as any).wordpressUserName;
-        token.wordpressUserEmail = (user as any).wordpressUserEmail;
-        token.locale = (user as any).wordpressUserLocale;
+        token.wordpressJwt = (user as any).wordpressJwt ?? token.wordpressJwt;
+        token.wordpressUserId =
+          (user as any).wordpressUserId ?? token.wordpressUserId;
+
+        token.wordpressUserName =
+          (user as any).wordpressUserName ??
+          (user as any).name ??
+          (token as any).name ??
+          token.name;
+
+        token.wordpressUserEmail =
+          (user as any).wordpressUserEmail ??
+          (user as any).email ??
+          (token as any).email ??
+          token.email;
+
+        (token as any).wordpressUserLocale =
+          (user as any).wordpressUserLocale ??
+          (user as any).locale ??
+          (token as any).wordpressUserLocale ??
+          "en-US";
       }
       return token;
     },
 
-    // This callback is called whenever a session is checked.
-    // It exposes the custom data from the JWT to the client-side session.
     async session({ session, token }) {
-      if (token.wordpressJwt) {
-        (session.user as any).wordpressJwt = token.wordpressJwt;
+      if ((token as any).wordpressJwt) {
+        (session.user as any).wordpressJwt = (token as any).wordpressJwt;
       }
-      if (token.wordpressUserId) {
-        (session.user as any).wordpressUserId = token.wordpressUserId;
+      if ((token as any).wordpressUserId) {
+        (session.user as any).wordpressUserId = (token as any).wordpressUserId;
       }
-      if (token.wordpressUserName) {
-        session.user.name = token.wordpressUserName;
+      if ((token as any).wordpressUserName) {
+        session.user.name = (token as any).wordpressUserName;
       }
-      if (token.wordpressUserEmail) {
-        session.user.email = token.wordpressUserEmail;
+      if ((token as any).wordpressUserEmail) {
+        session.user.email = (token as any).wordpressUserEmail;
       }
-      if (token.locale) {
-        (session.user as any).locale = token.locale;
+      if ((token as any).wordpressUserLocale) {
+        (session.user as any).locale = (token as any).wordpressUserLocale;
       }
       return session;
     },
   },
-  // Custom pages for sign-in and error handling
+
   pages: {
     signIn: "/auth/login",
-    error: "/auth/error", // This will be used to display errors like "Email not verified"
+    error: "/auth/error",
   },
 });
 
-// --- EXPORT HANDLERS ---
 export { handler as GET, handler as POST };

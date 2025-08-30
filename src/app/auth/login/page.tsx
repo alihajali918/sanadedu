@@ -1,77 +1,94 @@
 // ==========================================================
 // FILE: src/app/(auth)/login/page.tsx
 // DESCRIPTION: Login page component for Sanad website.
-// Handles user authentication with WordPress REST API using JWT.
+// Handles user authentication with NextAuth Credentials (WordPress JWT) + Google OAuth.
 // ==========================================================
 
-"use client"; // Marks this as a Client Component for hooks like useState and useRouter.
+"use client";
 
-import Link from 'next/link';
-import React, { useState } from 'react';
-import styles from './login.module.css'; // Import CSS module for styling
-import { useRouter } from 'next/navigation'; // Import useRouter for redirection
-import { signIn } from 'next-auth/react'; // <--- جديد: استيراد signIn من NextAuth.js بدلاً من useAuth
-
-// تحديد متغير البيئة لعنوان الـ API (لم يعد يستخدم مباشرة لعملية تسجيل الدخول في NextAuth)
-// يجب التأكد أن هذا المتغير متاح في ملف .env.local وعلى Vercel
-const WORDPRESS_API_ROOT = process.env.NEXT_PUBLIC_WORDPRESS_API_ROOT;
+import Link from "next/link";
+import React, { useState } from "react";
+import styles from "./login.module.css";
+import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
 
 const LoginPage: React.FC = () => {
-  // State variables to manage form inputs and UI feedback
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState(null); // To display error messages
-  const [isLoading, setIsLoading] = useState(false); // To manage loading state for the button
+  // Form & UI state
+  const [email, setEmail] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  const router = useRouter(); // Initialize useRouter hook for navigation
-  // const { login } = useAuth(); // <--- تم إزالة: لم نعد نستخدم useAuth
+  const router = useRouter();
 
-  // Function to handle form submission (login attempt)
-  const handleLogin = async (e) => {
-    e.preventDefault(); // Prevent default form submission behavior
-    setError(null); // Clear previous errors
-    setIsLoading(true); // Set loading state to true
+  // ----------------------------------------------------------
+  // Handle Login (Credentials via NextAuth -> fallback WP check)
+  // ----------------------------------------------------------
+  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setError(null);
+    setIsLoading(true);
 
-    // التحقق من وجود متغير البيئة (هذا التحقق أصبح أقل أهمية هنا لأن NextAuth يتعامل مع API)
-    // ولكنه جيد لإظهار رسائل خطأ واضحة
-    if (!process.env.NEXT_PUBLIC_WORDPRESS_API_URL) { // نستخدم NEXT_PUBLIC_WORDPRESS_API_URL كما هو في route.ts
-      setError('خطأ في الإعداد: عنوان API غير موجود. يرجى التحقق من متغير البيئة.');
+    const baseUrl = process.env.NEXT_PUBLIC_WORDPRESS_API_URL;
+    if (!baseUrl) {
+      setError("خطأ في الإعداد: عنوان API غير موجود. يرجى التحقق من متغير البيئة.");
       setIsLoading(false);
-      console.error('Environment variable NEXT_PUBLIC_WORDPRESS_API_URL is not set.');
+      console.error("Environment variable NEXT_PUBLIC_WORDPRESS_API_URL is not set.");
       return;
     }
 
     try {
-      // **********************************************
-      // التعديل هنا: استخدام signIn من NextAuth.js لـ Credential Provider
-      // ستحتاج إلى إعداد Credential Provider في ملف route.ts الخاص بك
-      // NextAuth سيتولى إرسال بيانات الاعتماد إلى نقطة نهاية WordPress JWT
-      const result = await signIn('credentials', {
-        redirect: false, // لا تقوم بإعادة التوجيه تلقائيًا، سنتعامل معها يدوياً
-        email: email, // NextAuth سيرسل هذا كـ username عادةً لـ jwt-auth/v1/token
-        password: password,
-        // يمكنك إضافة callbackUrl هنا إذا كنت تريد إعادة التوجيه إلى صفحة معينة بعد النجاح
+      // 1) حاول تسجيل الدخول عبر NextAuth (Credentials)
+      const result = await signIn("credentials", {
+        redirect: false,
+        email,
+        password,
       });
 
       if (result?.error) {
-        // فشل تسجيل الدخول
-        console.error('Login failed:', result.error);
-        // **********************************************
-        // التعديل هنا: رسالة خطأ أكثر تحديداً
-        setError('البريد الإلكتروني أو كلمة المرور غير صحيحة.');
-        // **********************************************
-      } else {
-        // تسجيل دخول ناجح (NextAuth سيتولى الجلسة)
-        console.log('Login successful with NextAuth credentials.');
-        router.push('/donor/dashboard'); // إعادة توجيه المستخدم إلى لوحة التحكم الخاصة به
+        console.error("Login failed:", result.error);
+
+        // 2) إن فشل، نفحص مباشرة مع WP JWT endpoint لمعرفة السبب الحقيقي
+        try {
+          const wpResp = await fetch(`${baseUrl}/jwt-auth/v1/token`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username: email, password }),
+          });
+
+          const data = await wpResp.json();
+          const code = data?.code || "";
+          const message = (data?.message || "").toString().toLowerCase();
+
+          if (code === "rest_email_not_verified" || message.includes("not verified")) {
+            setError("البريد الإلكتروني غير مُفعَّل. يرجى فتح رابط التفعيل المرسل إلى بريدك.");
+          } else if (
+            code.includes("invalid_email") ||
+            code.includes("invalid_username") ||
+            code.includes("incorrect_password") ||
+            message.includes("invalid") ||
+            message.includes("incorrect")
+          ) {
+            setError("البريد الإلكتروني أو كلمة المرور غير صحيحة.");
+          } else {
+            console.warn("WP token endpoint response:", data);
+            setError("تعذّر تسجيل الدخول. يرجى المحاولة لاحقاً أو التواصل مع الدعم.");
+          }
+        } catch (wpErr) {
+          console.error("Secondary WP check failed:", wpErr);
+          setError("تعذّر التحقق من السبب. يرجى المحاولة لاحقاً.");
+        }
+
+        return; // لا تُكمل التدفّق بعد معالجة الخطأ
       }
-      // **********************************************
+
+      // نجاح
+      router.push("/donor/dashboard");
     } catch (err) {
-      // Catch any network errors or issues
-      setError('حدث خطأ في الاتصال. يرجى المحاولة لاحقاً.');
-      console.error('Login process error:', err); // Log the full error for debugging
+      setError("حدث خطأ في الاتصال. يرجى المحاولة لاحقاً.");
+      console.error("Login process error:", err);
     } finally {
-      setIsLoading(false); // Reset loading state
+      setIsLoading(false);
     }
   };
 
@@ -79,62 +96,64 @@ const LoginPage: React.FC = () => {
     <div className={styles.authContainer}>
       <div className={styles.authCard}>
         <h2>تسجيل الدخول</h2>
-        {/* Display error messages */}
+
+        {/* Error box */}
         {error && <div className={styles.errorMessage}>{error}</div>}
-        
+
         <form className={styles.authForm} onSubmit={handleLogin}>
-          {/* Email input field */}
+          {/* Email */}
           <div className={styles.formGroup}>
             <label htmlFor="email">البريد الإلكتروني</label>
-            <input 
-              type="email" 
-              id="email" 
-              name="email" 
-              placeholder="أدخل بريدك الإلكتروني" 
+            <input
+              type="email"
+              id="email"
+              name="email"
+              placeholder="أدخل بريدك الإلكتروني"
               value={email}
-              onChange={(e) => setEmail(e.target.value)} // Update state on change
-              required 
+              onChange={(e) => setEmail(e.target.value)}
+              autoComplete="email"
+              required
             />
           </div>
-          {/* Password input field */}
+
+          {/* Password */}
           <div className={styles.formGroup}>
             <label htmlFor="password">كلمة المرور</label>
-            <input 
-              type="password" 
-              id="password" 
-              name="password" 
-              placeholder="أدخل كلمة المرور" 
+            <input
+              type="password"
+              id="password"
+              name="password"
+              placeholder="أدخل كلمة المرور"
               value={password}
-              onChange={(e) => setPassword(e.target.value)} // Update state on change
-              required 
+              onChange={(e) => setPassword(e.target.value)}
+              autoComplete="current-password"
+              required
             />
           </div>
-          {/* Submit button */}
+
+          {/* Submit */}
           <div className={styles.formActions}>
-            <button 
-              type="submit" 
-              className={styles.btnPrimary} 
-              disabled={isLoading} // Disable button during loading
-            >
-              {isLoading ? 'جارٍ تسجيل الدخول...' : 'تسجيل الدخول'}
+            <button type="submit" className={styles.btnPrimary} disabled={isLoading}>
+              {isLoading ? "جارٍ تسجيل الدخول..." : "تسجيل الدخول"}
             </button>
           </div>
         </form>
-        {/* زر تسجيل الدخول باستخدام Google (يمكنك إضافة نمط له) */}
+
+        {/* Google OAuth */}
         <div className={styles.formActions}>
-          <button 
-            onClick={() => signIn('google', { callbackUrl: '/donor/dashboard' })}
-            className={`${styles.btnPrimary} ${styles.googleButton}`} // أضف أنماطاً مناسبة
+          <button
+            onClick={() => signIn("google", { callbackUrl: "/donor/dashboard" })}
+            className={`${styles.btnPrimary} ${styles.googleButton}`}
+            disabled={isLoading}
           >
             تسجيل الدخول باستخدام Google
           </button>
         </div>
-        {/* Link to signup page */}
+
+        {/* Links */}
         <p className={styles.authSwitch}>
-          لا تملك حسابًا؟{' '}
-          <Link href="/auth/signup">إنشاء حساب جديد</Link>
+          لا تملك حسابًا؟ <Link href="/auth/signup">إنشاء حساب جديد</Link>
         </p>
-        {/* Link to forgot password page */}
         <p className={styles.authSwitch}>
           <Link href="/auth/forgot-password">نسيت كلمة المرور؟</Link>
         </p>

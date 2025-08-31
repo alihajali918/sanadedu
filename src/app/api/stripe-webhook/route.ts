@@ -42,7 +42,7 @@ export async function POST(req: Request) {
                 ? process.env.NEXT_PUBLIC_WORDPRESS_BASE_URL.slice(0, -1)
                 : process.env.NEXT_PUBLIC_WORDPRESS_BASE_URL;
 
-            const getCaseUrl = `${wordpressBaseUrl}/wp-json/wp/v2/cases/${caseId}`;
+            const getCaseUrl = `${wordpressBaseUrl}wp-json/wp/v2/cases/${caseId}`;
             
             const getResponse = await fetch(getCaseUrl, {
                 method: 'GET',
@@ -62,7 +62,7 @@ export async function POST(req: Request) {
             const currentDonated = caseData.acf?.total_donated || 0;
             const newTotalDonated = parseFloat(currentDonated) + donatedAmount;
 
-            const updateUrl = `${wordpressBaseUrl}/wp-json/wp/v2/cases/${caseId}`;
+            const updateUrl = `${wordpressBaseUrl}wp-json/wp/v2/cases/${caseId}`;
             const updateResponse = await fetch(updateUrl, {
                 method: 'POST',
                 headers: {

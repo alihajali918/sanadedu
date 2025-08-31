@@ -1,5 +1,3 @@
-// src/app/api/stripe-webhook/route.ts
-
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 
@@ -37,11 +35,7 @@ export async function POST(req: Request) {
         }
 
         try {
-            // ⭐ الحل لمشكلة Not Found
-            const wordpressBaseUrl = process.env.NEXT_PUBLIC_WORDPRESS_BASE_URL?.endsWith('/')
-                ? process.env.NEXT_PUBLIC_WORDPRESS_BASE_URL.slice(0, -1)
-                : process.env.NEXT_PUBLIC_WORDPRESS_BASE_URL;
-
+            const wordpressBaseUrl = process.env.NEXT_PUBLIC_WORDPRESS_BASE_URL;
             const getCaseUrl = `${wordpressBaseUrl}/wp-json/wp/v2/cases/${caseId}`;
             
             const getResponse = await fetch(getCaseUrl, {

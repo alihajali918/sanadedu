@@ -1,81 +1,115 @@
 // src/app/checkout/page.tsx
 
-'use client'; // هذا السطر ضروري لجعل المكون يعمل في بيئة العميل
+'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements } from '@stripe/react-stripe-js';
 import CheckoutForm from './CheckoutForm';
 import { useCart } from '../context/CartContext';
-import { useSearchParams } from 'next/navigation'; // ⭐ استيراد Hook لجلب معاملات URL
-import Link from 'next/link'; // ⭐ تم الإضافة: استيراد مكون Link
-
+import { useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 import styles from './page.module.css';
 
-// تحميل Stripe بمفتاحك العام (Publishable Key)
-// ❗ تأكد من استبدال هذا المتغير بمفتاحك العام الحقيقي من Stripe
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || '');
 
 const CheckoutPage = () => {
-  const { cartItems, getTotalAmount } = useCart();
-  const searchParams = useSearchParams(); // استخدام Hook لجلب معاملات البحث من URL
-  const caseId = searchParams.get('caseId'); // ⭐ التقاط معرف الحالة (caseId) من الـ URL
+    const { cartItems, getTotalAmount } = useCart();
+    const searchParams = useSearchParams();
+    
+    // ⭐ حالة جديدة لتتبع إذا ما كان يتم التحميل
+    const [isLoading, setIsLoading] = useState(true);
 
-  // دالة لتنسيق الأرقام كعملة بالنمط الغربي (مثل $1,234.56)
-  const formatCurrencyWestern = (amount: number, currency: string = 'USD') => {
-    return amount.toLocaleString('en-US', { style: 'currency', currency: currency });
-  };
+    useEffect(() => {
+        // ننتظر قليلاً (مثلاً 500ms) حتى يتم تحميل البيانات من localStorage
+        const timer = setTimeout(() => {
+            setIsLoading(false);
+        }, 500); 
 
-  // ⭐ التحقق من وجود caseId:
-  // إذا كان caseId مفقوداً في الرابط، نعرض رسالة خطأ بدلاً من متابعة عملية الدفع.
-  if (!caseId) {
-    return (
-      <main className={styles.checkoutPage}>
-        <div className={styles.container}>
-          <h1 className={styles.pageTitle} style={{color: '#d9534f'}}>خطأ: معرف الحالة مفقود.</h1>
-          <p style={{textAlign: 'center', fontSize: '1.1em', marginTop: '20px'}}>
-            الرجاء العودة إلى <Link href="/donation-basket" style={{color: '#007bff', textDecoration: 'underline'}}>سلة التبرعات</Link> أو <Link href="/cases" style={{color: '#007bff', textDecoration: 'underline'}}>صفحة الحالات</Link> وتحديد المشروع الذي تود التبرع له.
-          </p>
-        </div>
-      </main>
-    );
-  }
+        // دالة التنظيف
+        return () => clearTimeout(timer);
+    }, []);
 
-  return (
-    <main className={styles.checkoutPage}>
-      <div className={styles.container}>
-        <h1 className={styles.pageTitle}>إتمام عملية التبرع</h1>
-        <div className={styles.checkoutLayout}>
-          
-          {/* العمود الأيسر: نموذج الدفع (Stripe Elements) */}
-          <div className={styles.formContainer}>
-            <Elements stripe={stripePromise}>
-              {/* ⭐ تمرير caseId الذي تم التقاطه من URL كـ prop إلى مكون CheckoutForm */}
-              <CheckoutForm caseId={caseId} /> 
-            </Elements>
-          </div>
+    const addTransportFeeString = searchParams.get('addTransportFee');
+    const addTransportFee = addTransportFeeString === 'true';
 
-          {/* العمود الأيمن: ملخص الطلب */}
-          <aside className={styles.orderSummary}>
-            <h2 className={styles.summaryTitle}>ملخص تبرعك</h2>
-            <div className={styles.summaryItems}>
-              {cartItems.map(item => (
-                <div key={item.id} className={styles.summaryItem}>
-                  <span className={styles.itemName}>{item.itemName} (x{item.quantity})</span>
-                  <span className={styles.itemPrice}>{formatCurrencyWestern(item.totalPrice)}</span>
+    const subtotal = getTotalAmount();
+    const transactionFeePercentage = 0.10;
+    const transportFeeValue = 3;
+
+    const mandatoryTransactionFee = subtotal * transactionFeePercentage;
+    const optionalTransportFee = addTransportFee ? transportFeeValue : 0;
+    const finalTotal = subtotal + mandatoryTransactionFee + optionalTransportFee;
+
+    const formatCurrencyWestern = (amount: number, currency: string = 'USD') => {
+        return amount.toLocaleString('en-US', { style: 'currency', currency: currency });
+    };
+    
+    // ⭐ الشرط الجديد: إذا كان لا يزال يتم التحميل، اعرض رسالة تحميل
+    if (isLoading) {
+        return (
+            <main className={styles.checkoutPage}>
+                <div className={styles.container}>
+                    <p style={{ textAlign: 'center', fontSize: '1.2em' }}>جاري تحميل سلة تبرعاتك...</p>
                 </div>
-              ))}
-            </div>
-            <div className={styles.summaryTotal}>
-              <span>المجموع الإجمالي:</span>
-              <span>{formatCurrencyWestern(getTotalAmount())}</span>
-            </div>
-          </aside>
+            </main>
+        );
+    }
 
-        </div>
-      </div>
-    </main>
-  );
+    // ⭐ الشرط الأصلي: إذا كانت السلة فارغة بعد التحميل، اعرض رسالة الخطأ
+    if (cartItems.length === 0) {
+        return (
+            <main className={styles.checkoutPage}>
+                <div className={styles.container}>
+                    <h1 className={styles.pageTitle} style={{ color: '#d9534f' }}>خطأ: سلة التبرعات فارغة.</h1>
+                    <p style={{ textAlign: 'center', fontSize: '1.1em', marginTop: '20px' }}>
+                        الرجاء العودة إلى <Link href="/cases" style={{ color: '#007bff', textDecoration: 'underline' }}>صفحة الحالات</Link> وتحديد المشروع الذي تود التبرع له.
+                    </p>
+                </div>
+            </main>
+        );
+    }
+    
+    const caseId = cartItems[0].institutionId;
+
+    return (
+        <main className={styles.checkoutPage}>
+            <div className={styles.container}>
+                <h1 className={styles.pageTitle}>إتمام عملية التبرع</h1>
+                <div className={styles.checkoutLayout}>
+                    <div className={styles.formContainer}>
+                        <Elements stripe={stripePromise}>
+                            <CheckoutForm caseId={caseId} totalAmount={finalTotal} />
+                        </Elements>
+                    </div>
+
+                    <aside className={styles.orderSummary}>
+                        <h2 className={styles.summaryTitle}>ملخص تبرعك</h2>
+                        <div className={styles.summaryItems}>
+                            <div className={styles.summaryItem}>
+                                <span>المجموع الفرعي:</span>
+                                <span>{formatCurrencyWestern(subtotal)}</span>
+                            </div>
+                            <div className={styles.summaryItem}>
+                                <span>رسوم التحويل الدولية (10%):</span>
+                                <span>{formatCurrencyWestern(mandatoryTransactionFee)}</span>
+                            </div>
+                            {addTransportFee && (
+                                <div className={styles.summaryItem}>
+                                    <span>أجور النقل والتوصيل:</span>
+                                    <span>{formatCurrencyWestern(optionalTransportFee)}</span>
+                                </div>
+                            )}
+                        </div>
+                        <div className={`${styles.summaryTotal} ${styles.summaryItem}`}>
+                            <span>الإجمالي الكلي:</span>
+                            <span>{formatCurrencyWestern(finalTotal)}</span>
+                        </div>
+                    </aside>
+                </div>
+            </div>
+        </main>
+    );
 };
 
 export default CheckoutPage;

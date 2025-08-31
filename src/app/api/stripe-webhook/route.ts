@@ -4,71 +4,84 @@ import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
-  apiVersion: '2025-07-30.basil', // ⭐ قم بتعديل هذا السطر ليطابق القيمة المطلوبة
+    apiVersion: '2025-07-30.basil',
 });
-// هذا هو مفتاح Webhook السري الذي ستجده في لوحة تحكم Stripe
+
 const webhookSecret: string = process.env.STRIPE_WEBHOOK_SECRET!;
+const wordpressApiAuth: string = process.env.WORDPRESS_API_AUTH!;
 
 export async function POST(req: Request) {
-  const body = await req.text();
-  const signature = req.headers.get('stripe-signature') as string;
+    const body = await req.text();
+    const signature = req.headers.get('stripe-signature') as string;
 
-  let event: Stripe.Event;
-
-  try {
-    // 1. التحقق من أمان الإشعار
-    event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
-  } catch (err: any) {
-    console.error(`Webhook signature verification failed.`, err.message);
-    return NextResponse.json({ error: 'Webhook signature verification failed.' }, { status: 400 });
-  }
-
-  // 2. معالجة حدث الدفع الناجح
-  if (event.type === 'payment_intent.succeeded') {
-    const paymentIntent = event.data.object as Stripe.PaymentIntent;
-
-    // استخراج المبلغ و caseId من البيانات الوصفية (metadata)
-    const donatedAmount = paymentIntent.amount / 100;
-    const caseId = paymentIntent.metadata.case_id;
-
-    if (!caseId) {
-      console.error('Case ID not found in metadata.');
-      return NextResponse.json({ received: true });
-    }
+    let event: Stripe.Event;
 
     try {
-      // 3. الاتصال بووردبريس لتحديث المبلغ
-      const updateUrl = `${process.env.NEXT_PUBLIC_WORDPRESS_BASE_URL}/wp-json/wp/v2/cases/${caseId}`;
-
-      // (سنحتاج إلى إضافة هذه الوظيفة في WordPress)
-      // هذه هي الوظيفة التي سترسل طلب التحديث إلى ووردبريس
-      const wordpressResponse = await fetch(updateUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          // ❗❗❗ ستحتاج إلى توفير طريقة للمصادقة هنا
-          // مثلاً، مفتاح API أو Basic Auth
-        },
-        body: JSON.stringify({
-          acf: {
-            // ملاحظة: هذه الطريقة ستستبدل المبلغ الحالي.
-            // ستحتاج إلى جلب المبلغ الحالي وإضافة المبلغ الجديد إليه
-            // قبل إرساله إلى ووردبريس.
-            total_donated: donatedAmount, 
-          }
-        }),
-      });
-
-      if (!wordpressResponse.ok) {
-        throw new Error(`WordPress API returned an error: ${wordpressResponse.statusText}`);
-      }
-
-      console.log(`Donation of $${donatedAmount} recorded for case ID: ${caseId}`);
-    } catch (error) {
-      console.error('Failed to update WordPress total_donated field:', error);
-      return NextResponse.json({ error: 'Failed to update WordPress.' }, { status: 500 });
+        event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
+    } catch (err: any) {
+        console.error(`Webhook signature verification failed.`, err.message);
+        return NextResponse.json({ error: 'Webhook signature verification failed.' }, { status: 400 });
     }
-  }
 
-  return NextResponse.json({ received: true });
+    if (event.type === 'payment_intent.succeeded') {
+        const paymentIntent = event.data.object as Stripe.PaymentIntent;
+
+        const donatedAmount = paymentIntent.amount / 100;
+        const caseId = paymentIntent.metadata.case_id;
+
+        if (!caseId) {
+            console.error('Case ID not found in metadata.');
+            return NextResponse.json({ received: true });
+        }
+
+        try {
+            // 1. جلب بيانات الحالة الحالية من ووردبريس
+            const getCaseUrl = `${process.env.NEXT_PUBLIC_WORDPRESS_BASE_URL}/wp-json/wp/v2/cases/${caseId}`;
+            const getResponse = await fetch(getCaseUrl, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Basic ${wordpressApiAuth}`, // المصادقة
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            if (!getResponse.ok) {
+                throw new Error(`WordPress API (GET) returned an error: ${getResponse.statusText}`);
+            }
+
+            const caseData = await getResponse.json();
+            // ⭐ افتراض: المبلغ الحالي مخزن في حقل `total_donated` داخل `acf`
+            const currentDonated = caseData.acf?.total_donated || 0;
+
+            // 2. حساب المبلغ الإجمالي الجديد
+            const newTotalDonated = parseFloat(currentDonated) + donatedAmount;
+
+            // 3. تحديث المبلغ الجديد في ووردبريس
+            const updateUrl = `${process.env.NEXT_PUBLIC_WORDPRESS_BASE_URL}/wp-json/wp/v2/cases/${caseId}`;
+            const updateResponse = await fetch(updateUrl, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Basic ${wordpressApiAuth}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    acf: {
+                        total_donated: newTotalDonated.toFixed(2), // نرسله كرقم مع منزلتين عشريتين
+                    },
+                }),
+            });
+
+            if (!updateResponse.ok) {
+                throw new Error(`WordPress API (POST) returned an error: ${updateResponse.statusText}`);
+            }
+
+            console.log(`Donation of $${donatedAmount} successfully recorded for case ID: ${caseId}. New total: $${newTotalDonated}`);
+            
+        } catch (error) {
+            console.error('Failed to update WordPress total_donated field:', error);
+            return NextResponse.json({ error: 'Failed to update WordPress.' }, { status: 500 });
+        }
+    }
+
+    return NextResponse.json({ received: true });
 }

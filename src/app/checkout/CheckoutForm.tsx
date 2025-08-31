@@ -3,38 +3,30 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-// ⭐ CORRECTED: Import from '@stripe/react-stripe-js' for UI components/hooks
 import { CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { useCart } from '../context/CartContext';
 import styles from './CheckoutForm.module.css';
-import { useSearchParams } from 'next/navigation'; // لاستيراد useSearchParams
 
-// 1. تعريف واجهة (Interface) لخصائص المكون (Props)
 interface CheckoutFormProps {
-  caseId: string; // إضافة خاصية caseId من نوع string
+  caseId: string;
+  totalAmount: number;
 }
 
-// 2. تعديل تعريف المكون لقبول caseId كخاصية
-const CheckoutForm: React.FC<CheckoutFormProps> = ({ caseId }) => {
+const CheckoutForm: React.FC<CheckoutFormProps> = ({ caseId, totalAmount }) => {
   const stripe = useStripe();
   const elements = useElements();
-  const { getTotalAmount, clearCart } = useCart();
+  const { clearCart } = useCart();
 
   const [error, setError] = useState<string | null>(null);
   const [processing, setProcessing] = useState(false);
   const [succeeded, setSucceeded] = useState(false);
   const [clientSecret, setClientSecret] = useState<string>('');
 
-  const totalAmount = getTotalAmount();
-
-  // جلب clientSecret من الخادم عند تحميل المكون
   useEffect(() => {
-    // التحقق من وجود caseId والمبلغ قبل إرسال الطلب
     if (totalAmount > 0 && caseId) {
       fetch('/api/create-payment-intent', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        // ⭐ التعديل الرئيسي هنا: إرسال caseId مع المبلغ
         body: JSON.stringify({ amount: totalAmount, caseId: caseId }),
       })
       .then((res) => res.json())
@@ -42,7 +34,6 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({ caseId }) => {
         if (data.clientSecret) {
           setClientSecret(data.clientSecret);
         } else {
-          // عرض رسالة خطأ إذا كان هناك مشكلة في الحصول على clientSecret
           setError(data.error || 'Failed to initialize payment.');
         }
       })
@@ -50,35 +41,27 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({ caseId }) => {
         console.error('Error fetching client secret:', err);
         setError('An error occurred while initializing payment. Please try again.');
       });
-    } else if (!caseId) {
-      setError('Case ID is missing. Please select a case to donate to.');
     }
-  }, [totalAmount, caseId]); // تأكد من أن caseId تابع للمؤثرات
+  }, [totalAmount, caseId]);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     if (!stripe || !elements || !clientSecret || processing || succeeded) {
-      // إذا كانت هناك أخطاء سابقة أو لم يتم تهيئة Stripe بشكل صحيح
       return;
     }
     setProcessing(true);
 
     const cardElement = elements.getElement(CardElement);
     if (!cardElement) {
-        setError("Card element not found.");
-        setProcessing(false);
-        return;
+      setError("Card element not found.");
+      setProcessing(false);
+      return;
     }
 
-    // تأكيد الدفع باستخدام clientSecret
     const { error: confirmError, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
       payment_method: {
         card: cardElement,
       },
-      // ⭐ يمكن إضافة return_url هنا لإعادة التوجيه بعد الدفع
-      // confirmParams: {
-      //   return_url: `${window.location.origin}/success-page`,
-      // },
     });
 
     if (confirmError) {
@@ -88,8 +71,7 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({ caseId }) => {
       setError(null);
       setSucceeded(true);
       setProcessing(false);
-      clearCart(); // مسح السلة بعد نجاح الدفع
-      // هنا يمكنك توجيه المستخدم إلى صفحة نجاح أو عرض رسالة تأكيد
+      clearCart();
     }
   };
 
@@ -97,10 +79,10 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({ caseId }) => {
     <form onSubmit={handleSubmit} className={styles.checkoutForm}>
       <h2 className={styles.formTitle}>تفاصيل الدفع الآمن</h2>
       
-      {error && <div className={styles.errorMessage}>{error}</div>} {/* عرض الأخطاء */}
+      {error && <div className={styles.errorMessage}>{error}</div>}
 
       {!clientSecret && !error && !succeeded && (
-        <div className={styles.loadingMessage}>جاري إعداد الدفع...</div> // رسالة تحميل
+        <div className={styles.loadingMessage}>جاري إعداد الدفع...</div>
       )}
 
       {clientSecret && (
@@ -121,7 +103,7 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({ caseId }) => {
       )}
 
       <button 
-        disabled={processing || succeeded || !stripe || !clientSecret || !!error} // تعطيل الزر إذا كان هناك خطأ
+        disabled={processing || succeeded || !stripe || !clientSecret || !!error}
         className={styles.submitButton}
       >
         {processing ? 'جاري المعالجة...' : `تبرع الآن (${totalAmount.toFixed(2)}$)`}

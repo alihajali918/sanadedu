@@ -11,7 +11,6 @@ import styles from './DonationBasketPage.module.css';
 const DonationBasketPage = () => {
     const { cartItems, removeItem, updateItemQuantity, clearCart, getTotalAmount } = useCart();
     
-    // ✅ حالة جديدة لأجور النقل الاختيارية
     const [addTransportFee, setAddTransportFee] = useState(false);
 
     const formatCurrencyWestern = (amount: number, currency: string = 'USD') => {
@@ -25,19 +24,17 @@ const DonationBasketPage = () => {
         }
     };
 
-    // --- تحديث منطق الحسابات ---
     const subtotal = getTotalAmount();
     const transactionFeePercentage = 0.10; // 10%
     const transportFeeValue = 3; // $3 fixed
 
-    // ✅ رسوم التحويل أصبحت إجبارية
     const mandatoryTransactionFee = subtotal * transactionFeePercentage;
-
-    // ✅ أجور النقل اختيارية
     const optionalTransportFee = addTransportFee ? transportFeeValue : 0;
 
-    // ✅ تحديث المجموع النهائي
     const finalTotal = subtotal + mandatoryTransactionFee + optionalTransportFee;
+
+    const firstItem = cartItems.length > 0 ? cartItems[0] : null;
+    const caseId = firstItem?.institutionId || '';
 
     return (
         <div className={styles.basketContainer}>
@@ -130,14 +127,12 @@ const DonationBasketPage = () => {
                                 <span>المجموع الفرعي:</span>
                                 <span>{formatCurrencyWestern(subtotal)}</span>
                             </div>
-                            {/* ✅ عرض رسوم التحويل الإجبارية */}
                             <div className={styles.summaryRow}>
                                 <span>رسوم التحويل الدولية (10%):</span>
                                 <span>+ {formatCurrencyWestern(mandatoryTransactionFee)}</span>
                             </div>
                         </div>
 
-                        {/* ✅ قسم جديد لأجور النقل الاختيارية */}
                         <div className={styles.summarySection}>
                             <div className={styles.feesOptIn}>
                                 <input 
@@ -154,7 +149,6 @@ const DonationBasketPage = () => {
                         </div>
 
                         <div className={styles.summarySection}>
-                            {/* ✅ عرض أجور النقل فقط إذا تم تحديدها */}
                             {addTransportFee && (
                                 <div className={styles.summaryRow}>
                                     <span>أجور النقل والتوصيل:</span>
@@ -172,7 +166,10 @@ const DonationBasketPage = () => {
                         </p>
 
                         <div className={styles.summaryActions}>
-                            <Link href="/checkout" className={styles.checkoutButton}>
+                            <Link 
+                                href={`/checkout?caseId=${caseId}&addTransportFee=${addTransportFee}`}
+                                className={styles.checkoutButton}
+                            >
                                 المتابعة للدفع
                             </Link>
                             <Link href="/cases" className={styles.continueShoppingButton}>

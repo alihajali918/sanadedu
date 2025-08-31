@@ -6,11 +6,13 @@ import Stripe from 'stripe';
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
     apiVersion: '2025-07-30.basil',
 });
-
 const webhookSecret: string = process.env.STRIPE_WEBHOOK_SECRET!;
 const wordpressApiAuth: string = process.env.WORDPRESS_API_AUTH!;
 
 export async function POST(req: Request) {
+    // ⭐⭐ أضف هذا السطر ⭐⭐
+    console.log("Stripe webhook received an event!");
+
     const body = await req.text();
     const signature = req.headers.get('stripe-signature') as string;
 

@@ -2,7 +2,7 @@
 
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements } from '@stripe/react-stripe-js';
 import CheckoutForm from './CheckoutForm';
@@ -14,21 +14,19 @@ import styles from './page.module.css';
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || '');
 
 const CheckoutPage = () => {
-    const { cartItems, getTotalAmount } = useCart();
+    const { cartItems, getTotalAmount, isLoading } = useCart(); // ⭐ جديد: نأخذ حالة التحميل
     const searchParams = useSearchParams();
     
-    // ⭐ حالة جديدة لتتبع إذا ما كان يتم التحميل
-    const [isLoading, setIsLoading] = useState(true);
-
-    useEffect(() => {
-        // ننتظر قليلاً (مثلاً 500ms) حتى يتم تحميل البيانات من localStorage
-        const timer = setTimeout(() => {
-            setIsLoading(false);
-        }, 500); 
-
-        // دالة التنظيف
-        return () => clearTimeout(timer);
-    }, []);
+    // ⭐ الشرط الجديد: إذا كان لا يزال يتم التحميل، اعرض رسالة تحميل
+    if (isLoading) {
+        return (
+            <main className={styles.checkoutPage}>
+                <div className={styles.container}>
+                    <p style={{ textAlign: 'center', fontSize: '1.2em' }}>جاري تحميل سلة تبرعاتك...</p>
+                </div>
+            </main>
+        );
+    }
 
     const addTransportFeeString = searchParams.get('addTransportFee');
     const addTransportFee = addTransportFeeString === 'true';
@@ -44,19 +42,7 @@ const CheckoutPage = () => {
     const formatCurrencyWestern = (amount: number, currency: string = 'USD') => {
         return amount.toLocaleString('en-US', { style: 'currency', currency: currency });
     };
-    
-    // ⭐ الشرط الجديد: إذا كان لا يزال يتم التحميل، اعرض رسالة تحميل
-    if (isLoading) {
-        return (
-            <main className={styles.checkoutPage}>
-                <div className={styles.container}>
-                    <p style={{ textAlign: 'center', fontSize: '1.2em' }}>جاري تحميل سلة تبرعاتك...</p>
-                </div>
-            </main>
-        );
-    }
 
-    // ⭐ الشرط الأصلي: إذا كانت السلة فارغة بعد التحميل، اعرض رسالة الخطأ
     if (cartItems.length === 0) {
         return (
             <main className={styles.checkoutPage}>

@@ -25,8 +25,8 @@ const DonationBasketPage = () => {
     };
 
     const subtotal = getTotalAmount();
-    const transactionFeePercentage = 0.10; // 10%
-    const transportFeeValue = 3; // $3 fixed
+    const transactionFeePercentage = 0.10;
+    const transportFeeValue = 3;
 
     const mandatoryTransactionFee = subtotal * transactionFeePercentage;
     const optionalTransportFee = addTransportFee ? transportFeeValue : 0;

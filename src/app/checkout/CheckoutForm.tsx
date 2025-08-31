@@ -6,6 +6,7 @@ import React, { useState, useEffect } from 'react';
 import { CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { useCart } from '../context/CartContext';
 import styles from './CheckoutForm.module.css';
+import { useRouter } from 'next/navigation';
 
 interface CheckoutFormProps {
   caseId: string;
@@ -16,6 +17,7 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({ caseId, totalAmount }) => {
   const stripe = useStripe();
   const elements = useElements();
   const { clearCart } = useCart();
+  const router = useRouter();
 
   const [error, setError] = useState<string | null>(null);
   const [processing, setProcessing] = useState(false);
@@ -72,6 +74,7 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({ caseId, totalAmount }) => {
       setSucceeded(true);
       setProcessing(false);
       clearCart();
+      router.push(`/thank-you?payment_intent=${paymentIntent.id}`);
     }
   };
 

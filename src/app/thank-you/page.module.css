@@ -1,0 +1,48 @@
+/* src/app/thank-you/page.module.css */
+
+.thankYouPage {
+    padding: 60px 20px;
+    background-color: #f8f9fa;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    direction: rtl;
+    text-align: center;
+}
+
+.container {
+    max-width: 600px;
+    background-color: #fff;
+    padding: 40px;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+}
+
+.title {
+    font-size: 2.5rem;
+    color: var(--primary-green, #4caf50); /* استخدم لونك الأساسي */
+    margin-bottom: 20px;
+}
+
+.message {
+    font-size: 1.2rem;
+    color: #555;
+    margin-bottom: 30px;
+    line-height: 1.6;
+}
+
+.returnButton {
+    display: inline-block;
+    padding: 12px 25px;
+    background-color: var(--primary-green, #4caf50);
+    color: #fff;
+    text-decoration: none;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    transition: background-color 0.3s ease;
+}
+
+.returnButton:hover {
+    background-color: #43a047; /* لون أغمق عند التمرير */
+}

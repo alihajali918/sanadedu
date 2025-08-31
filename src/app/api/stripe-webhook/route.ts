@@ -6,13 +6,13 @@ import Stripe from 'stripe';
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
     apiVersion: '2025-07-30.basil',
 });
+
 const webhookSecret: string = process.env.STRIPE_WEBHOOK_SECRET!;
 const wordpressApiAuth: string = process.env.WORDPRESS_API_AUTH!;
 
 export async function POST(req: Request) {
-    // ⭐⭐ أضف هذا السطر ⭐⭐
     console.log("Stripe webhook received an event!");
-
+    
     const body = await req.text();
     const signature = req.headers.get('stripe-signature') as string;
 
@@ -37,29 +37,32 @@ export async function POST(req: Request) {
         }
 
         try {
-            // 1. جلب بيانات الحالة الحالية من ووردبريس
-            const getCaseUrl = `${process.env.NEXT_PUBLIC_WORDPRESS_BASE_URL}/wp-json/wp/v2/cases/${caseId}`;
+            // ⭐ الحل لمشكلة Not Found
+            const wordpressBaseUrl = process.env.NEXT_PUBLIC_WORDPRESS_BASE_URL?.endsWith('/')
+                ? process.env.NEXT_PUBLIC_WORDPRESS_BASE_URL.slice(0, -1)
+                : process.env.NEXT_PUBLIC_WORDPRESS_BASE_URL;
+
+            const getCaseUrl = `${wordpressBaseUrl}/wp-json/wp/v2/cases/${caseId}`;
+            
             const getResponse = await fetch(getCaseUrl, {
                 method: 'GET',
                 headers: {
-                    'Authorization': `Basic ${wordpressApiAuth}`, // المصادقة
+                    'Authorization': `Basic ${wordpressApiAuth}`,
                     'Content-Type': 'application/json',
                 },
             });
 
             if (!getResponse.ok) {
+                console.error(`Failed to GET case data from WordPress. Status: ${getResponse.status}, Text: ${getResponse.statusText}`);
                 throw new Error(`WordPress API (GET) returned an error: ${getResponse.statusText}`);
             }
 
             const caseData = await getResponse.json();
-            // ⭐ افتراض: المبلغ الحالي مخزن في حقل `total_donated` داخل `acf`
+            console.log("Successfully fetched case data. Attempting to update...");
             const currentDonated = caseData.acf?.total_donated || 0;
-
-            // 2. حساب المبلغ الإجمالي الجديد
             const newTotalDonated = parseFloat(currentDonated) + donatedAmount;
 
-            // 3. تحديث المبلغ الجديد في ووردبريس
-            const updateUrl = `${process.env.NEXT_PUBLIC_WORDPRESS_BASE_URL}/wp-json/wp/v2/cases/${caseId}`;
+            const updateUrl = `${wordpressBaseUrl}/wp-json/wp/v2/cases/${caseId}`;
             const updateResponse = await fetch(updateUrl, {
                 method: 'POST',
                 headers: {
@@ -68,12 +71,13 @@ export async function POST(req: Request) {
                 },
                 body: JSON.stringify({
                     acf: {
-                        total_donated: newTotalDonated.toFixed(2), // نرسله كرقم مع منزلتين عشريتين
+                        total_donated: newTotalDonated.toFixed(2),
                     },
                 }),
             });
 
             if (!updateResponse.ok) {
+                console.error(`Failed to POST case data to WordPress. Status: ${updateResponse.status}, Text: ${updateResponse.statusText}`);
                 throw new Error(`WordPress API (POST) returned an error: ${updateResponse.statusText}`);
             }
 

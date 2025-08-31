@@ -14,10 +14,9 @@ import styles from './page.module.css';
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || '');
 
 const CheckoutPage = () => {
-    const { cartItems, getTotalAmount, isLoading } = useCart(); // ⭐ جديد: نأخذ حالة التحميل
+    const { cartItems, getTotalAmount, isLoading } = useCart();
     const searchParams = useSearchParams();
     
-    // ⭐ الشرط الجديد: إذا كان لا يزال يتم التحميل، اعرض رسالة تحميل
     if (isLoading) {
         return (
             <main className={styles.checkoutPage}>

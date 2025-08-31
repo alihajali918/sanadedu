@@ -30,14 +30,14 @@ interface CartContextType {
   clearCart: () => void;
   getTotalItems: () => number;
   getTotalAmount: () => number;
-  isLoading: boolean; // ⭐ جديد: حالة لتحميل
+  isLoading: boolean;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export const CartProvider = ({ children }: { children: ReactNode }) => {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
-  const [isLoading, setIsLoading] = useState(true); // ⭐ جديد: الحالة الأولية هي التحميل
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const storedCart = localStorage.getItem("sanad_cart");
@@ -50,11 +50,11 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         setCartItems([]);
       }
     }
-    setIsLoading(false); // ⭐ ننهي التحميل بعد محاولة جلب البيانات
+    setIsLoading(false);
   }, []);
 
   useEffect(() => {
-    if (!isLoading) { // ⭐ نتأكد أننا انتهينا من التحميل قبل الحفظ
+    if (!isLoading) {
       if (cartItems.length > 0) {
         localStorage.setItem("sanad_cart", JSON.stringify(cartItems));
       } else if (localStorage.getItem("sanad_cart")) {
@@ -118,7 +118,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         clearCart,
         getTotalItems,
         getTotalAmount,
-        isLoading, // ⭐ نمرر حالة التحميل
+        isLoading,
       }}
     >
       {children}

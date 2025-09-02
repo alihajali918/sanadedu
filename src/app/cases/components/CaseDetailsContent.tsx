@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -10,91 +10,133 @@ import { useCart, CartItem } from '@/app/context/CartContext';
 import { Need, CaseItem } from 'lib/types';
 
 interface CaseDetailsContentProps {
-  caseItem: CaseItem;
+  caseItem: CaseItem | null;
 }
 
 const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({ caseItem }) => {
-  const router = useRouter(); 
-  const { addItem } = useCart(); 
+  const router = useRouter();
+  const { addItem } = useCart();
 
-  const needsByCategory = caseItem?.needs.reduce((acc, need) => {
-    const category = need.category || 'أخرى';
-    if (!acc[category]) {
-      acc[category] = [];
-    }
-    acc[category].push(need);
-    return acc;
-  }, {} as { [key: string]: Need[] });
+  // 🔒 حراسة مبكرة
+  if (!caseItem || !caseItem.needs || caseItem.needs.length === 0) {
+    return (
+      <div className={`container ${styles.caseDetailsPageContent}`}>
+        <p className={styles.noDataMessage}>عذرًا، لا توجد تفاصيل أو احتياجات متوفرة لهذه الحالة.</p>
+        <div className={styles.backLinkWrapper}>
+          <Link href="/cases" className={styles.backLink}>العودة إلى الحالات</Link>
+        </div>
+      </div>
+    );
+  }
 
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(() => {
-    const initialCategory = Object.keys(needsByCategory || {})[0] || null;
-    return initialCategory;
-  });
+  // 🌟 Number/Currency formatters
+  const currency = 'USD'; // TODO: اجلبها من الإعدادات العامة
+  const numberFormatter = useMemo(() => new Intl.NumberFormat('en-US'), []);
+  const currencyFormatter = useMemo(
+    () => new Intl.NumberFormat('en-US', { style: 'currency', currency }),
+    [currency]
+  );
+  const formatNumberWestern = useCallback((num: number) => numberFormatter.format(num), [numberFormatter]);
+  const formatCurrencyWestern = useCallback((amount: number) => currencyFormatter.format(amount), [currencyFormatter]);
 
-  const [donationQuantities, setDonationQuantities] = useState<{ [key: string]: number }>(() => {
-    const initialQuantities = caseItem?.needs.reduce((acc, need) => {
+  // 🌟 تصنيف الاحتياجات
+  const needsByCategory = useMemo(() => {
+    return caseItem.needs.reduce((acc, need) => {
+      const category = need.category || 'أخرى';
+      (acc[category] ||= []).push(need);
+      return acc;
+    }, {} as Record<string, Need[]>);
+  }, [caseItem.needs]);
+
+  const categories = useMemo(() => Object.keys(needsByCategory), [needsByCategory]);
+
+  // ✅ الفئة المختارة + إعادة ضبط عند تغيّر البيانات
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(categories[0] || null);
+  useEffect(() => {
+    setSelectedCategory(prev => (prev && categories.includes(prev) ? prev : (categories[0] || null)));
+  }, [categories]);
+
+  // ✅ كميات التبرع الافتراضية = 1 لكل عنصر
+  const [donationQuantities, setDonationQuantities] = useState<Record<string, number>>(() =>
+    caseItem.needs.reduce((acc, need) => {
       acc[String(need.id)] = 1;
       return acc;
-    }, {} as { [key: string]: number }) || {};
-    return initialQuantities;
-  });
+    }, {} as Record<string, number>)
+  );
+  // لو caseItem تغيّر، أعد تهيئة الكميات
+  useEffect(() => {
+    setDonationQuantities(
+      caseItem.needs.reduce((acc, need) => {
+        acc[String(need.id)] = 1;
+        return acc;
+      }, {} as Record<string, number>)
+    );
+  }, [caseItem.needs]);
 
-  const [mainContentTab, setMainContentTab] = useState('products');
-  
-  const formatNumberWestern = (num: number) => {
-    return num.toLocaleString('en-US');
-  };
+  const [mainContentTab, setMainContentTab] = useState<'products' | 'about' | 'inquiries'>('products');
+  const [message, setMessage] = useState<string | null>(null);
 
-  const formatCurrencyWestern = (amount: number, currency: string = 'USD') => {
-    return amount.toLocaleString('en-US', { style: 'currency', currency: currency });
-  };
-  
-  const handleQuantityChange = (needId: string, value: string) => {
-    const numValue = parseInt(value, 10);
+  // 🧮 حساب المتبقي آمن
+  const remainingFunds = Math.max(0, (caseItem.fundNeeded || 0) - (caseItem.fundRaised || 0));
+
+  const handleQuantityChange = useCallback((needId: string, value: string) => {
+    // تأكد أن القيمة عدد صحيح وغير سالبة
+    let numValue = Number.isFinite(Number(value)) ? parseInt(value, 10) : 0;
+    if (isNaN(numValue) || numValue < 0) numValue = 0;
+
     const currentNeed = caseItem.needs.find(need => String(need.id) === needId);
-    const maxQuantity = currentNeed ? currentNeed.quantity - currentNeed.funded : 0; 
-    setDonationQuantities(prevQuantities => ({
-      ...prevQuantities,
-      [needId]: Math.min(maxQuantity, Math.max(0, isNaN(numValue) ? 0 : numValue))
-    }));
-  };
+    const maxQuantity = currentNeed ? Math.max(0, (currentNeed.quantity || 0) - (currentNeed.funded || 0)) : 0;
 
-  const handleAddToCart = (need: Need) => {
-    const quantity = donationQuantities[need.id.toString()] || 0;
-    if (quantity > 0) {
-      const itemToAdd: CartItem = {
-        id: `${caseItem.id}-${need.id}`,
-        institutionId: caseItem.id.toString(),
-        institutionName: caseItem.title,
-        needId: need.id.toString(),
-        itemName: need.item,
-        itemImage: need.image,
-        unitPrice: need.unitPrice,
-        quantity: quantity,
-        totalPrice: quantity * need.unitPrice,
-      };
-      addItem(itemToAdd);
-      console.log(`تم إضافة ${quantity} من "${itemToAdd.itemName}" إلى سلة التبرعات!`);
-    } else {
-      console.log("الرجاء تحديد كمية أكبر من الصفر.");
-    }
-  };
+    if (numValue > maxQuantity) numValue = maxQuantity;
 
-  const handleDonateAllRemainingNeeds = () => {
-    if (!caseItem || !caseItem.needs || caseItem.needs.length === 0) {
-      console.log("No products available to donate to this case.");
+    setDonationQuantities(prev => ({ ...prev, [needId]: numValue }));
+  }, [caseItem.needs]);
+
+  const handleAddToCart = useCallback((need: Need) => {
+    const quantity = donationQuantities[String(need.id)] || 0;
+    const remaining = Math.max(0, (need.quantity || 0) - (need.funded || 0));
+
+    if (quantity <= 0) {
+      setMessage('الرجاء تحديد كمية أكبر من الصفر.');
       return;
     }
+    if (quantity > remaining) {
+      setMessage('الكمية المطلوبة تتجاوز المتبقي.');
+      return;
+    }
+    if (!need.unitPrice || need.unitPrice <= 0) {
+      setMessage('لا يمكن إضافة منتج بدون سعر وحدة صحيح.');
+      return;
+    }
+
+    const itemToAdd: CartItem = {
+      id: `${caseItem.id}-${need.id}`,
+      institutionId: String(caseItem.id),
+      institutionName: caseItem.title,
+      needId: String(need.id),
+      itemName: need.item,
+      itemImage: need.image,
+      unitPrice: need.unitPrice,
+      quantity,
+      totalPrice: quantity * need.unitPrice,
+    };
+
+    addItem(itemToAdd);
+    setMessage(`تم إضافة ${formatNumberWestern(quantity)} × "${itemToAdd.itemName}" إلى سلة التبرعات.`);
+  }, [addItem, caseItem.id, caseItem.title, donationQuantities, formatNumberWestern]);
+
+  const handleDonateAllRemainingNeeds = useCallback(() => {
     let itemsAddedCount = 0;
     let totalAmountToDonate = 0;
+
     caseItem.needs.forEach(need => {
-      const remainingQuantity = need.quantity - need.funded;
-      if (remainingQuantity > 0) {
+      const remainingQuantity = Math.max(0, (need.quantity || 0) - (need.funded || 0));
+      if (remainingQuantity > 0 && need.unitPrice && need.unitPrice > 0) {
         const itemToAdd: CartItem = {
           id: `${caseItem.id}-${need.id}`,
-          institutionId: caseItem.id.toString(),
+          institutionId: String(caseItem.id),
           institutionName: caseItem.title,
-          needId: need.id.toString(),
+          needId: String(need.id),
           itemName: need.item,
           itemImage: need.image,
           unitPrice: need.unitPrice,
@@ -103,77 +145,111 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({ caseItem }) => 
         };
         addItem(itemToAdd);
         itemsAddedCount++;
-        totalAmountToDonate += remainingQuantity * need.unitPrice;
+        totalAmountToDonate += itemToAdd.totalPrice;
       }
     });
+
     if (itemsAddedCount > 0) {
-      console.log(`تم إضافة ${itemsAddedCount} نوعًا من المنتجات (بإجمالي ${formatCurrencyWestern(totalAmountToDonate)}) إلى سلة التبرعات!`);
+      setMessage(`تم إضافة ${formatNumberWestern(itemsAddedCount)} منتجًا (بإجمالي ${formatCurrencyWestern(totalAmountToDonate)}) إلى السلة.`);
       router.push('/donation-basket');
     } else {
-      console.log("تم تمويل جميع الوحدات في هذه الحالة، لا توجد منتجات متبقية للتبرع بها.");
+      setMessage('تم تمويل جميع الوحدات في هذه الحالة.');
     }
-  };
+  }, [addItem, caseItem.needs, caseItem.id, caseItem.title, formatCurrencyWestern, formatNumberWestern, router]);
 
   return (
     <main className={styles.caseDetailsPageContent}>
-      <div className={`container`}>
+      <div className="container">
         <div className={styles.mainContentArea}>
           <div className={styles.caseTopInfoBarInsideContainer}>
-            {/* القسم الأيمن */}
             <div className={styles.leftSection}>
               <h2 className={styles.schoolName}>{caseItem.title}</h2>
               <p className={styles.licensingInfo}>
-                <span className={styles.qualityBadge}>
-                  <i className="fas fa-check-circle"></i>
-                </span>
+                <span className={styles.qualityBadge}><i className="fas fa-check-circle" /></span>
                 تصريح رسمي من وزارة الخارجية – قسم التنسيق للعمل الإنساني (HAC) لتوثيق المدارس ميدانيًا.
               </p>
               <p className={styles.educationalPricing}>
-                <span className={styles.qualityBadge}>
-                  <i className="fas fa-check-circle"></i>
-                </span>
+                <span className={styles.qualityBadge}><i className="fas fa-check-circle" /></span>
                 تسعير وزارة التربية والتعليم
               </p>
             </div>
 
-            {/* القسم الأيسر */}
             <div className={styles.rightSection}>
               <div className={styles.remainingFundsDisplay}>
-                <p>المتبقي: <span className={styles.highlightGold}>{formatCurrencyWestern(caseItem.fundNeeded - caseItem.fundRaised)}</span> من أصل <span className={styles.highlightGreen}>{formatCurrencyWestern(caseItem.fundNeeded)}</span></p>
+                <p>
+                  المتبقي: <span className={styles.highlightGold}>{formatCurrencyWestern(remainingFunds)}</span>
+                  {' '}من أصل <span className={styles.highlightGreen}>{formatCurrencyWestern(caseItem.fundNeeded || 0)}</span>
+                </p>
               </div>
               <div className={styles.directDonateInput}>
-                <button className={`${styles.requestDetailsBtn} btn`}>طلب تفصيل الاحتياج <i className="fas fa-list-alt"></i></button>
-                <button onClick={handleDonateAllRemainingNeeds} className={`${styles.donateGeneralBtn} btn btn-cta-primary`}>تبني المؤسسة <i className="fas fa-heart"></i></button>
+                <button className={`${styles.requestDetailsBtn} btn`} type="button">
+                  طلب تفصيل الاحتياج <i className="fas fa-list-alt" />
+                </button>
+                <button
+                  onClick={handleDonateAllRemainingNeeds}
+                  className={`${styles.donateGeneralBtn} btn btn-cta-primary`}
+                  type="button"
+                >
+                  تبني المؤسسة <i className="fas fa-heart" />
+                </button>
               </div>
             </div>
           </div>
 
-          {/* شريط التبويبات الرئيسي - تم إضافة الزر هنا */}
+          {/* تبويبات */}
           <div className={styles.caseSubNavSectionTabs}>
-            <div className={styles.subNavContainer}>
-              <button className={`${styles.navItem} ${mainContentTab === 'products' ? styles.active : ''}`} onClick={() => setMainContentTab('products')}>صفحة المنتجات</button>
-              <button className={`${styles.navItem} ${mainContentTab === 'about' ? styles.active : ''}`} onClick={() => setMainContentTab('about')}>عن المدرسة + توثيق وصور</button>
-              <button className={`${styles.navItem} ${mainContentTab === 'inquiries' ? styles.active : ''}`} onClick={() => setMainContentTab('inquiries')}>أسئلة واستفسارات</button>
+            <div className={styles.subNavContainer} role="tablist" aria-label="التنقل داخل تفاصيل الحالة">
+              <button
+                className={`${styles.navItem} ${mainContentTab === 'products' ? styles.active : ''}`}
+                onClick={() => setMainContentTab('products')}
+                role="tab"
+                aria-selected={mainContentTab === 'products'}
+                type="button"
+              >
+                صفحة المنتجات
+              </button>
+              <button
+                className={`${styles.navItem} ${mainContentTab === 'about' ? styles.active : ''}`}
+                onClick={() => setMainContentTab('about')}
+                role="tab"
+                aria-selected={mainContentTab === 'about'}
+                type="button"
+              >
+                عن المدرسة + توثيق وصور
+              </button>
+              <button
+                className={`${styles.navItem} ${mainContentTab === 'inquiries' ? styles.active : ''}`}
+                onClick={() => setMainContentTab('inquiries')}
+                role="tab"
+                aria-selected={mainContentTab === 'inquiries'}
+                type="button"
+              >
+                أسئلة واستفسارات
+              </button>
             </div>
           </div>
 
+          {/* منطقة الرسائل البسيطة */}
+          {message && <div className={styles.infoMessage} role="status">{message}</div>}
+
           <div className={styles.tabContentArea}>
-            {mainContentTab === 'products' && (
+            {mainContentTab === 'products' && selectedCategory && needsByCategory[selectedCategory]?.length > 0 && (
               <div className={styles.productsNeedsGridTab}>
                 <div className={`${styles.categoryTabsContainer} mb-40`}>
-                  {Object.keys(needsByCategory).length > 0 ? (
-                    Object.keys(needsByCategory).map((categoryName) => {
+                  {categories.length > 0 ? (
+                    categories.map((categoryName) => {
                       const firstNeedInCat = needsByCategory[categoryName][0];
-                      // هذا هو السطر الذي تم تعديله
-                      const categoryIcon = firstNeedInCat?.icon || "fas fa-box-open";
+                      const categoryIcon = firstNeedInCat?.icon || 'fas fa-box-open';
                       return (
-                        <button 
-                          key={categoryName} 
+                        <button
+                          key={categoryName}
                           className={`${styles.categoryTabItem} ${selectedCategory === categoryName ? styles.activeTab : ''}`}
                           onClick={() => setSelectedCategory(categoryName)}
+                          aria-pressed={selectedCategory === categoryName}
+                          title={categoryName}
+                          type="button"
                         >
-                          {/* تأكد من أن الكود يستدعي الأيقونة من الكائن بشكل صحيح */}
-                          <i className={categoryIcon}></i>
+                          <i className={categoryIcon} aria-hidden="true" />
                           <span>{categoryName}</span>
                         </button>
                       );
@@ -182,90 +258,105 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({ caseItem }) => 
                     <p className={`text-center ${styles.noProductsMessage}`}>لا توجد فئات متاحة.</p>
                   )}
                 </div>
-                {selectedCategory && (
-                  <div className={`${styles.productsListSection} mt-40`}>
-                    <h3 className={styles.productCategoryTitle}>{selectedCategory}</h3>
-                    <div className={styles.productsNeedsGrid}>
-                      {needsByCategory[selectedCategory].map((need) => {
-                        const currentQuantity = donationQuantities[String(need.id)] || 0;
-                        const remainingQuantity = need.quantity - need.funded;
-                        const totalPriceForCurrentQuantity = currentQuantity * need.unitPrice;
 
-                        return (
-                          <div key={need.id} className={styles.productCardNewDesign}>
-                            <div className={styles.productImageWrapper}>
-                              <Image
-                                src={need.image}
-                                alt={need.item}
-                                width={250}
-                                height={200}
-                                style={{ objectFit: "cover", width: '100%', height: '100%' }}
-                              />
-                            </div>
-                            <h5 className={styles.productItemNameNew}>{need.item}</h5>
-                            <div className={styles.productPriceAndControls}>
-                              <div className={styles.productPriceGroup}>
-                                <span className={styles.productPriceValue}>{formatCurrencyWestern(totalPriceForCurrentQuantity)}</span>
-                              </div>
-                              <div className={styles.quantityControlNew}>
-                                <button 
-                                  className={styles.quantityBtn} 
-                                  onClick={() => handleQuantityChange(String(need.id), String(Math.max(1, (currentQuantity) - 1)))}
-                                  disabled={currentQuantity <= 1}
-                                >
-                                  -
-                                </button>
-                                <input
-                                  type="number"
-                                  className={styles.quantityInputNew}
-                                  value={String(currentQuantity)} 
-                                  onChange={(e) => handleQuantityChange(String(need.id), e.target.value)}
-                                  min="1"
-                                  max={remainingQuantity} 
-                                />
-                                <button 
-                                  className={styles.quantityBtn} 
-                                  onClick={() => handleQuantityChange(String(need.id), String((currentQuantity) + 1))}
-                                  disabled={currentQuantity >= remainingQuantity} 
-                                >
-                                  +
-                                </button>
-                              </div>
-                            </div>
-                            {remainingQuantity > 0 && (
-                              <p className={styles.remainingUnitsInfo}>
-                                متبقي: {formatNumberWestern(remainingQuantity)} وحدات
-                              </p>
-                            )}
-                            {remainingQuantity <= 0 && (
-                              <p className={`${styles.remainingUnitsInfo} ${styles.soldOut}`}>
-                                تم تمويل جميع الوحدات
-                              </p>
-                            )}
-                            <button
-                              className={styles.btnDonateNew}
-                              onClick={() => handleAddToCart(need)}
-                              disabled={remainingQuantity <= 0} 
-                            >
-                              <i className="fas fa-heart"></i>
-                              <span className={styles.donateText}>تبرع</span>
-                            </button>
+                <div className={`${styles.productsListSection} mt-40`}>
+                  <h3 className={styles.productCategoryTitle}>{selectedCategory}</h3>
+                  <div className={styles.productsNeedsGrid}>
+                    {needsByCategory[selectedCategory].map((need) => {
+                      const currentQuantity = donationQuantities[String(need.id)] || 0;
+                      const remainingQuantity = Math.max(0, (need.quantity || 0) - (need.funded || 0));
+                      const totalPriceForCurrentQuantity = currentQuantity * (need.unitPrice || 0);
+
+                      return (
+                        <div key={need.id} className={styles.productCardNewDesign}>
+                          <div className={styles.productImageWrapper}>
+                            <Image
+                              src={need.image}
+                              alt={need.item}
+                              width={250}
+                              height={200}
+                              style={{ objectFit: 'cover', width: '100%', height: '100%' }}
+                            />
                           </div>
-                        );
-                      })}
-                    </div>
+                          <h5 className={styles.productItemNameNew}>{need.item}</h5>
+
+                          <div className={styles.productPriceAndControls}>
+                            <div className={styles.productPriceGroup}>
+                              <span className={styles.productPriceValue}>
+                                {formatCurrencyWestern(totalPriceForCurrentQuantity)}
+                              </span>
+                              {/* <small className={styles.unitPriceHint}>
+                                {formatCurrencyWestern(need.unitPrice)} / وحدة
+                              </small> */}
+                            </div>
+
+                            <div className={styles.quantityControlNew}>
+                              <button
+                                className={styles.quantityBtn}
+                                onClick={() => handleQuantityChange(String(need.id), String(Math.max(0, currentQuantity - 1)))}
+                                disabled={currentQuantity <= 0}
+                                aria-label="إنقاص الكمية"
+                                type="button"
+                              >
+                                -
+                              </button>
+                              <input
+                                type="number"
+                                className={styles.quantityInputNew}
+                                value={String(currentQuantity)}
+                                onChange={(e) => handleQuantityChange(String(need.id), e.target.value)}
+                                min={0}
+                                max={remainingQuantity}
+                                step={1}
+                                inputMode="numeric"
+                                aria-label="كمية التبرع"
+                              />
+                              <button
+                                className={styles.quantityBtn}
+                                onClick={() => handleQuantityChange(String(need.id), String(currentQuantity + 1))}
+                                disabled={currentQuantity >= remainingQuantity}
+                                aria-label="زيادة الكمية"
+                                type="button"
+                              >
+                                +
+                              </button>
+                            </div>
+                          </div>
+
+                          {remainingQuantity > 0 ? (
+                            <p className={styles.remainingUnitsInfo}>
+                              متبقي: {formatNumberWestern(remainingQuantity)} وحدات
+                            </p>
+                          ) : (
+                            <p className={`${styles.remainingUnitsInfo} ${styles.soldOut}`}>
+                              تم تمويل جميع الوحدات
+                            </p>
+                          )}
+
+                          <button
+                            className={styles.btnDonateNew}
+                            onClick={() => handleAddToCart(need)}
+                            disabled={remainingQuantity <= 0 || currentQuantity <= 0 || !need.unitPrice || need.unitPrice <= 0}
+                            type="button"
+                          >
+                            <i className="fas fa-heart" aria-hidden="true" />
+                            <span className={styles.donateText}>تبرع</span>
+                          </button>
+                        </div>
+                      );
+                    })}
                   </div>
-                )}
+                </div>
               </div>
             )}
-            {/* المحتوى الخاص بـ "عن المدرسة" */}
+
             {mainContentTab === 'about' && (
               <div className={`${styles.aboutSchoolTabContent} ${styles.tabPane} py-40`}>
                 <h2 className="section-title text-center">عن المدرسة + توثيق وصور</h2>
                 <div className={`${styles.caseDescriptionBlock} mb-40`}>
-                  <h3 className="section-subtitle">وصف الحالة</h3>
                   <p>{caseItem.description}</p>
-                  <p><strong>المحافظة:</strong> {caseItem.city}، <strong>المدينة:</strong> {caseItem.governorate}</p>
+                  {/* ✅ ترتيب صحيح: المحافظة ثم المدينة */}
+                  <p><strong>المحافظة:</strong> {caseItem.governorate}، <strong>المدينة:</strong> {caseItem.city}</p>
                   <p><strong>نوع المؤسسة:</strong> {caseItem.type}</p>
                   <p><strong>درجة الاحتياج:</strong> {caseItem.needLevel}</p>
                 </div>
@@ -274,14 +365,21 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({ caseItem }) => 
                   <div className={styles.caseGalleryGrid}>
                     {caseItem.images.map((imgSrc, index) => (
                       <div key={index} className={styles.galleryItem}>
-                        <Image src={imgSrc} alt={`${caseItem.title} - صورة ${formatNumberWestern(index + 1)}`} width={400} height={300} style={{objectFit:"cover"}} className={styles.responsiveImage} />
+                        <Image
+                          src={imgSrc}
+                          alt={`${caseItem.title} - صورة ${formatNumberWestern(index + 1)}`}
+                          width={400}
+                          height={300}
+                          style={{ objectFit: 'cover' }}
+                          className={styles.responsiveImage}
+                        />
                       </div>
                     ))}
                   </div>
                 </div>
               </div>
             )}
-            {/* المحتوى الخاص بـ "أسئلة واستفسارات" */}
+
             {mainContentTab === 'inquiries' && (
               <div className={`${styles.inquiriesTabContent} ${styles.tabPane} py-40`}>
                 <h2 className="section-title text-center">أسئلة واستفسارات</h2>

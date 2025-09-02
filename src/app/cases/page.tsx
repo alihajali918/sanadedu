@@ -1,99 +1,112 @@
 // src/app/cases/page.tsx
-import Image from "next/image";
-import Link from "next/link";
-import { getCases } from "lib/api";
-import styles from "./page.module.css";
-import { CaseItem } from "lib/types";
+import Image from 'next/image';
+import Link from 'next/link';
+import { getCases } from 'lib/api';
+import styles from './page.module.css';
+import { CaseItem } from 'lib/types';
 
-// ✅ تم تفعيل منطق الفلترة بالكامل
-const CasesPage = async ({
-  searchParams,
-}: {
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
-}) => {
-  const resolvedSearchParams = await searchParams;
-  const allCases: CaseItem[] = await getCases();
+// نضمن بيئة Node (تفيد للاتصالات الداخلية مع WP)
+export const runtime = 'nodejs';
 
-  const typeFilter = resolvedSearchParams?.type;
-  let filteredCases = allCases;
+// ✅ Next.js 15: searchParams هو Promise
+type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 
-  if (typeFilter && typeof typeFilter === "string") {
-    filteredCases = allCases.filter((caseItem) => caseItem.type === typeFilter);
+const CasesPage = async ({ searchParams }: { searchParams: SearchParams }) => {
+  // نفكّ الـ Promise
+  const sp = await searchParams;
+
+  // نبني URLSearchParams لتمريرها إلى getCases
+  const params = new URLSearchParams();
+
+  // فلترة النوع: schools | mosques | (بدون → الكل)
+  const typeParam = Array.isArray(sp?.type) ? sp.type[0] : sp?.type;
+  const type = (typeParam || '').toLowerCase();
+  if (type === 'schools' || type === 'mosques') {
+    params.set('type', type);
   }
+
+  // تقدر تضيف فلاتر أخرى مثل الصفحة/البحث
+  const perPage = Array.isArray(sp?.per_page) ? sp.per_page[0] : sp?.per_page;
+  if (perPage) params.set('per_page', String(perPage));
+  const page = Array.isArray(sp?.page) ? sp.page[0] : sp?.page;
+  if (page) params.set('page', String(page));
+  const search = Array.isArray(sp?.search) ? sp.search[0] : sp?.search;
+  if (search) params.set('search', String(search));
+
+  // نجلب الحالات حسب الفلاتر
+  const allCases: CaseItem[] = await getCases(params);
+
+  // عنوان الصفحة والرسالة الفارغة حسب النوع
+  const title =
+    type === 'mosques' ? 'المساجد'
+    : type === 'schools' ? 'المدارس'
+    : 'كل الحالات';
+
+  const emptyMessage =
+    type === 'mosques' ? 'لا توجد مساجد حالياً.'
+    : type === 'schools' ? 'لا توجد مدارس حالياً.'
+    : 'لا توجد حالات حالياً.';
+
+  // مهيئ أرقام/عملة بسيط
+  const fmtNum = new Intl.NumberFormat('en-US');
+  const fmtMoney = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
+
   return (
     <main className={styles.casesPageContent}>
-      <section
-        className={`${styles.browseCasesSection} ${styles.py80} ${styles.bgLightGrey}`}
-      >
+      <section className={`${styles.browseCasesSection} ${styles.py80} ${styles.bgLightGrey}`}>
         <div className={styles.container}>
-                             
-          <h2
-            className={`${styles.sectionTitle} ${styles.textCenter} ${styles.mb60}`}
-          >
-            المؤسسات التعليمية والدينية المحتاجة للدعم
-          </h2>
-                             
-          {filteredCases.length > 0 ? (
-            <div className={styles.casesGrid}>
-                                         
-              {filteredCases.map((caseItem) => {
-                // ✅ إضافة قيم افتراضية لمنع الأخطاء
-                const progress = caseItem.progress || 0;
-                const fundRaised = caseItem.fundRaised || 0;
-                const fundNeeded = caseItem.fundNeeded || 0;
-                const remainingFunds = fundNeeded - fundRaised;
+          <div className={styles.headerRow}>
+            <h2 className={`${styles.sectionTitle} ${styles.textCenter} ${styles.mb60}`}>
+              المؤسسات التعليمية والدينية المحتاجة للدعم
+            </h2>
+          </div>
 
-                // ✅ استخدام الصورة الافتراضية إذا لم تكن هناك صور
-                const displayImage =
-                  caseItem.images && caseItem.images.length > 0
-                    ? caseItem.images[0]
-                    : "/images/default.jpg";
+          {allCases.length > 0 ? (
+            <div className={styles.casesGrid}>
+              {allCases.map((caseItem) => {
+                const progress = Math.max(0, Math.min(100, caseItem.progress || 0));
+                const raised = caseItem.fundRaised || 0;
+                const needed = caseItem.fundNeeded || 0;
+                const remaining = Math.max(0, needed - raised);
 
                 return (
                   <div
                     key={caseItem.id}
-                    className={`${styles.caseCard} ${
-                      caseItem.needLevel === "عالي" ? styles.urgentCase : ""
-                    }`.trim()}
+                    className={`${styles.caseCard} ${caseItem.needLevel === 'عالي' ? styles.urgentCase : ''}`.trim()}
                   >
                     <div className={styles.caseImageWrapper}>
-                      <Image
-                        src={displayImage}
-                        alt={caseItem.title}
-                        fill
-                        objectFit="cover"
-                        className={styles.caseImage}
-                      />
+                      {Array.isArray(caseItem.images) && caseItem.images[0] && (
+                        <Image
+                          src={caseItem.images[0]}
+                          alt={caseItem.title}
+                          fill
+                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                          style={{ objectFit: 'cover' }}
+                          className={styles.caseImage}
+                        />
+                      )}
                     </div>
+
                     <div className={styles.caseContent}>
                       <h3 className={styles.caseTitle}>{caseItem.title}</h3>
                       <p className={styles.caseGovernorate}>
-                        <i className="fas fa-map-marker-alt"></i>
-                        {caseItem.governorate}
+                        <i className="fas fa-map-marker-alt" /> {caseItem.governorate}، {caseItem.city}
                       </p>
                       <p className={styles.caseNeedLevel}>
-                        <i className="fas fa-exclamation-circle"></i> درجة
-                        الاحتياج: {caseItem.needLevel}
+                        <i className="fas fa-exclamation-circle" /> درجة الاحتياج: {caseItem.needLevel}
                       </p>
-                      <p className={styles.caseDescription}>
-                        {caseItem.description}
-                      </p>
+                      <p className={styles.caseDescription}>{caseItem.description}</p>
 
-                      <div className={styles.caseProgressBarWrapper}>
-                        <div
-                          className={styles.caseProgressBar}
-                          style={{ width: `${progress}%` }}
-                        ></div>
+                      <div className={styles.caseProgressBarWrapper} aria-label={`نسبة التقدم ${progress}%`}>
+                        <div className={styles.caseProgressBar} style={{ width: `${progress}%` }} />
                       </div>
+
                       <div className={styles.caseStats}>
-                        <span>
-                          تم جمع: ${fundRaised.toLocaleString("en-US")}
-                        </span>
-                        <span>
-                          المتبقي: ${remainingFunds.toLocaleString("en-US")}
-                        </span>
-                        <span>% {progress}</span>
+                        <span>تم جمع: {fmtMoney.format(raised)}</span>
+                        <span>المتبقي: {fmtMoney.format(remaining)}</span>
+                        <span>% {fmtNum.format(progress)}</span>
                       </div>
+
                       <Link
                         href={`/cases/${caseItem.id}`}
                         className={`${styles.btn} ${styles.btnCtaPrimary} ${styles.caseCardBtn}`}
@@ -104,18 +117,12 @@ const CasesPage = async ({
                   </div>
                 );
               })}
-                                     
             </div>
           ) : (
-            <p className={`${styles.textCenter} ${styles.noCasesMessage}`}>
-              لا توجد حالات مطابقة.
-            </p>
+            <p className={`${styles.textCenter} ${styles.noCasesMessage}`}>{emptyMessage}</p>
           )}
-                         
         </div>
-                   
       </section>
-             
     </main>
   );
 };

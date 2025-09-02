@@ -17,20 +17,11 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({ caseItem }) => 
   const router = useRouter();
   const { addItem } = useCart();
 
-  // 🔒 حراسة مبكرة
-  if (!caseItem || !caseItem.needs || caseItem.needs.length === 0) {
-    return (
-      <div className={`container ${styles.caseDetailsPageContent}`}>
-        <p className={styles.noDataMessage}>عذرًا، لا توجد تفاصيل أو احتياجات متوفرة لهذه الحالة.</p>
-        <div className={styles.backLinkWrapper}>
-          <Link href="/cases" className={styles.backLink}>العودة إلى الحالات</Link>
-        </div>
-      </div>
-    );
-  }
+  // ✅ لا نعمل return مبكر قبل الهُوكس — بدلاً من ذلك نستخدم فلاق
+  const hasNeeds = !!(caseItem && Array.isArray(caseItem.needs) && caseItem.needs.length > 0);
 
   // 🌟 Number/Currency formatters
-  const currency = 'USD'; // TODO: اجلبها من الإعدادات العامة
+  const currency = 'USD';
   const numberFormatter = useMemo(() => new Intl.NumberFormat('en-US'), []);
   const currencyFormatter = useMemo(
     () => new Intl.NumberFormat('en-US', { style: 'currency', currency }),
@@ -39,97 +30,112 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({ caseItem }) => 
   const formatNumberWestern = useCallback((num: number) => numberFormatter.format(num), [numberFormatter]);
   const formatCurrencyWestern = useCallback((amount: number) => currencyFormatter.format(amount), [currencyFormatter]);
 
+  // 🧩 مصدر واحد للـ needs يعتمد على البيانات لو موجودة وإلا مصفوفة فاضية
+  const needs: Need[] = useMemo(() => (hasNeeds ? (caseItem!.needs as Need[]) : []), [hasNeeds, caseItem]);
+
   // 🌟 تصنيف الاحتياجات
   const needsByCategory = useMemo(() => {
-    return caseItem.needs.reduce((acc, need) => {
+    return needs.reduce((acc, need) => {
       const category = need.category || 'أخرى';
       (acc[category] ||= []).push(need);
       return acc;
     }, {} as Record<string, Need[]>);
-  }, [caseItem.needs]);
+  }, [needs]);
 
   const categories = useMemo(() => Object.keys(needsByCategory), [needsByCategory]);
 
   // ✅ الفئة المختارة + إعادة ضبط عند تغيّر البيانات
   const [selectedCategory, setSelectedCategory] = useState<string | null>(categories[0] || null);
   useEffect(() => {
-    setSelectedCategory(prev => (prev && categories.includes(prev) ? prev : (categories[0] || null)));
+    setSelectedCategory((prev) => (prev && categories.includes(prev) ? prev : categories[0] || null));
   }, [categories]);
 
-  // ✅ كميات التبرع الافتراضية = 1 لكل عنصر
+  // ✅ كميات التبرع الافتراضية = 1 لكل عنصر (وتتحدّث عند تغيّر القائمة)
   const [donationQuantities, setDonationQuantities] = useState<Record<string, number>>(() =>
-    caseItem.needs.reduce((acc, need) => {
+    needs.reduce((acc, need) => {
       acc[String(need.id)] = 1;
       return acc;
     }, {} as Record<string, number>)
   );
-  // لو caseItem تغيّر، أعد تهيئة الكميات
   useEffect(() => {
     setDonationQuantities(
-      caseItem.needs.reduce((acc, need) => {
+      needs.reduce((acc, need) => {
         acc[String(need.id)] = 1;
         return acc;
       }, {} as Record<string, number>)
     );
-  }, [caseItem.needs]);
+  }, [needs]);
 
   const [mainContentTab, setMainContentTab] = useState<'products' | 'about' | 'inquiries'>('products');
   const [message, setMessage] = useState<string | null>(null);
 
   // 🧮 حساب المتبقي آمن
-  const remainingFunds = Math.max(0, (caseItem.fundNeeded || 0) - (caseItem.fundRaised || 0));
+  const remainingFunds = useMemo(() => {
+    const needed = caseItem?.fundNeeded || 0;
+    const raised = caseItem?.fundRaised || 0;
+    return Math.max(0, needed - raised);
+  }, [caseItem?.fundNeeded, caseItem?.fundRaised]);
 
-  const handleQuantityChange = useCallback((needId: string, value: string) => {
-    // تأكد أن القيمة عدد صحيح وغير سالبة
-    let numValue = Number.isFinite(Number(value)) ? parseInt(value, 10) : 0;
-    if (isNaN(numValue) || numValue < 0) numValue = 0;
+  const handleQuantityChange = useCallback(
+    (needId: string, value: string) => {
+      let numValue = Number.isFinite(Number(value)) ? parseInt(value, 10) : 0;
+      if (isNaN(numValue) || numValue < 0) numValue = 0;
 
-    const currentNeed = caseItem.needs.find(need => String(need.id) === needId);
-    const maxQuantity = currentNeed ? Math.max(0, (currentNeed.quantity || 0) - (currentNeed.funded || 0)) : 0;
+      const currentNeed = needs.find((n) => String(n.id) === needId);
+      const maxQuantity = currentNeed ? Math.max(0, (currentNeed.quantity || 0) - (currentNeed.funded || 0)) : 0;
 
-    if (numValue > maxQuantity) numValue = maxQuantity;
+      if (numValue > maxQuantity) numValue = maxQuantity;
 
-    setDonationQuantities(prev => ({ ...prev, [needId]: numValue }));
-  }, [caseItem.needs]);
+      setDonationQuantities((prev) => ({ ...prev, [needId]: numValue }));
+    },
+    [needs]
+  );
 
-  const handleAddToCart = useCallback((need: Need) => {
-    const quantity = donationQuantities[String(need.id)] || 0;
-    const remaining = Math.max(0, (need.quantity || 0) - (need.funded || 0));
+  const handleAddToCart = useCallback(
+    (need: Need) => {
+      if (!caseItem) return;
 
-    if (quantity <= 0) {
-      setMessage('الرجاء تحديد كمية أكبر من الصفر.');
-      return;
-    }
-    if (quantity > remaining) {
-      setMessage('الكمية المطلوبة تتجاوز المتبقي.');
-      return;
-    }
-    if (!need.unitPrice || need.unitPrice <= 0) {
-      setMessage('لا يمكن إضافة منتج بدون سعر وحدة صحيح.');
-      return;
-    }
+      const quantity = donationQuantities[String(need.id)] || 0;
+      const remaining = Math.max(0, (need.quantity || 0) - (need.funded || 0));
 
-    const itemToAdd: CartItem = {
-      id: `${caseItem.id}-${need.id}`,
-      institutionId: String(caseItem.id),
-      institutionName: caseItem.title,
-      needId: String(need.id),
-      itemName: need.item,
-      itemImage: need.image,
-      unitPrice: need.unitPrice,
-      quantity,
-      totalPrice: quantity * need.unitPrice,
-    };
+      if (quantity <= 0) {
+        setMessage('الرجاء تحديد كمية أكبر من الصفر.');
+        return;
+      }
+      if (quantity > remaining) {
+        setMessage('الكمية المطلوبة تتجاوز المتبقي.');
+        return;
+      }
+      if (!need.unitPrice || need.unitPrice <= 0) {
+        setMessage('لا يمكن إضافة منتج بدون سعر وحدة صحيح.');
+        return;
+      }
 
-    addItem(itemToAdd);
-    setMessage(`تم إضافة ${formatNumberWestern(quantity)} × "${itemToAdd.itemName}" إلى سلة التبرعات.`);
-  }, [addItem, caseItem.id, caseItem.title, donationQuantities, formatNumberWestern]);
+      const itemToAdd: CartItem = {
+        id: `${caseItem.id}-${need.id}`,
+        institutionId: String(caseItem.id),
+        institutionName: caseItem.title,
+        needId: String(need.id),
+        itemName: need.item,
+        itemImage: need.image,
+        unitPrice: need.unitPrice,
+        quantity,
+        totalPrice: quantity * need.unitPrice,
+      };
+
+      addItem(itemToAdd);
+      setMessage(`تم إضافة ${formatNumberWestern(quantity)} × "${itemToAdd.itemName}" إلى سلة التبرعات.`);
+    },
+    [addItem, caseItem, donationQuantities, formatNumberWestern]
+  );
 
   const handleDonateAllRemainingNeeds = useCallback(() => {
+    if (!caseItem) return;
+
     let itemsAddedCount = 0;
     let totalAmountToDonate = 0;
 
-    caseItem.needs.forEach(need => {
+    needs.forEach((need) => {
       const remainingQuantity = Math.max(0, (need.quantity || 0) - (need.funded || 0));
       if (remainingQuantity > 0 && need.unitPrice && need.unitPrice > 0) {
         const itemToAdd: CartItem = {
@@ -150,12 +156,30 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({ caseItem }) => 
     });
 
     if (itemsAddedCount > 0) {
-      setMessage(`تم إضافة ${formatNumberWestern(itemsAddedCount)} منتجًا (بإجمالي ${formatCurrencyWestern(totalAmountToDonate)}) إلى السلة.`);
+      setMessage(
+        `تم إضافة ${formatNumberWestern(itemsAddedCount)} منتجًا (بإجمالي ${formatCurrencyWestern(
+          totalAmountToDonate
+        )}) إلى السلة.`
+      );
       router.push('/donation-basket');
     } else {
       setMessage('تم تمويل جميع الوحدات في هذه الحالة.');
     }
-  }, [addItem, caseItem.needs, caseItem.id, caseItem.title, formatCurrencyWestern, formatNumberWestern, router]);
+  }, [addItem, caseItem, needs, formatCurrencyWestern, formatNumberWestern, router]);
+
+  // ✅ العرض: الآن مسموح نرجع مبكّر — بعد كل الهُوكس
+  if (!hasNeeds) {
+    return (
+      <div className={`container ${styles.caseDetailsPageContent}`}>
+        <p className={styles.noDataMessage}>عذرًا، لا توجد تفاصيل أو احتياجات متوفرة لهذه الحالة.</p>
+        <div className={styles.backLinkWrapper}>
+          <Link href="/cases" className={styles.backLink}>
+            العودة إلى الحالات
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <main className={styles.caseDetailsPageContent}>
@@ -163,13 +187,17 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({ caseItem }) => 
         <div className={styles.mainContentArea}>
           <div className={styles.caseTopInfoBarInsideContainer}>
             <div className={styles.leftSection}>
-              <h2 className={styles.schoolName}>{caseItem.title}</h2>
+              <h2 className={styles.schoolName}>{caseItem!.title}</h2>
               <p className={styles.licensingInfo}>
-                <span className={styles.qualityBadge}><i className="fas fa-check-circle" /></span>
+                <span className={styles.qualityBadge}>
+                  <i className="fas fa-check-circle" />
+                </span>
                 تصريح رسمي من وزارة الخارجية – قسم التنسيق للعمل الإنساني (HAC) لتوثيق المدارس ميدانيًا.
               </p>
               <p className={styles.educationalPricing}>
-                <span className={styles.qualityBadge}><i className="fas fa-check-circle" /></span>
+                <span className={styles.qualityBadge}>
+                  <i className="fas fa-check-circle" />
+                </span>
                 تسعير وزارة التربية والتعليم
               </p>
             </div>
@@ -177,8 +205,12 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({ caseItem }) => 
             <div className={styles.rightSection}>
               <div className={styles.remainingFundsDisplay}>
                 <p>
-                  المتبقي: <span className={styles.highlightGold}>{formatCurrencyWestern(remainingFunds)}</span>
-                  {' '}من أصل <span className={styles.highlightGreen}>{formatCurrencyWestern(caseItem.fundNeeded || 0)}</span>
+                  المتبقي:{' '}
+                  <span className={styles.highlightGold}>{formatCurrencyWestern(remainingFunds)}</span>{' '}
+                  من أصل{' '}
+                  <span className={styles.highlightGreen}>
+                    {formatCurrencyWestern(caseItem!.fundNeeded || 0)}
+                  </span>
                 </p>
               </div>
               <div className={styles.directDonateInput}>
@@ -229,8 +261,12 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({ caseItem }) => 
             </div>
           </div>
 
-          {/* منطقة الرسائل البسيطة */}
-          {message && <div className={styles.infoMessage} role="status">{message}</div>}
+          {/* منطقة الرسائل */}
+          {message && (
+            <div className={styles.infoMessage} role="status">
+              {message}
+            </div>
+          )}
 
           <div className={styles.tabContentArea}>
             {mainContentTab === 'products' && selectedCategory && needsByCategory[selectedCategory]?.length > 0 && (
@@ -243,7 +279,9 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({ caseItem }) => 
                       return (
                         <button
                           key={categoryName}
-                          className={`${styles.categoryTabItem} ${selectedCategory === categoryName ? styles.activeTab : ''}`}
+                          className={`${styles.categoryTabItem} ${
+                            selectedCategory === categoryName ? styles.activeTab : ''
+                          }`}
                           onClick={() => setSelectedCategory(categoryName)}
                           aria-pressed={selectedCategory === categoryName}
                           title={categoryName}
@@ -285,15 +323,14 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({ caseItem }) => 
                               <span className={styles.productPriceValue}>
                                 {formatCurrencyWestern(totalPriceForCurrentQuantity)}
                               </span>
-                              {/* <small className={styles.unitPriceHint}>
-                                {formatCurrencyWestern(need.unitPrice)} / وحدة
-                              </small> */}
                             </div>
 
                             <div className={styles.quantityControlNew}>
                               <button
                                 className={styles.quantityBtn}
-                                onClick={() => handleQuantityChange(String(need.id), String(Math.max(0, currentQuantity - 1)))}
+                                onClick={() =>
+                                  handleQuantityChange(String(need.id), String(Math.max(0, currentQuantity - 1)))
+                                }
                                 disabled={currentQuantity <= 0}
                                 aria-label="إنقاص الكمية"
                                 type="button"
@@ -328,9 +365,7 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({ caseItem }) => 
                               متبقي: {formatNumberWestern(remainingQuantity)} وحدات
                             </p>
                           ) : (
-                            <p className={`${styles.remainingUnitsInfo} ${styles.soldOut}`}>
-                              تم تمويل جميع الوحدات
-                            </p>
+                            <p className={`${styles.remainingUnitsInfo} ${styles.soldOut}`}>تم تمويل جميع الوحدات</p>
                           )}
 
                           <button
@@ -354,20 +389,25 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({ caseItem }) => 
               <div className={`${styles.aboutSchoolTabContent} ${styles.tabPane} py-40`}>
                 <h2 className="section-title text-center">عن المدرسة + توثيق وصور</h2>
                 <div className={`${styles.caseDescriptionBlock} mb-40`}>
-                  <p>{caseItem.description}</p>
-                  {/* ✅ ترتيب صحيح: المحافظة ثم المدينة */}
-                  <p><strong>المحافظة:</strong> {caseItem.governorate}، <strong>المدينة:</strong> {caseItem.city}</p>
-                  <p><strong>نوع المؤسسة:</strong> {caseItem.type}</p>
-                  <p><strong>درجة الاحتياج:</strong> {caseItem.needLevel}</p>
+                  <p>{caseItem!.description}</p>
+                  <p>
+                    <strong>المحافظة:</strong> {caseItem!.governorate}، <strong>المدينة:</strong> {caseItem!.city}
+                  </p>
+                  <p>
+                    <strong>نوع المؤسسة:</strong> {caseItem!.type}
+                  </p>
+                  <p>
+                    <strong>درجة الاحتياج:</strong> {caseItem!.needLevel}
+                  </p>
                 </div>
                 <div className={styles.caseGalleryBlock}>
                   <h3 className="section-subtitle">معرض الصور</h3>
                   <div className={styles.caseGalleryGrid}>
-                    {caseItem.images.map((imgSrc, index) => (
+                    {caseItem!.images.map((imgSrc, index) => (
                       <div key={index} className={styles.galleryItem}>
                         <Image
                           src={imgSrc}
-                          alt={`${caseItem.title} - صورة ${formatNumberWestern(index + 1)}`}
+                          alt={`${caseItem!.title} - صورة ${formatNumberWestern(index + 1)}`}
                           width={400}
                           height={300}
                           style={{ objectFit: 'cover' }}

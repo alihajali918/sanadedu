@@ -141,11 +141,13 @@ const LoginPage: React.FC = () => {
 
         {/* Google OAuth */}
         <div className={styles.formActions}>
-          <button
+          <button 
+            type="button" 
+            className={styles.googleSignInButton} 
             onClick={() => signIn("google", { callbackUrl: "/donor/dashboard" })}
-            className={`${styles.btnPrimary} ${styles.googleButton}`}
             disabled={isLoading}
           >
+            <img src="/images/google-icon.svg" alt="Google icon" className={styles.googleIcon} />
             تسجيل الدخول باستخدام Google
           </button>
         </div>

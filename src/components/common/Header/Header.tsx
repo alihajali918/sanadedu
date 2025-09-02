@@ -169,8 +169,8 @@ const Header = () => {
               </Link>
               <ul className={styles.dropdownMenu}>
                 <li><Link href="/cases" className={styles.navLink}>تصفح تواجدنا</Link></li>
-                <li><Link href="/cases/most-needed">الحالات الأكثر إحتياجاً</Link></li>
-                <li><Link href="/cases/completed">الحالات المكتملة</Link></li>
+                <li><Link href="/cases?type=school">تصفح المدارس</Link></li>
+                <li><Link href="/cases?type=mosque">تصفح المساجد</Link></li>
               </ul>
             </li>
             <li><Link href="/support-staff" className={`${styles.navLink} ${styles.btn} ${styles.btnCtaPrimary}`}>ادعم الكادر</Link></li>
@@ -247,8 +247,8 @@ const Header = () => {
             {openMobileDropdown === 1 && (
               <ul className={styles.mobileDropdownMenu}>
                 <li><Link href="/geographic-presence" onClick={toggleMobileMenu}>تصفح تواجدنا</Link></li>
-                <li><Link href="/cases/most-needed">الحالات الأكثر إحتياجاً</Link></li>
-                <li><Link href="/cases/completed">الحالات المكتملة</Link></li>
+                <li><Link href="/cases?type=school">تصفح المدارس</Link></li>
+                <li><Link href="/cases?type=mosque">تصفح المساجد</Link></li>
               </ul>
             )}
           </li>

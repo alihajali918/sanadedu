@@ -3,7 +3,7 @@ import { unstable_cache } from 'next/cache';
 import { z } from 'zod';
 import { CaseItem, Need } from './types';
 
-/** جلب بيانات من WordPress REST API (مع لوج وتشذيب الـ base) */
+/** جلب بيانات من WordPress REST API */
 export async function fetchWordPressData(
   endpoint: string,
   params?: URLSearchParams
@@ -13,8 +13,6 @@ export async function fetchWordPressData(
     console.error('NEXT_PUBLIC_WORDPRESS_API_URL غير معرّف.');
     return null;
   }
-
-  // السماح بإعطاء الجذر أو /wp-json
   const hasWpJson = /\/wp-json\/?$/.test(RAW);
   const apiBase = hasWpJson ? RAW.replace(/\/+$/,'') : `${RAW.replace(/\/+$/,'')}/wp-json`;
   const baseV2 = `${apiBase}/wp/v2`;
@@ -24,32 +22,20 @@ export async function fetchWordPressData(
     ? endpoint
     : `${baseV2}/${endpoint.replace(/^\/+/, '')}${params ? `?${params.toString()}` : ''}`;
 
-  // مهلة 10 ثواني
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 10_000);
 
   try {
-    const response = await fetch(finalUrlStr, {
-      next: { revalidate: 3600 },
-      signal: controller.signal,
-    });
+    const res = await fetch(finalUrlStr, { next: { revalidate: 3600 }, signal: controller.signal });
     clearTimeout(timeout);
-
-    if (!response.ok) {
-      if (response.status !== 404) {
-        console.error(`[WP API ERROR] ${response.status} ${response.statusText} @ ${finalUrlStr}`);
-      }
+    if (!res.ok) {
+      if (res.status !== 404) console.error(`[WP API ERROR] ${res.status} ${res.statusText} @ ${finalUrlStr}`);
       return null;
     }
-    return await response.json();
+    return await res.json();
   } catch (err: any) {
     clearTimeout(timeout);
-    console.error('[WP FETCH FAILED]', {
-      url: finalUrlStr,
-      name: err?.name,
-      message: err?.message,
-      code: err?.code,
-    });
+    console.error('[WP FETCH FAILED]', { url: finalUrlStr, name: err?.name, message: err?.message, code: err?.code });
     return null;
   }
 }
@@ -76,13 +62,17 @@ const mosquesSchema = z.object({
   _embedded: z.any().optional(),
 });
 
-/* =================== Helpers & Formatters =================== */
+/* =================== Helpers =================== */
 
+/** استخراج المحافظة (parent) والمدينة (child) من تصنيف locations */
 function extractLocationNames(terms: any[]) {
   const locTerms = (terms || []).filter((t: any) => t?.taxonomy === 'locations');
-  const root = locTerms.find((t: any) => !t?.parent || t.parent === 0)?.name ?? 'غير محدد';
-  const child = locTerms.find((t: any) => t?.parent && t.parent !== 0)?.name ?? 'غير محدد';
-  return { governorate: root, city: child };
+  const governorateTerm = locTerms.find((t: any) => !t?.parent || t.parent === 0);
+  const cityTerm = locTerms.find((t: any) => t?.parent && t.parent !== 0);
+  return {
+    governorate: governorateTerm?.name || 'غير محدد',
+    city: cityTerm?.name || 'غير محدد',
+  };
 }
 
 function dedupeImages(imgs: string[]) {
@@ -92,20 +82,18 @@ function dedupeImages(imgs: string[]) {
 function parseQuantitiesMap(text: string | undefined | null) {
   const map = new Map<string, number>();
   if (!text || typeof text !== 'string') return map;
-  text
-    .split(',')
-    .map((pair) => pair.trim())
+  text.split(',')
+    .map(p => p.trim())
     .filter(Boolean)
-    .forEach((pair) => {
-      const [needId, quantity] = pair.split('=').map((s) => s.trim());
-      if (needId && quantity && !isNaN(Number(quantity))) {
-        map.set(String(needId), Number(quantity));
-      }
+    .forEach(pair => {
+      const [id, q] = pair.split('=').map(s => s.trim());
+      if (id && q && !isNaN(Number(q))) map.set(String(id), Number(q));
     });
   return map;
 }
 
-/** تنسيق الاحتياج المفرد (ACF: unit_price, category (taxonomy object), image: url) */
+/* =================== Formatters =================== */
+
 export const formatNeedItemDetailData = (needItem: any): Need => {
   const acf = needItem?.acf || {};
 
@@ -114,9 +102,7 @@ export const formatNeedItemDetailData = (needItem: any): Need => {
     'غير محدد';
 
   const terms = needItem?._embedded?.['wp:term']?.flat?.() || [];
-  const needsCategoryTerm = terms.find(
-    (t: any) => typeof t?.taxonomy === 'string' && t.taxonomy.includes('needs_categories')
-  );
+  const needsCategoryTerm = terms.find((t: any) => typeof t?.taxonomy === 'string' && t.taxonomy.includes('needs_categories'));
   const icon = needsCategoryTerm?.acf?.category_icon || 'fas fa-box-open';
 
   let imageUrl = '/images/default-need.jpg';
@@ -146,7 +132,6 @@ export const formatNeedItemDetailData = (needItem: any): Need => {
   };
 };
 
-/** تنسيق بيانات الحالة (مدرسة/مسجد) */
 export const formatCaseData = async (
   caseItem: any,
   type: 'school' | 'mosque',
@@ -155,11 +140,13 @@ export const formatCaseData = async (
   const acf = caseItem?.acf || {};
   const terms = caseItem?._embedded?.['wp:term']?.flat?.() || [];
 
+  // عنوان
   const title =
     type === 'school'
       ? acf?.organization_name || caseItem?.title?.rendered || 'بدون عنوان'
       : acf?.mosque_name || caseItem?.title?.rendered || 'بدون عنوان';
 
+  // المحافظة/المدينة بالمنطق الصحيح
   const { governorate, city } = extractLocationNames(terms);
 
   const description = acf?.description || 'لا يوجد وصف.';
@@ -168,25 +155,21 @@ export const formatCaseData = async (
   const progress = totalNeeded > 0 ? Math.round((totalDonated / totalNeeded) * 100) : 0;
   const isUrgent = String(acf?.need_level || '').trim() === 'عالي';
 
-  let caseImages: string[] = [];
-  const featuredMediaUrl = caseItem?._embedded?.['wp:featuredmedia']?.[0]?.source_url;
-  if (featuredMediaUrl) caseImages.push(String(featuredMediaUrl));
-
-  const galleryImages = acf?.gallery_images;
-  if (Array.isArray(galleryImages)) {
-    for (const img of galleryImages) {
-      if (img && typeof img === 'object' && 'url' in img && (img as any).url) {
-        caseImages.push(String((img as any).url));
-      }
-    }
-  } else if (galleryImages && typeof galleryImages === 'object' && 'url' in galleryImages && (galleryImages as any).url) {
-    caseImages.push(String((galleryImages as any).url));
+  // صور
+  let images: string[] = [];
+  const featured = caseItem?._embedded?.['wp:featuredmedia']?.[0]?.source_url;
+  if (featured) images.push(String(featured));
+  const gallery = acf?.gallery_images;
+  if (Array.isArray(gallery)) {
+    for (const img of gallery) if (img?.url) images.push(String(img.url));
+  } else if (gallery?.url) {
+    images.push(String(gallery.url));
   }
-  if (caseImages.length === 0) caseImages.push('/images/default.jpg');
-  caseImages = dedupeImages(caseImages);
+  if (images.length === 0) images.push('/images/default.jpg');
+  images = dedupeImages(images);
 
+  // كميات الاحتياجات
   const quantitiesMap = parseQuantitiesMap(acf?.project_needs_quantities_text);
-
   const selectedNeedsRaw = Array.isArray(acf?.selected_project_needs) ? acf.selected_project_needs : [];
 
   const needs: Need[] = selectedNeedsRaw.map((sel: any) => {
@@ -196,7 +179,7 @@ export const formatCaseData = async (
 
     const base = allNeedsMap.get(idStr);
 
-    const itemTitle =
+    const item =
       (typeof sel === 'object' && sel?.post_title) || base?.item || 'بدون عنوان';
 
     const selUnitRaw = typeof sel === 'object'
@@ -207,16 +190,16 @@ export const formatCaseData = async (
         ? Number(selUnitRaw)
         : (base?.unitPrice ?? 0);
 
-    const retrievedQuantity = quantitiesMap.get(idStr) || 0;
+    const quantity = quantitiesMap.get(idStr) || 0;
 
-    const desc =
+    const description =
       (typeof sel === 'object' && typeof sel?.acf?.description === 'string')
         ? sel.acf.description
         : base?.description || '';
 
-    let imageUrl = base?.image || '/images/default-need.jpg';
+    let image = base?.image || '/images/default-need.jpg';
     if (typeof sel === 'object' && sel?.acf?.image?.url) {
-      imageUrl = String(sel.acf.image.url);
+      image = String(sel.acf.image.url);
     }
 
     const category =
@@ -226,18 +209,11 @@ export const formatCaseData = async (
 
     const icon = base?.icon || 'fas fa-box-open';
 
-    return {
-      id: safeId,
-      item: itemTitle,
-      unitPrice,
-      quantity: retrievedQuantity,
-      funded: 0,
-      description: desc,
-      image: imageUrl,
-      category,
-      icon,
-    } as Need;
+    return { id: safeId, item, unitPrice, quantity, funded: 0, description, image, category, icon } as Need;
   });
+
+  // 👇 نضيف label عربي ونُرجِع type الأصلي للمنطق/الفلترة
+  const typeLabel = type === 'school' ? 'مدرسة' : 'مسجد';
 
   return {
     id: caseItem.id,
@@ -245,19 +221,21 @@ export const formatCaseData = async (
     description,
     governorate,
     city,
-    type,
+    type,        // 'school' | 'mosque' (للمنطق والفلترة)
+    // @ts-expect-error: أضف الحقل في lib/types.ts
+    typeLabel,   // 'مدرسة' | 'مسجد' (للعرض)
     needLevel: acf?.need_level || 'غير محدد',
     isUrgent,
     needs,
     fundNeeded: totalNeeded,
     fundRaised: totalDonated,
     progress,
-    images: caseImages,
+    images,
   };
 };
 
-/* =================== Needs Fetchers (cached) =================== */
-/** per_page كبيرة + _embed لضمان وصول كل التيرمز/الأيقونات */
+/* ============ Needs Lists (cached) ============ */
+
 export const getSchoolNeedsList = unstable_cache(
   async () => {
     const p = new URLSearchParams();
@@ -265,12 +243,12 @@ export const getSchoolNeedsList = unstable_cache(
     p.set('per_page', '100');
     const needs = await fetchWordPressData('school_needs', p);
     if (!needs) return [];
-    const parsedNeeds = z.array(needItemDetailSchema).safeParse(needs as unknown[]);
-    if (!parsedNeeds.success) {
-      console.error('فشل في التحقق من بيانات احتياجات المدارس:', parsedNeeds.error);
+    const parsed = z.array(needItemDetailSchema).safeParse(needs as unknown[]);
+    if (!parsed.success) {
+      console.error('فشل في التحقق من بيانات احتياجات المدارس:', parsed.error);
       return [];
     }
-    return parsedNeeds.data.map(formatNeedItemDetailData);
+    return parsed.data.map(formatNeedItemDetailData);
   },
   ['school-needs-list'],
   { revalidate: 3600 }
@@ -283,21 +261,22 @@ export const getMosqueNeedsList = unstable_cache(
     p.set('per_page', '100');
     const needs = await fetchWordPressData('mosque_needs', p);
     if (!needs) return [];
-    const parsedNeeds = z.array(needItemDetailSchema).safeParse(needs as unknown[]);
-    if (!parsedNeeds.success) {
-      console.error('فشل في التحقق من بيانات احتياجات المساجد:', parsedNeeds.error);
+    const parsed = z.array(needItemDetailSchema).safeParse(needs as unknown[]);
+    if (!parsed.success) {
+      console.error('فشل في التحقق من بيانات احتياجات المساجد:', parsed.error);
       return [];
     }
-    return parsedNeeds.data.map(formatNeedItemDetailData);
+    return parsed.data.map(formatNeedItemDetailData);
   },
   ['mosque-needs-list'],
   { revalidate: 3600 }
 );
 
-/* =================== Case by ID =================== */
+/* ============ Case APIs ============ */
+
 export async function getCaseById(id: number): Promise<CaseItem | null> {
   const [schoolNeedsList, mosqueNeedsList] = await Promise.all([getSchoolNeedsList(), getMosqueNeedsList()]);
-  const allNeedsMap = new Map([...schoolNeedsList, ...mosqueNeedsList].map((n) => [String(n.id), n]));
+  const allNeedsMap = new Map([...schoolNeedsList, ...mosqueNeedsList].map(n => [String(n.id), n]));
 
   const [schoolsResult, mosquesResult] = await Promise.allSettled([
     fetchWordPressData(`schools/${id}`, new URLSearchParams('_embed')),
@@ -307,41 +286,27 @@ export async function getCaseById(id: number): Promise<CaseItem | null> {
   let caseData: any = null;
   let postType: 'schools' | 'mosques' | null = null;
 
-  if (schoolsResult.status === 'fulfilled' && schoolsResult.value && typeof schoolsResult.value.id === 'number') {
+  if (schoolsResult.status === 'fulfilled' && schoolsResult.value?.id) {
     caseData = schoolsResult.value;
     postType = 'schools';
-  } else if (mosquesResult.status === 'fulfilled' && mosquesResult.value && typeof mosquesResult.value.id === 'number') {
+  } else if (mosquesResult.status === 'fulfilled' && mosquesResult.value?.id) {
     caseData = mosquesResult.value;
     postType = 'mosques';
   }
-
-  if (!caseData) {
-    console.error(`فشل في جلب بيانات الحالة لـ ID: ${id}`);
-    return null;
-  }
+  if (!caseData) return null;
 
   if (postType === 'schools') {
-    const parsedCase = schoolsSchema.safeParse(caseData);
-    if (!parsedCase.success) {
-      console.error('فشل في التحقق من بيانات الحالة (مدارس):', parsedCase.error);
-      return null;
-    }
-    return await formatCaseData(parsedCase.data, 'school', allNeedsMap);
+    const parsed = schoolsSchema.safeParse(caseData);
+    if (!parsed.success) return null;
+    return await formatCaseData(parsed.data, 'school', allNeedsMap);
   } else {
-    const parsedCase = mosquesSchema.safeParse(caseData);
-    if (!parsedCase.success) {
-      console.error('فشل في التحقق من بيانات الحالة (مساجد):', parsedCase.error);
-      return null;
-    }
-    return await formatCaseData(parsedCase.data, 'mosque', allNeedsMap);
+    const parsed = mosquesSchema.safeParse(caseData);
+    if (!parsed.success) return null;
+    return await formatCaseData(parsed.data, 'mosque', allNeedsMap);
   }
 }
 
-/* =================== All Cases (CACHE with dynamic key) =================== */
-/**
- * دالة واحدة تبني مفتاح الكاش من الاستعلام لضمان اختلاف النتائج:
- * type + page + search + per_page (زد أي مفاتيح تحتاجها)
- */
+/** getCases مع مفتاح كاش يعتمد على type وغيرها */
 export async function getCases(params: URLSearchParams = new URLSearchParams()): Promise<CaseItem[]> {
   const paramsString = params.toString();
   const typeKey = (params.get('type') || 'all').toLowerCase();
@@ -353,7 +318,6 @@ export async function getCases(params: URLSearchParams = new URLSearchParams()):
     async () => {
       const p = new URLSearchParams(paramsString);
       p.set('_embed', '');
-
       const fetchSchools = typeKey === 'all' || typeKey === 'schools';
       const fetchMosques = typeKey === 'all' || typeKey === 'mosques';
 
@@ -361,45 +325,28 @@ export async function getCases(params: URLSearchParams = new URLSearchParams()):
       const mosquesPromise = fetchMosques ? fetchWordPressData('mosques', p) : Promise.resolve([]);
 
       const [schoolsData, mosquesData, schoolNeedsList, mosqueNeedsList] = await Promise.all([
-        schoolsPromise,
-        mosquesPromise,
-        getSchoolNeedsList(),
-        getMosqueNeedsList(),
+        schoolsPromise, mosquesPromise, getSchoolNeedsList(), getMosqueNeedsList()
       ]);
 
-      const allNeedsMap = new Map(
-        [...schoolNeedsList, ...mosqueNeedsList].map((n) => [String(n.id), n])
-      );
-
+      const allNeedsMap = new Map([...schoolNeedsList, ...mosqueNeedsList].map(n => [String(n.id), n]));
       const allCases: CaseItem[] = [];
 
       if (Array.isArray(schoolsData)) {
         const parsed = z.array(schoolsSchema).safeParse(schoolsData);
         if (parsed.success) {
-          const formatted = await Promise.all(
-            parsed.data.map((d) => formatCaseData(d, 'school', allNeedsMap))
-          );
+          const formatted = await Promise.all(parsed.data.map(d => formatCaseData(d, 'school', allNeedsMap)));
           allCases.push(...formatted);
-        } else {
-          console.error('تحقق Zod فشل لمدارس:', parsed.error);
         }
       }
-
       if (Array.isArray(mosquesData)) {
         const parsed = z.array(mosquesSchema).safeParse(mosquesData);
         if (parsed.success) {
-          const formatted = await Promise.all(
-            parsed.data.map((d) => formatCaseData(d, 'mosque', allNeedsMap))
-          );
+          const formatted = await Promise.all(parsed.data.map(d => formatCaseData(d, 'mosque', allNeedsMap)));
           allCases.push(...formatted);
-        } else {
-          console.error('تحقق Zod فشل لمساجد:', parsed.error);
         }
       }
-
       return allCases;
     },
-    // 🔑 مفتاح الكاش يعتمد على الفلاتر كي لا يعاد استخدام نتيجة خاطئة
     ['cases', typeKey, pageKey, searchKey, perPageKey],
     { revalidate: 3600 }
   );

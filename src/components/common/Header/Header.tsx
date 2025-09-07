@@ -169,7 +169,7 @@ const Header = () => {
               </Link>
               <ul className={styles.dropdownMenu}>
                 <li><Link href="/cases" className={styles.navLink}>تصفح تواجدنا</Link></li>
-                <li><Link href="/cases?type=schoolss">تصفح المدارس</Link></li>
+                <li><Link href="/cases?type=schools">تصفح المدارس</Link></li>
                 <li><Link href="/cases?type=mosques">تصفح المساجد</Link></li>
               </ul>
             </li>

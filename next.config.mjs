@@ -9,7 +9,20 @@ const nextConfig = {
     unoptimized: true,
   },
 
-  // يمكنك إضافة أي إعدادات أخرى هنا إذا كانت لديك
+  // ✅ تم إضافة هذا الجزء لحل مشكلة CORS مع Stripe
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'Content-Security-Policy',
+            value: "script-src 'self' 'unsafe-inline' https://js.stripe.com https://m.stripe.network; style-src 'self' 'unsafe-inline' https://js.stripe.com https://m.stripe.network;",
+          },
+        ],
+      },
+    ];
+  },
 };
 
 export default nextConfig;

@@ -1,6 +1,15 @@
-// next.config.mjs
+/** @type {import('next').NextConfig} */
 const nextConfig = {
-  // ... (إعداداتك الحالية)
+  // تم تفعيل هذا الإعداد لإنشاء مجلد 'out'
+  //output: 'export',
+
+  // هذا الإعداد يُنصح به عند استخدام 'output: export' لتجنب أخطاء تحسين الصور
+  // مع بعض أنواع الاستضافات الثابتة. يمكنك تركه هكذا.
+  images: {
+    unoptimized: true,
+  },
+
+  // ✅ هذا الجزء هو المسؤول عن إضافة سياسة الأمان للمتصفح
   async headers() {
     return [
       {
@@ -8,7 +17,7 @@ const nextConfig = {
         headers: [
           {
             key: 'Content-Security-Policy',
-            value: "script-src 'self' 'unsafe-inline' https://js.stripe.com https://m.stripe.network; style-src 'self' 'unsafe-inline' https://js.stripe.com https://m.stripe.network;",
+            value: "script-src 'self' 'unsafe-inline' blob: https://js.stripe.com https://m.stripe.network https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://js.stripe.com https://m.stripe.network https://cdnjs.cloudflare.com;",
           },
         ],
       },

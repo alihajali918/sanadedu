@@ -1,6 +1,6 @@
 // next.config.mjs
 const nextConfig = {
-  // ...
+  // ... (إعداداتك الحالية)
   async headers() {
     return [
       {
@@ -8,7 +8,7 @@ const nextConfig = {
         headers: [
           {
             key: 'Content-Security-Policy',
-            value: "script-src 'self' 'unsafe-inline' blob: https://js.stripe.com https://m.stripe.network; style-src 'self' 'unsafe-inline' https://js.stripe.com https://m.stripe.network https://cdnjs.cloudflare.com;",
+            value: "script-src 'self' 'unsafe-inline' https://js.stripe.com https://m.stripe.network; style-src 'self' 'unsafe-inline' https://js.stripe.com https://m.stripe.network;",
           },
         ],
       },

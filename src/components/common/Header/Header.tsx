@@ -246,7 +246,7 @@ const Header = () => {
             </Link>
             {openMobileDropdown === 1 && (
               <ul className={styles.mobileDropdownMenu}>
-                <li><Link href="/geographic-presence" onClick={toggleMobileMenu}>تصفح تواجدنا</Link></li>
+                <li><Link href="/cases" onClick={toggleMobileMenu}>تصفح تواجدنا</Link></li>
                 <li><Link href="/cases?type=schools">تصفح المدارس</Link></li>
                 <li><Link href="/cases?type=mosques">تصفح المساجد</Link></li>
               </ul>

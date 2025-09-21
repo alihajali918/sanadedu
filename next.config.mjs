@@ -10,14 +10,14 @@ const nextConfig = {
   },
 
   // ✅ هذا الجزء هو المسؤول عن إضافة سياسة الأمان للمتصفح
-  async headers() {
+async headers() {
     return [
       {
         source: '/(.*)',
         headers: [
           {
             key: 'Content-Security-Policy',
-            value: "script-src 'self' 'unsafe-inline' blob: https://js.stripe.com https://m.stripe.network https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://js.stripe.com https://m.stripe.network https://cdnjs.cloudflare.com;",
+            value: `script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: https://js.stripe.com https://m.stripe.network https://cdnjs.cloudflare.com https://va.vercel-scripts.com; style-src 'self' 'unsafe-inline' https://js.stripe.com https://m.stripe.network https://cdnjs.cloudflare.com;`,
           },
         ],
       },

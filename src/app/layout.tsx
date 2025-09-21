@@ -30,6 +30,8 @@ import { Changa, Cairo } from "next/font/google";
 import { useSession, signIn, signOut, SessionProvider } from "next-auth/react"; // استيراد SessionProvider و useSession
 
 // Define Changa font (for headings)
+import { SpeedInsights } from "@vercel/speed-insights/next"
+
 const changa = Changa({
   subsets: ["arabic"],
   weight: ["400", "700"],
@@ -81,6 +83,7 @@ const AppProviders = ({ children }: { children: React.ReactNode }) => {
       <Header />
       {/* محتوى الصفحة: هنا يتم عرض محتوى الصفحة المحدد. */}
       {children}
+      <SpeedInsights />
       <Footer />
     </LocaleProvider>
   );

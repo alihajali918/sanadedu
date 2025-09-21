@@ -22,10 +22,10 @@ const Footer = () => {
             {/* استخدام مكون Image لشعار سند في الفوتر */}
             {/* تأكد من أن sanadlogo.svg موجود في مجلد public/ */}
             <Image src="/sanadlogo.svg" alt="Sanad Logo" width={60} height={46} className={styles.sanadlogoFooter} /> {/* ✅ تم التعديل */}
-            <span className={styles.logoText}>سند</span> {/* ✅ تم التعديل */}
+            <span className={styles.logoText}>جمعية سند لدعم التعليم</span> {/* ✅ تم التعديل */}
           </Link>
           <p className={styles.footerDescription}> {/* ✅ تم التعديل */}
-            سند هي منصة إنسانية تهدف إلى ربط المتبرعين بالمؤسسات التعليمية والدينية المحتاجة في سوريا، لضمان مستقبل أفضل لأجيالنا.
+            جمعية سند لدعم التعليم هي منصة إنسانية تهدف إلى ربط المتبرعين بالمؤسسات التعليمية والدينية المحتاجة في سوريا، لضمان مستقبل أفضل لأجيالنا.
           </p>
         </div>
 

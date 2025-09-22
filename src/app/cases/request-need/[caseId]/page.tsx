@@ -1,35 +1,23 @@
+// src/app/cases/request-need/[caseId]/page.tsx
 import { notFound } from "next/navigation";
 import { getCaseById } from "lib/api";
 import RequestForm from "../RequestForm";
 
-// ✅ تم تعريف الواجهة بشكل صحيح لتحديد نوع الخصائص.
-// هذا يحل مشكلة الـ Type Error التي كانت تظهر سابقاً.
-interface RequestNeedPageProps {
-  params: {
-    caseId: string;
-  };
-}
+type Params = { caseId: string };
 
 export default async function RequestNeedPage({
   params,
-}: RequestNeedPageProps) {
-  // ✅ تحويل المعرف من نص (string) إلى رقم (integer) هو خطوة ضرورية وسليمة.
-  const caseId = parseInt(params.caseId, 10);
+}: {
+  // Accept either plain object or Promise, then normalize with Promise.resolve.
+  params: Params | Promise<Params>;
+}) {
+  const { caseId } = await Promise.resolve(params);
 
-  // ✅ هذا التحقق من صحة البيانات (validation) هو إجراء ممتاز.
-  // في حال كان المعرف غير صالح، يتم منع أي أخطاء مستقبلية.
-  if (isNaN(caseId)) {
-    notFound();
-  }
+  const id = Number.parseInt(caseId, 10);
+  if (Number.isNaN(id)) notFound();
 
-  // ✅ استخدام await مع دالة جلب البيانات (getCaseById) يضمن أن البيانات جاهزة قبل المتابعة.
-  const caseItem = await getCaseById(caseId);
+  const caseItem = await getCaseById(id);
+  if (!caseItem) notFound();
 
-  // ✅ التحقق من وجود بيانات الحالة قبل عرض المكون يمنع ظهور أخطاء.
-  if (!caseItem) {
-    notFound();
-  }
-
-  // ✅ تمرير الخصائص بشكل صحيح إلى المكون (RequestForm).
-  return <RequestForm caseItem={caseItem} caseId={params.caseId} />;
+  return <RequestForm caseItem={caseItem} caseId={caseId} />;
 }

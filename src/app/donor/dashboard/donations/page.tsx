@@ -1,60 +1,52 @@
-// src/app/dashboard/donations/page.tsx
-'use client'; // تأكد من إضافة هذا السطر إذا كنت تستخدم React Hooks
-
 import React from 'react';
-import Link from 'next/link'; // لاستخدام روابط Next.js
-import styles from './donations.module.css'; // استيراد الستايلات الخاصة بالصفحة
+import Link from 'next/link';
+import { getDonations, Donation } from 'lib/api';
+import styles from './donations.module.css';
 
-// بيانات وهمية للتبرعات (سيتم استبدالها ببيانات حقيقية من API لاحقاً)
-const dummyDonations = [
-  {
-    id: 'd001',
-    date: '2025-07-10',
-    caseName: 'تجديد فصول مدرسة الأمل',
-    amount: '150.00',
-    currency: 'USD',
-    status: 'مكتمل',
-    detailsLink: '/cases/123' // رابط تفاصيل الحالة في الموقع العام
-  },
-  {
-    id: 'd002',
-    date: '2025-06-25',
-    caseName: 'توفير كتب لمكتبة جامع النور',
-    amount: '75.00',
-    currency: 'USD',
-    status: 'مكتمل',
-    detailsLink: '/cases/456'
-  },
-  {
-    id: 'd003',
-    date: '2025-05-18',
-    caseName: 'دعم كادر الأيتام في درعا',
-    amount: '100.00',
-    currency: 'USD',
-    status: 'مكتمل',
-    detailsLink: '/support-staff' // مثال لرابط لصفحة "ادعم الكادر"
-  },
-  {
-    id: 'd004',
-    date: '2025-04-01',
-    caseName: 'ترميم سقف معهد الفارابي',
-    amount: '200.00',
-    currency: 'USD',
-    status: 'قيد التنفيذ',
-    detailsLink: '/cases/789'
-  },
-  {
-    id: 'd005',
-    date: '2025-03-05',
-    caseName: 'تبرع عام لمشاريع سند',
-    amount: '50.00',
-    currency: 'USD',
-    status: 'مكتمل',
-    detailsLink: '/about' // مثال لرابط عام
-  },
-];
+// استيراد دالة المصادقة الصحيحة التي تعمل على جهة الخادم
+import { auth } from '@/auth'; // إذا كنت تستخدم App Router
 
-const DonationsPage: React.FC = () => {
+const DonationsPage = async () => {
+  let donations: Donation[] = [];
+  let error = null;
+
+  try {
+    // استخدام دالة auth() لجلب الجلسة الحقيقية من الخادم
+    const session = await auth();
+    // استخدام wordpressUserId بدلاً من id لضمان جلب البيانات الصحيحة من API
+    const userId = session?.user?.wordpressUserId;
+
+    if (!userId) {
+      error = 'يجب تسجيل الدخول لعرض التبرعات.';
+    } else {
+      const fetchedDonations = await getDonations(userId);
+      if (Array.isArray(fetchedDonations)) {
+        donations = fetchedDonations;
+      } else {
+        error = 'البيانات المستلمة غير صالحة.';
+      }
+    }
+  } catch (err) {
+    console.error('Failed to fetch donations:', err);
+    error = 'حدث خطأ أثناء تحميل التبرعات. يرجى المحاولة لاحقاً.';
+  }
+
+  // كائن لربط حالة التبرع بالصنف المناسب في CSS
+  const statusClasses: { [key: string]: string } = {
+    pending: styles.pending,
+    completed: styles.completed,
+    processing: styles.processing,
+    refunded: styles.refunded,
+  };
+
+  // كائن لربط حالة التبرع بالنص العربي الذي سيتم عرضه للمستخدم
+  const statusText: { [key: string]: string } = {
+    pending: 'قيد الانتظار',
+    completed: 'مكتمل',
+    processing: 'قيد التنفيذ',
+    refunded: 'مسترد',
+  };
+
   return (
     <div className={styles.donationsContent}>
       <h1 className={styles.donationsTitle}>تبرعاتي</h1>
@@ -62,22 +54,21 @@ const DonationsPage: React.FC = () => {
         هنا يمكنك مراجعة جميع التبرعات التي قمت بها سابقاً، وتتبع حالتها.
       </p>
 
-      {dummyDonations.length === 0 ? (
-        // رسالة تظهر إذا لم يكن هناك تبرعات
+      {error ? (
+        <p className={styles.errorMessage}>{error}</p>
+      ) : donations.length === 0 ? (
         <p className={styles.noDonationsMessage}>
           لم تقم بأي تبرعات حتى الآن. ابدأ بتصفح الحالات لدعم قضايانا!
           <Link href="/cases" className={styles.browseCasesLink}>تصفح الحالات</Link>
         </p>
       ) : (
-        // قائمة التبرعات
         <div className={styles.donationsList}>
-          {dummyDonations.map((donation) => (
+          {donations.map((donation) => (
             <div key={donation.id} className={styles.donationCard}>
               <div className={styles.donationHeader}>
                 <h3>{donation.caseName}</h3>
-                {/* شارة حالة التبرع */}
-                <span className={`${styles.statusBadge} ${styles[donation.status.replace(/\s/g, '')]}`}>
-                  {donation.status}
+                <span className={`${styles.statusBadge} ${statusClasses[donation.status]}`}>
+                  {statusText[donation.status]}
                 </span>
               </div>
               <div className={styles.donationDetails}>
@@ -85,12 +76,9 @@ const DonationsPage: React.FC = () => {
                 <p><strong>المبلغ:</strong> {donation.amount} {donation.currency}</p>
               </div>
               <div className={styles.donationActions}>
-                {/* زر لعرض تفاصيل الحالة المرتبطة بالتبرع */}
                 <Link href={donation.detailsLink} className={styles.viewDetailsBtn}>
                   عرض تفاصيل الحالة
                 </Link>
-                {/* يمكن إضافة زر "أعد التبرع" هنا لاحقاً */}
-                {/* <button className={styles.reDonateBtn}>أعد التبرع</button> */}
               </div>
             </div>
           ))}

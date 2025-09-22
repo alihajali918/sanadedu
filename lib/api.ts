@@ -353,3 +353,31 @@ export async function getCases(params: URLSearchParams = new URLSearchParams()):
 
   return cachedFn();
 }
+// واجهة لضمان نوع البيانات
+export interface Donation {
+  id: string;
+  date: string;
+  caseName: string;
+  amount: string;
+  currency: string;
+  status: string;
+  detailsLink: string;
+}
+
+/** جلب تبرعات المستخدم من WordPress REST API */
+export const getDonations = unstable_cache(
+  async (userId: string): Promise<Donation[]> => {
+    // بناء الرابط لنقطة النهاية المخصصة
+    const endpoint = `/my-donations?userId=${userId}`;
+    const data = await fetchWordPressData(endpoint, undefined); // لاحظ عدم وجود بارامترات
+
+    if (!Array.isArray(data)) {
+      console.error('API did not return an array of donations.');
+      return [];
+    }
+    
+    return data;
+  },
+  ['user-donations'],
+  { revalidate: 3600 }
+);

@@ -36,12 +36,12 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({ caseId, totalAmount }) => {
         if (data.clientSecret) {
           setClientSecret(data.clientSecret);
         } else {
-          setError(data.error || 'Failed to initialize payment.');
+          setError(data.error || 'فشل تهيئة الدفع.');
         }
       })
       .catch((err) => {
         console.error('Error fetching client secret:', err);
-        setError('An error occurred while initializing payment. Please try again.');
+        setError('حدث خطأ أثناء تهيئة عملية الدفع. يرجى المحاولة مرة أخرى.');
       });
     }
   }, [totalAmount, caseId]);
@@ -55,7 +55,7 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({ caseId, totalAmount }) => {
 
     const cardElement = elements.getElement(CardElement);
     if (!cardElement) {
-      setError("Card element not found.");
+      setError("عنصر البطاقة غير موجود.");
       setProcessing(false);
       return;
     }
@@ -67,14 +67,40 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({ caseId, totalAmount }) => {
     });
 
     if (confirmError) {
-      setError(confirmError.message || 'An unexpected error occurred.');
+      setError(confirmError.message || 'حدث خطأ غير متوقع.');
       setProcessing(false);
     } else if (paymentIntent && paymentIntent.status === 'succeeded') {
-      setError(null);
-      setSucceeded(true);
-      setProcessing(false);
-      clearCart();
-      router.push(`/thank-you?payment_intent=${paymentIntent.id}`);
+      try {
+        // استدعاء API Route الجديد لتسجيل التبرع
+        const response = await fetch('/api/donations', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            amount: totalAmount,
+            caseId: caseId,
+            stripePaymentIntentId: paymentIntent.id,
+          }),
+        });
+
+        if (!response.ok) {
+          const errorBody = await response.json().catch(() => ({}));
+          const errorMessage = errorBody.error || 'Failed to submit donation to backend.';
+          throw new Error(errorMessage);
+        }
+
+        setError(null);
+        setSucceeded(true);
+        setProcessing(false);
+        clearCart();
+        router.push(`/thank-you?payment_intent=${paymentIntent.id}`);
+        
+      } catch (submitError: any) {
+        console.error('Failed to submit donation to backend:', submitError);
+        setError(`تم الدفع بنجاح، لكن حدث خطأ في تسجيل التبرع: ${submitError.message}. يرجى الاتصال بالدعم.`);
+        setProcessing(false);
+      }
     }
   };
 

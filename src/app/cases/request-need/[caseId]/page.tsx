@@ -2,6 +2,8 @@ import { notFound } from "next/navigation";
 import { getCaseById } from "lib/api";
 import RequestForm from "../RequestForm";
 
+// ✅ تم تعريف الواجهة بشكل صحيح لتحديد نوع الخصائص.
+// هذا يحل مشكلة الـ Type Error التي كانت تظهر سابقاً.
 interface RequestNeedPageProps {
   params: {
     caseId: string;
@@ -11,22 +13,23 @@ interface RequestNeedPageProps {
 export default async function RequestNeedPage({
   params,
 }: RequestNeedPageProps) {
-  // تحويل معرف الحالة من نص إلى رقم
+  // ✅ تحويل المعرف من نص (string) إلى رقم (integer) هو خطوة ضرورية وسليمة.
   const caseId = parseInt(params.caseId, 10);
 
-  // إذا كان المعرف غير صالح، يتم إرجاع null وتظهر صفحة 404
+  // ✅ هذا التحقق من صحة البيانات (validation) هو إجراء ممتاز.
+  // في حال كان المعرف غير صالح، يتم منع أي أخطاء مستقبلية.
   if (isNaN(caseId)) {
     notFound();
   }
 
-  // جلب بيانات الحالة من الواجهة البرمجية (API)
+  // ✅ استخدام await مع دالة جلب البيانات (getCaseById) يضمن أن البيانات جاهزة قبل المتابعة.
   const caseItem = await getCaseById(caseId);
 
-  // إذا لم يتم العثور على الحالة، يتم عرض صفحة 404
+  // ✅ التحقق من وجود بيانات الحالة قبل عرض المكون يمنع ظهور أخطاء.
   if (!caseItem) {
     notFound();
   }
 
-  // عرض نموذج الطلب مع بيانات الحالة
+  // ✅ تمرير الخصائص بشكل صحيح إلى المكون (RequestForm).
   return <RequestForm caseItem={caseItem} caseId={params.caseId} />;
 }

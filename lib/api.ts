@@ -3,11 +3,16 @@ import { unstable_cache } from 'next/cache';
 import { z } from 'zod';
 import { CaseItem, Need } from './types';
 
-/** جلب بيانات من WordPress REST API */
+/**
+ * جلب بيانات من WordPress REST API
+ * @param endpoint نقطة النهاية (مثال: 'posts', 'schools/123')
+ * @param params بارامترات URL
+ * @returns كائن يحتوي على البيانات ورؤوس الاستجابة، أو null في حالة الفشل
+ */
 export async function fetchWordPressData(
   endpoint: string,
   params?: URLSearchParams
-): Promise<any> {
+): Promise<{ data: any; headers: Headers } | null> {
   const RAW = process.env.NEXT_PUBLIC_WORDPRESS_API_URL?.trim();
   if (!RAW) {
     console.error('NEXT_PUBLIC_WORDPRESS_API_URL غير معرّف.');
@@ -28,11 +33,14 @@ export async function fetchWordPressData(
   try {
     const res = await fetch(finalUrlStr, { next: { revalidate: 3600 }, signal: controller.signal });
     clearTimeout(timeout);
+
     if (!res.ok) {
-      if (res.status !== 404) console.error(`[WP API ERROR] ${res.status} ${res.statusText} @ ${finalUrlStr}`);
-      return null;
+      // إطلاق خطأ بدلاً من إرجاع null مباشرةً، ما عدا في حالة 404
+      if (res.status === 404) return null;
+      throw new Error(`[WP API ERROR] ${res.status} ${res.statusText} @ ${finalUrlStr}`);
     }
-    return await res.json();
+
+    return { data: await res.json(), headers: res.headers };
   } catch (err: any) {
     clearTimeout(timeout);
     console.error('[WP FETCH FAILED]', { url: finalUrlStr, name: err?.name, message: err?.message, code: err?.code });
@@ -64,14 +72,57 @@ const mosquesSchema = z.object({
 
 /* =================== Helpers =================== */
 
-/** استخراج المحافظة (parent) والمدينة (child) من تصنيف locations */
 function extractLocationNames(terms: any[]) {
   const locTerms = (terms || []).filter((t: any) => t?.taxonomy === 'locations');
+  
+  let governorate = 'غير محدد';
+  let city = 'غير محدد';
+
+  // البحث عن المحافظة: التصنيف الذي ليس له أب (parent) أو أبوه صفر
   const governorateTerm = locTerms.find((t: any) => !t?.parent || t.parent === 0);
+  
+  // البحث عن المدينة: التصنيف الذي له أب (parent)
   const cityTerm = locTerms.find((t: any) => t?.parent && t.parent !== 0);
+
+  if (governorateTerm) {
+    governorate = governorateTerm.name;
+  }
+
+  if (cityTerm) {
+    city = cityTerm.name;
+  }
+  
+  // منطق احتياطي في حال وجود تصنيفين غير مرتبطين بعلاقة أب-ابن
+  if (locTerms.length === 2 && governorate === 'غير محدد' && city === 'غير محدد') {
+    // إذا لم يتمكن من تحديد أي منهما، نعتبر الأول محافظة والثاني مدينة
+    governorate = locTerms[0].name;
+    city = locTerms[1].name;
+  } else if (locTerms.length === 2 && governorate !== 'غير محدد' && city === 'غير محدد') {
+    // إذا وجد المحافظة فقط (التصنيف الآخر ليس له أب)
+    const otherTerm = locTerms.find((t: any) => t?.id !== governorateTerm?.id);
+    if (otherTerm) {
+      city = otherTerm.name;
+    }
+  }
+
+  // تحقق نهائي: إذا كان التصنيف الذي تم تحديده كمدينة هو في الواقع المحافظة
+  // (من خلال معرفة أن اسم المحافظة هو تصنيف لا يتبع لشيء آخر)
+  // هذا الشرط يعالج مشكلة التبديل
+  if (city !== 'غير محدد' && governorate !== 'غير محدد') {
+      const governorateTest = locTerms.find((t: any) => t?.name === governorate);
+      const cityTest = locTerms.find((t: any) => t?.name === city);
+      
+      // إذا كانت المدينة هي التصنيف الذي ليس له أب، فهذا يعني أن الترتيب معكوس
+      if (cityTest && (!cityTest.parent || cityTest.parent === 0) && governorateTest && governorateTest.parent !== 0) {
+          const temp = governorate;
+          governorate = city;
+          city = temp;
+      }
+  }
+
   return {
-    governorate: governorateTerm?.name || 'غير محدد',
-    city: cityTerm?.name || 'غير محدد',
+    governorate,
+    city,
   };
 }
 
@@ -140,13 +191,11 @@ export const formatCaseData = async (
   const acf = caseItem?.acf || {};
   const terms = caseItem?._embedded?.['wp:term']?.flat?.() || [];
 
-  // عنوان
   const title =
     type === 'school'
       ? acf?.organization_name || caseItem?.title?.rendered || 'بدون عنوان'
       : acf?.mosque_name || caseItem?.title?.rendered || 'بدون عنوان';
 
-  // المحافظة/المدينة بالمنطق الصحيح
   const { governorate, city } = extractLocationNames(terms);
 
   const description = acf?.description || 'لا يوجد وصف.';
@@ -155,7 +204,6 @@ export const formatCaseData = async (
   const progress = totalNeeded > 0 ? Math.round((totalDonated / totalNeeded) * 100) : 0;
   const isUrgent = String(acf?.need_level || '').trim() === 'عالي';
 
-  // صور
   let images: string[] = [];
   const featured = caseItem?._embedded?.['wp:featuredmedia']?.[0]?.source_url;
   if (featured) images.push(String(featured));
@@ -168,7 +216,6 @@ export const formatCaseData = async (
   if (images.length === 0) images.push('/images/default.jpg');
   images = dedupeImages(images);
 
-  // كميات الاحتياجات
   const quantitiesMap = parseQuantitiesMap(acf?.project_needs_quantities_text);
   const selectedNeedsRaw = Array.isArray(acf?.selected_project_needs) ? acf.selected_project_needs : [];
 
@@ -212,7 +259,6 @@ export const formatCaseData = async (
     return { id: safeId, item, unitPrice, quantity, funded: 0, description, image, category, icon } as Need;
   });
 
-  // 👇 نضيف label عربي ونُرجِع type الأصلي للمنطق/الفلترة
   const typeLabel = type === 'school' ? 'مدرسة' : 'مسجد';
 
   return {
@@ -221,9 +267,7 @@ export const formatCaseData = async (
     description,
     governorate,
     city,
-    type,        // 'school' | 'mosque' (للمنطق والفلترة)
-    // @ts-expect-error: أضف الحقل في lib/types.ts
-    typeLabel,   // 'مدرسة' | 'مسجد' (للعرض)
+    type,
     needLevel: acf?.need_level || 'غير محدد',
     isUrgent,
     needs,
@@ -235,39 +279,30 @@ export const formatCaseData = async (
 };
 
 /* ============ Needs Lists (cached) ============ */
+async function getNeedsList(postType: 'school_needs' | 'mosque_needs') {
+  const p = new URLSearchParams();
+  p.set('_embed', '');
+  p.set('per_page', '100');
+  const res = await fetchWordPressData(postType, p);
+  const needs = res?.data;
+
+  if (!needs) return [];
+  const parsed = z.array(needItemDetailSchema).safeParse(needs as unknown[]);
+  if (!parsed.success) {
+    console.error(`فشل في التحقق من بيانات احتياجات ${postType === 'school_needs' ? 'المدارس' : 'المساجد'}:`, parsed.error);
+    return [];
+  }
+  return parsed.data.map(formatNeedItemDetailData);
+}
 
 export const getSchoolNeedsList = unstable_cache(
-  async () => {
-    const p = new URLSearchParams();
-    p.set('_embed', '');
-    p.set('per_page', '100');
-    const needs = await fetchWordPressData('school_needs', p);
-    if (!needs) return [];
-    const parsed = z.array(needItemDetailSchema).safeParse(needs as unknown[]);
-    if (!parsed.success) {
-      console.error('فشل في التحقق من بيانات احتياجات المدارس:', parsed.error);
-      return [];
-    }
-    return parsed.data.map(formatNeedItemDetailData);
-  },
+  () => getNeedsList('school_needs'),
   ['school-needs-list'],
   { revalidate: 3600 }
 );
 
 export const getMosqueNeedsList = unstable_cache(
-  async () => {
-    const p = new URLSearchParams();
-    p.set('_embed', '');
-    p.set('per_page', '100');
-    const needs = await fetchWordPressData('mosque_needs', p);
-    if (!needs) return [];
-    const parsed = z.array(needItemDetailSchema).safeParse(needs as unknown[]);
-    if (!parsed.success) {
-      console.error('فشل في التحقق من بيانات احتياجات المساجد:', parsed.error);
-      return [];
-    }
-    return parsed.data.map(formatNeedItemDetailData);
-  },
+  () => getNeedsList('mosque_needs'),
   ['mosque-needs-list'],
   { revalidate: 3600 }
 );
@@ -278,7 +313,7 @@ export async function getCaseById(id: number): Promise<CaseItem | null> {
   const [schoolNeedsList, mosqueNeedsList] = await Promise.all([getSchoolNeedsList(), getMosqueNeedsList()]);
   const allNeedsMap = new Map([...schoolNeedsList, ...mosqueNeedsList].map(n => [String(n.id), n]));
 
-  const [schoolsResult, mosquesResult] = await Promise.allSettled([
+  const [schoolsRes, mosquesRes] = await Promise.allSettled([
     fetchWordPressData(`schools/${id}`, new URLSearchParams('_embed')),
     fetchWordPressData(`mosques/${id}`, new URLSearchParams('_embed')),
   ]);
@@ -286,11 +321,11 @@ export async function getCaseById(id: number): Promise<CaseItem | null> {
   let caseData: any = null;
   let postType: 'schools' | 'mosques' | null = null;
 
-  if (schoolsResult.status === 'fulfilled' && schoolsResult.value?.id) {
-    caseData = schoolsResult.value;
+  if (schoolsRes.status === 'fulfilled' && schoolsRes.value?.data?.id) {
+    caseData = schoolsRes.value.data;
     postType = 'schools';
-  } else if (mosquesResult.status === 'fulfilled' && mosquesResult.value?.id) {
-    caseData = mosquesResult.value;
+  } else if (mosquesRes.status === 'fulfilled' && mosquesRes.value?.data?.id) {
+    caseData = mosquesRes.value.data;
     postType = 'mosques';
   }
   if (!caseData) return null;
@@ -306,7 +341,6 @@ export async function getCaseById(id: number): Promise<CaseItem | null> {
   }
 }
 
-/** getCases مع مفتاح كاش يعتمد على type وغيرها */
 export async function getCases(params: URLSearchParams = new URLSearchParams()): Promise<CaseItem[]> {
   const paramsString = params.toString();
   const typeKey = (params.get('type') || 'all').toLowerCase();
@@ -321,25 +355,25 @@ export async function getCases(params: URLSearchParams = new URLSearchParams()):
       const fetchSchools = typeKey === 'all' || typeKey === 'schools';
       const fetchMosques = typeKey === 'all' || typeKey === 'mosques';
 
-      const schoolsPromise = fetchSchools ? fetchWordPressData('schools', p) : Promise.resolve([]);
-      const mosquesPromise = fetchMosques ? fetchWordPressData('mosques', p) : Promise.resolve([]);
+      const schoolsPromise = fetchSchools ? fetchWordPressData('schools', p) : Promise.resolve(null);
+      const mosquesPromise = fetchMosques ? fetchWordPressData('mosques', p) : Promise.resolve(null);
 
-      const [schoolsData, mosquesData, schoolNeedsList, mosqueNeedsList] = await Promise.all([
+      const [schoolsRes, mosquesRes, schoolNeedsList, mosqueNeedsList] = await Promise.all([
         schoolsPromise, mosquesPromise, getSchoolNeedsList(), getMosqueNeedsList()
       ]);
 
       const allNeedsMap = new Map([...schoolNeedsList, ...mosqueNeedsList].map(n => [String(n.id), n]));
       const allCases: CaseItem[] = [];
 
-      if (Array.isArray(schoolsData)) {
-        const parsed = z.array(schoolsSchema).safeParse(schoolsData);
+      if (Array.isArray(schoolsRes?.data)) {
+        const parsed = z.array(schoolsSchema).safeParse(schoolsRes.data);
         if (parsed.success) {
           const formatted = await Promise.all(parsed.data.map(d => formatCaseData(d, 'school', allNeedsMap)));
           allCases.push(...formatted);
         }
       }
-      if (Array.isArray(mosquesData)) {
-        const parsed = z.array(mosquesSchema).safeParse(mosquesData);
+      if (Array.isArray(mosquesRes?.data)) {
+        const parsed = z.array(mosquesSchema).safeParse(mosquesRes.data);
         if (parsed.success) {
           const formatted = await Promise.all(parsed.data.map(d => formatCaseData(d, 'mosque', allNeedsMap)));
           allCases.push(...formatted);
@@ -367,16 +401,22 @@ export interface Donation {
 /** جلب تبرعات المستخدم من WordPress REST API */
 export const getDonations = unstable_cache(
   async (userId: string): Promise<Donation[]> => {
-    // بناء الرابط لنقطة النهاية المخصصة
-    const endpoint = `/my-donations?userId=${userId}`;
-    const data = await fetchWordPressData(endpoint, undefined); // لاحظ عدم وجود بارامترات
+    try {
+      // بناء الرابط لنقطة النهاية المخصصة
+      const endpoint = `/my-donations?userId=${userId}`;
+      const res = await fetchWordPressData(endpoint, undefined);
+      const data = res?.data;
 
-    if (!Array.isArray(data)) {
-      console.error('API did not return an array of donations.');
+      if (!Array.isArray(data)) {
+        console.error('API did not return an array of donations.');
+        return [];
+      }
+      
+      return data;
+    } catch (err) {
+      console.error('Failed to fetch user donations:', err);
       return [];
     }
-    
-    return data;
   },
   ['user-donations'],
   { revalidate: 3600 }

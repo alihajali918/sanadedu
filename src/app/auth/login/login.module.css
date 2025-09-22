@@ -124,7 +124,7 @@
 }
 
 /* التعديلات للاستجابة على الشاشات الصغيرة */
-@media (max-width: 600px) {
+@media (max-width: 768px) {
   .authContainer {
     padding: 20px 15px;
   }
@@ -150,6 +150,10 @@
   .authSwitch {
     font-size: 0.9em;
     margin-top: 25px;
+  }
+  .authContainer
+  {
+    padding-top: 90px !important; /* إزالة البادينغ العلوي على الشاشات الصغيرة */
   }
 }
 .errorMessage {

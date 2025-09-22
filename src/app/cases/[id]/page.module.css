@@ -1,6 +1,6 @@
 /* ==========================================================
 Case Details Page Styles - Updated with Quality Badge
-   ========================================================== */
+========================================================== */
 
 /* Main Page Container */
 .caseDetailsPageContent {
@@ -13,13 +13,7 @@ Case Details Page Styles - Updated with Quality Badge
 /* --- FIX: Adjust padding for mobile screens --- */
 @media screen and (max-width: 768px) {
     .caseDetailsPageContent {
-        /*
-        Sets the top padding to a smaller value for mobile devices.
-        Adjust this value (e.g., 60px) to match the height of your mobile header.
-        This rule will override the '100px !important' rule on screens
-        768px or smaller.
-        */
-        padding-top: 0px !important;
+        padding-top: 20px !important;
     }
 }
 /* --- End of Fix --- */

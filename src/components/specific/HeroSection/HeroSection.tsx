@@ -42,11 +42,11 @@ const HeroSection: React.FC = () => {
                     <div className={styles.buttonsContainer}>
                         <div className={styles.heroCtaButtons}>
                             {/* زر "ادعم مدرسة" - يبقى بالستايل الأساسي */}
-                            <Link href="/cases?type=school" className={`${styles.btnHeroCta} ${styles.btnPrimary}`}>
+                            <Link href="/cases?type=schools" className={`${styles.btnHeroCta} ${styles.btnPrimary}`}>
                                 ادعم مدرسة
                             </Link>
                             {/* زر "ادعم مسجد" - الآن بنفس ستايل الزر الأساسي */}
-                            <Link href="/cases?type=mosque" className={`${styles.btnHeroCta} ${styles.btnPrimary}`}>
+                            <Link href="/cases?type=mosques" className={`${styles.btnHeroCta} ${styles.btnPrimary}`}>
                                 ادعم مسجد
                             </Link>
                         </div>

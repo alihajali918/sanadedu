@@ -82,4 +82,8 @@ ul {
     font-family: 'Changa', sans-serif; /* تم تحديث الخط إلى Changa */
     text-align: center;
 }
-
+@media (max-width: 768px) {
+    body {
+        padding-top: 0; /* This removes the padding on screens up to 768px wide */
+    }
+}

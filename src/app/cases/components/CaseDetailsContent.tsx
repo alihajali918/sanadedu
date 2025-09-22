@@ -8,7 +8,7 @@ import { useRouter } from "next/navigation";
 import styles from "@/app/cases/[id]/page.module.css";
 import { useCart, CartItem } from "@/app/context/CartContext";
 import { Need, CaseItem } from "lib/types";
-
+import { typeTranslations } from '@/utils/translations';
 interface CaseDetailsContentProps {
   caseItem: CaseItem | null;
 }
@@ -317,7 +317,7 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({
                 aria-selected={mainContentTab === "about"}
                 type="button"
               >
-                عن المدرسة + توثيق وصور
+                عن المؤسسة + توثيق وصور
               </button>
               <button
                 className={`${styles.navItem} ${
@@ -528,7 +528,7 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({
                   className={`${styles.aboutSchoolTabContent} ${styles.tabPane} py-40`}
                 >
                   <h2 className="section-title text-center">
-                    عن المدرسة + توثيق وصور
+                    عن المؤسسة + توثيق وصور
                   </h2>
                   <div className={`${styles.caseDescriptionBlock} mb-40`}>
                     <p>{caseItem!.description}</p>
@@ -537,7 +537,7 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({
                       <strong>المدينة:</strong> {caseItem!.city}
                     </p>
                     <p>
-                      <strong>نوع المؤسسة:</strong> {caseItem!.type}
+                      <strong>نوع المؤسسة:</strong> {typeTranslations[caseItem!.type]}
                     </p>
                     <p>
                       <strong>درجة الاحتياج:</strong> {caseItem!.needLevel}

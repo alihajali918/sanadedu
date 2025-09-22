@@ -4,15 +4,13 @@ import RequestForm from "../RequestForm";
 
 // ✅ تعريف نوع أكثر شمولاً لـ "params" لاستيعاب أنواع مختلفة
 // هذا يحل مشكلة الـ Type Error التي كانت تظهر أثناء التجميع.
-interface RequestNeedPageProps {
+interface PageProps {
   params: {
     caseId: string;
   };
 }
 
-export default async function RequestNeedPage({
-  params,
-}: RequestNeedPageProps) {
+export default async function RequestNeedPage({ params }: PageProps) {
   // ✅ تحويل المعرف من نص (string) إلى رقم (integer) هو خطوة ضرورية وسليمة.
   const caseId = parseInt(params.caseId, 10);
 

@@ -19,12 +19,14 @@ import styles from './HeroSection.module.css';
 import b1 from './1.jpg';
 import skinChair from './2.jpg';
 import whiteboard from './3.jpg';
+import hiteboard from './4.jpg';
 
 // تحديد نوع مصفوفة الصور
 const sliderImages: { src: StaticImageData; alt: string }[] = [
     { src: b1, alt: 'مدرسة' },
     { src: skinChair, alt: 'كرسي' },
-    { src: whiteboard, alt: 'سبورة' }
+    { src: whiteboard, alt: 'سبورة' },
+    { src: hiteboard, alt: 'سبورة' }
 ];
 
 const HeroSection: React.FC = () => {

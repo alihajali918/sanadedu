@@ -80,10 +80,10 @@ const Header = () => {
           <div className={styles.topBarRight}> 
             <Link href="/faq" className={styles.topLink} onClick={() => setIsMobileMenuOpen(false)}>الأسئلة الشائعة</Link>
             <Link href="/contact" className={styles.topLink} onClick={() => setIsMobileMenuOpen(false)}>تواصل معنا</Link>
-            <span className={styles.separator}>|</span>
-            <a href="#" className={`${styles.lang} ${styles.topLink}`} onClick={(e) => e.preventDefault()}>عربي / إنجليزي</a>
+            
+            
           </div>
-          {/* الروابط على اليسار (في الاتجاه العربي) */}
+          {/*<span className={styles.separator}>|</span> <a href="#" className={`${styles.lang} ${styles.topLink}`} onClick={(e) => e.preventDefault()}>عربي / إنجليزي</a>*/}
           <div className={styles.topBarLeft}> 
             {/* ********************************************** */}
             {/* المنطق الشرطي لعرض أزرار تسجيل الدخول/الحساب */}
@@ -110,12 +110,12 @@ const Header = () => {
             )}
             {/* ********************************************** */}
 
-            <div className={styles.langCurrencySwitcher}>
+            
+            {/* <div className={styles.langCurrencySwitcher}>
               <a href="#" className={`${styles.currency} ${styles.topLink}`} onClick={(e) => e.preventDefault()}>
                 $ دولار
               </a>
-            </div>
-            {/* أيقونة سلة التسوق مع عداد العناصر */}
+            </div>*/}
             <Link href="/donation-basket" className={styles.cartIcon} aria-label="سلة التسوق" onClick={() => setIsMobileMenuOpen(false)}>
               <i className="fas fa-shopping-cart"></i>
               {getTotalItems() > 0 && <span className={styles.cartCount}>{getTotalItems()}</span>}
@@ -193,7 +193,7 @@ const Header = () => {
                     signOut({ callbackUrl: '/auth/login' }); // <--- استخدام signOut من NextAuth
                     toggleMobileMenu(); 
                   }}
-                  className={styles.mobileNavLink}
+                  className={`${styles.topLink} ${styles.logoutButton}`}
                   style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0', fontSize: '1em', width: '100%', textAlign: 'right' }}
                 >
                   تسجيل الخروج
@@ -259,8 +259,8 @@ const Header = () => {
 
           <li><Link href="/contact" onClick={toggleMobileMenu}>تواصل معنا</Link></li>
           <li><Link href="/faq" onClick={toggleMobileMenu}>الأسئلة الشائعة</Link></li>
-          <li><a href="#" onClick={(e) => { e.preventDefault(); toggleMobileMenu(); }}>$ دولار</a></li>
-          <li><a href="#" onClick={(e) => { e.preventDefault(); toggleMobileMenu(); }}>عربي / إنجليزي</a></li>
+        {/*  <li><a href="#" onClick={(e) => { e.preventDefault(); toggleMobileMenu(); }}>$ دولار</a></li>
+          <li><a href="#" onClick={(e) => { e.preventDefault(); toggleMobileMenu(); }}>عربي / إنجليزي</a></li>*/}
         </ul>
       </div>
       {/* Overlay لتغطية المحتوى عند فتح قائمة الهامبرغر */}

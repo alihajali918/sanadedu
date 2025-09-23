@@ -104,16 +104,6 @@ const AchievementsSection = () => {
       <div className="container"> {/* يبقى هذا كلاس عام إذا كان يستخدمه أكثر من مكون */}
         <h2 className={styles.sectionTitle}>أرقام تتحدث عن إنجازاتنا</h2> {/* تم التغيير هنا */}
         <div className={styles.achievementsGrid}> {/* تم التغيير هنا */}
-          {/* Achievement Item 1: الحالات المكتملة */}
-          <div className={styles.achievementItem}> {/* تم التغيير هنا */}
-            <div className={styles.achievementIcon}> {/* تم التغيير هنا */}
-              <i className="fas fa-clipboard-check"></i> {/* كلاس Font Awesome يبقى كما هو */}
-            </div>
-            {/* data-target attribute holds the final number for animation */}
-            <div className={styles.achievementNumber} data-target="123">0</div> {/* تم التغيير هنا */}
-            <p className={styles.achievementTitle}>الحالات المكتملة</p> {/* تم التغيير هنا */}
-          </div>
-
           {/* Achievement Item 2: الطلاب المستفيدون */}
           <div className={styles.achievementItem}> {/* تم التغيير هنا */}
             <div className={styles.achievementIcon}> {/* تم التغيير هنا */}
@@ -139,6 +129,15 @@ const AchievementsSection = () => {
             </div>
             <div className={styles.achievementNumber} data-target="423">0</div> {/* تم التغيير هنا */}
             <p className={styles.achievementTitle}>الحالات الموثقة</p> {/* تم التغيير هنا */}
+          </div>
+          {/* Achievement Item 1: الحالات المكتملة */}
+          <div className={styles.achievementItem}> {/* تم التغيير هنا */}
+            <div className={styles.achievementIcon}> {/* تم التغيير هنا */}
+              <i className="fas fa-clipboard-check"></i> {/* كلاس Font Awesome يبقى كما هو */}
+            </div>
+            {/* data-target attribute holds the final number for animation */}
+            <div className={styles.achievementNumber} data-target="123">0</div> {/* تم التغيير هنا */}
+            <p className={styles.achievementTitle}>الحالات المكتملة</p> {/* تم التغيير هنا */}
           </div>
         </div>
       </div>

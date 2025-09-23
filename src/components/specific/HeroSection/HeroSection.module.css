@@ -4,13 +4,14 @@
     width: 100%;
     padding: 4rem 0;
     background-color: var(--primary-green);
+    padding-top: 100px;
 }
 
 .gridContainer {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     align-items: center;
-    gap: 3rem;
+    gap: 1rem;
     max-width: 1200px;
     margin: 0 auto;
     padding: 0 2rem;
@@ -23,7 +24,7 @@
 }
 
 .heroTitle {
-    font-size: 3.5rem;
+    font-size: 2.5rem;
     font-weight: 700;
     line-height: 1.2;
     color: var(--background-white);

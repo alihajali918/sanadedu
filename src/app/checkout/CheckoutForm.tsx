@@ -1,12 +1,11 @@
-// src/app/checkout/CheckoutForm.tsx
+"use client";
 
-'use client';
-
-import React, { useState, useEffect } from 'react';
-import { CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
-import { useCart } from '../context/CartContext';
-import styles from './CheckoutForm.module.css';
-import { useRouter } from 'next/navigation';
+import React, { useState, useEffect } from "react";
+import { CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
+import { useSession } from "next-auth/react";
+import { useCart } from "../context/CartContext";
+import styles from "./CheckoutForm.module.css";
+import { useRouter } from "next/navigation";
 
 interface CheckoutFormProps {
   caseId: string;
@@ -16,42 +15,49 @@ interface CheckoutFormProps {
 const CheckoutForm: React.FC<CheckoutFormProps> = ({ caseId, totalAmount }) => {
   const stripe = useStripe();
   const elements = useElements();
+  const { data: session } = useSession();
   const { clearCart } = useCart();
   const router = useRouter();
 
   const [error, setError] = useState<string | null>(null);
   const [processing, setProcessing] = useState(false);
   const [succeeded, setSucceeded] = useState(false);
-  const [clientSecret, setClientSecret] = useState<string>('');
+  const [clientSecret, setClientSecret] = useState<string>("");
 
   useEffect(() => {
-    if (totalAmount > 0 && caseId) {
-      fetch('/api/create-payment-intent', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ amount: totalAmount, caseId: caseId }),
-      })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.clientSecret) {
+    const init = async () => {
+      try {
+        if (totalAmount > 0 && caseId) {
+          const res = await fetch("/api/create-payment-intent", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              amount: Number(totalAmount),
+              caseId: Number(caseId),
+            }),
+          });
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok || !data.clientSecret) {
+            setError(data?.error || "فشل تهيئة الدفع.");
+            return;
+          }
           setClientSecret(data.clientSecret);
-        } else {
-          setError(data.error || 'فشل تهيئة الدفع.');
         }
-      })
-      .catch((err) => {
-        console.error('Error fetching client secret:', err);
-        setError('حدث خطأ أثناء تهيئة عملية الدفع. يرجى المحاولة مرة أخرى.');
-      });
-    }
+      } catch {
+        setError("حدث خطأ أثناء تهيئة عملية الدفع. يرجى المحاولة مرة أخرى.");
+      }
+    };
+    init();
   }, [totalAmount, caseId]);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    if (!stripe || !elements || !clientSecret || processing || succeeded) {
-      return;
-    }
+    if (!stripe || !elements || !clientSecret || processing || succeeded) return;
+
+    // تم حذف التحقق من وجود userId هنا للسماح للمستخدمين غير المسجلين بالتبرع.
+
     setProcessing(true);
+    setError(null);
 
     const cardElement = elements.getElement(CardElement);
     if (!cardElement) {
@@ -60,54 +66,66 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({ caseId, totalAmount }) => {
       return;
     }
 
-    const { error: confirmError, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
-      payment_method: {
-        card: cardElement,
-      },
-    });
+    const { error: confirmError, paymentIntent } = await stripe.confirmCardPayment(
+      clientSecret,
+      { payment_method: { card: cardElement } }
+    );
 
     if (confirmError) {
-      setError(confirmError.message || 'حدث خطأ غير متوقع.');
+      setError(confirmError.message || "حدث خطأ غير متوقع.");
       setProcessing(false);
-    } else if (paymentIntent && paymentIntent.status === 'succeeded') {
-      try {
-        // استدعاء API Route الجديد لتسجيل التبرع
-        const response = await fetch('/api/donations', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            amount: totalAmount,
-            caseId: caseId,
-            stripePaymentIntentId: paymentIntent.id,
-          }),
-        });
+      return;
+    }
 
-        if (!response.ok) {
-          const errorBody = await response.json().catch(() => ({}));
-          const errorMessage = errorBody.error || 'Failed to submit donation to backend.';
-          throw new Error(errorMessage);
-        }
+    if (!paymentIntent || paymentIntent.status !== "succeeded") {
+      setError("تعذّر إكمال الدفع.");
+      setProcessing(false);
+      return;
+    }
 
-        setError(null);
-        setSucceeded(true);
-        setProcessing(false);
-        clearCart();
-        router.push(`/thank-you?payment_intent=${paymentIntent.id}`);
-        
-      } catch (submitError: any) {
-        console.error('Failed to submit donation to backend:', submitError);
-        setError(`تم الدفع بنجاح، لكن حدث خطأ في تسجيل التبرع: ${submitError.message}. يرجى الاتصال بالدعم.`);
-        setProcessing(false);
+    try {
+      const payload = {
+        amount: Number(totalAmount),
+        caseId: Number(caseId),
+        stripePaymentIntentId: paymentIntent.id,
+        // أرسِل userId إذا كان موجوداً، وإلا أرسل قيمة فارغة.
+        userId: session?.user?.wordpressUserId || null,
+        status: "مكتمل",
+        payment_method: "Stripe",
+      };
+
+      const response = await fetch("/api/donations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        const extra =
+          data?.details || data?.got
+            ? ` | details=${JSON.stringify(data.details)} | got=${JSON.stringify(data.got)}`
+            : "";
+        throw new Error(`${data?.error || "Failed to submit donation"}${extra}`);
       }
+
+      setSucceeded(true);
+      setProcessing(false);
+      clearCart();
+      router.push(`/thank-you?payment_intent=${paymentIntent.id}`);
+    } catch (submitError: any) {
+      setError(
+        `تم الدفع بنجاح، لكن حدث خطأ في تسجيل التبرع: ${submitError.message}. يرجى الاتصال بالدعم.`
+      );
+      setProcessing(false);
     }
   };
 
   return (
     <form onSubmit={handleSubmit} className={styles.checkoutForm}>
       <h2 className={styles.formTitle}>تفاصيل الدفع الآمن</h2>
-      
+
       {error && <div className={styles.errorMessage}>{error}</div>}
 
       {!clientSecret && !error && !succeeded && (
@@ -116,26 +134,28 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({ caseId, totalAmount }) => {
 
       {clientSecret && (
         <div className={styles.cardElementContainer}>
-          <CardElement options={{
+          <CardElement
+            options={{
               style: {
-                  base: { fontSize: '16px', color: '#424770', '::placeholder': { color: '#aab7c4' } },
-                  invalid: { color: '#9e2146' },
+                base: { fontSize: "16px", color: "#424770", "::placeholder": { color: "#aab7c4" } },
+                invalid: { color: "#9e2146" },
               },
-          }} />
+            }}
+          />
         </div>
       )}
-      
+
       {succeeded && (
         <div className={styles.successMessage}>
           <p>شكراً لك! تم استلام تبرعك بنجاح.</p>
         </div>
       )}
 
-      <button 
+      <button
         disabled={processing || succeeded || !stripe || !clientSecret || !!error}
         className={styles.submitButton}
       >
-        {processing ? 'جاري المعالجة...' : `تبرع الآن (${totalAmount.toFixed(2)}$)`}
+        {processing ? "جاري المعالجة..." : `تبرع الآن (${totalAmount.toFixed(2)}$)`}
       </button>
     </form>
   );

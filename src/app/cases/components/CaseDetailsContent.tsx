@@ -8,14 +8,13 @@ import { useRouter } from "next/navigation";
 import styles from "@/app/cases/[id]/page.module.css";
 import { useCart, CartItem } from "@/app/context/CartContext";
 import { Need, CaseItem } from "lib/types";
-import { typeTranslations } from '@/utils/translations';
+import { typeTranslations } from "@/utils/translations";
+
 interface CaseDetailsContentProps {
   caseItem: CaseItem | null;
 }
 
-const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({
-  caseItem,
-}) => {
+const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({ caseItem }) => {
   const router = useRouter();
   const { addItem } = useCart();
 
@@ -42,6 +41,20 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({
     [currencyFormatter]
   );
 
+  // 👇 تحديد نوع المؤسسة + حالات المدرسة/المسجد فقط
+  const normalizedType = useMemo(
+    () => String(caseItem?.type ?? "").trim().toLowerCase(),
+    [caseItem?.type]
+  );
+  const isSchool = useMemo(
+    () => ["school", "مدرسة", "مدرسه"].includes(normalizedType),
+    [normalizedType]
+  );
+  const isMosque = useMemo(
+    () => ["mosque", "مسجد", "جامع"].includes(normalizedType),
+    [normalizedType]
+  );
+
   // 🧩 مصدر واحد للـ needs يعتمد على البيانات لو موجودة وإلا مصفوفة فاضية
   const needs: Need[] = useMemo(
     () => (hasNeeds ? (caseItem!.needs as Need[]) : []),
@@ -57,15 +70,10 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({
     }, {} as Record<string, Need[]>);
   }, [needs]);
 
-  const categories = useMemo(
-    () => Object.keys(needsByCategory),
-    [needsByCategory]
-  );
+  const categories = useMemo(() => Object.keys(needsByCategory), [needsByCategory]);
 
   // ✅ الفئة المختارة + إعادة ضبط عند تغيّر البيانات
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(
-    categories[0] || null
-  );
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(categories[0] || null);
   useEffect(() => {
     setSelectedCategory((prev) =>
       prev && categories.includes(prev) ? prev : categories[0] || null
@@ -73,9 +81,7 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({
   }, [categories]);
 
   // ✅ كميات التبرع الافتراضية = 1 لكل عنصر (وتتحدّث عند تغيّر القائمة)
-  const [donationQuantities, setDonationQuantities] = useState<
-    Record<string, number>
-  >(() =>
+  const [donationQuantities, setDonationQuantities] = useState<Record<string, number>>(() =>
     needs.reduce((acc, need) => {
       acc[String(need.id)] = 1;
       return acc;
@@ -90,9 +96,9 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({
     );
   }, [needs]);
 
-  const [mainContentTab, setMainContentTab] = useState<
-    "products" | "about" | "inquiries"
-  >("products");
+  const [mainContentTab, setMainContentTab] = useState<"products" | "about" | "inquiries">(
+    "products"
+  );
   const [message, setMessage] = useState<string | null>(null);
 
   // 🧮 حساب المتبقي آمن
@@ -158,9 +164,7 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({
 
       addItem(itemToAdd);
       setMessage(
-        `تم إضافة ${formatNumberWestern(quantity)} × "${
-          itemToAdd.itemName
-        }" إلى سلة التبرعات.`
+        `تم إضافة ${formatNumberWestern(quantity)} × "${itemToAdd.itemName}" إلى سلة التبرعات.`
       );
     },
     [addItem, caseItem, donationQuantities, formatNumberWestern]
@@ -173,10 +177,7 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({
     let totalAmountToDonate = 0;
 
     needs.forEach((need) => {
-      const remainingQuantity = Math.max(
-        0,
-        (need.quantity || 0) - (need.funded || 0)
-      );
+      const remainingQuantity = Math.max(0, (need.quantity || 0) - (need.funded || 0));
       if (remainingQuantity > 0 && need.unitPrice && need.unitPrice > 0) {
         const itemToAdd: CartItem = {
           id: `${caseItem.id}-${need.id}`,
@@ -197,9 +198,7 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({
 
     if (itemsAddedCount > 0) {
       setMessage(
-        `تم إضافة ${formatNumberWestern(
-          itemsAddedCount
-        )} منتجًا (بإجمالي ${formatCurrencyWestern(
+        `تم إضافة ${formatNumberWestern(itemsAddedCount)} منتجًا (بإجمالي ${formatCurrencyWestern(
           totalAmountToDonate
         )}) إلى السلة.`
       );
@@ -207,14 +206,7 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({
     } else {
       setMessage("تم تمويل جميع الوحدات في هذه الحالة.");
     }
-  }, [
-    addItem,
-    caseItem,
-    needs,
-    formatCurrencyWestern,
-    formatNumberWestern,
-    router,
-  ]);
+  }, [addItem, caseItem, needs, formatCurrencyWestern, formatNumberWestern, router]);
 
   // ✅ العرض: الآن مسموح نرجع مبكّر — بعد كل الهُوكس
   if (!hasNeeds) {
@@ -239,19 +231,43 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({
           <div className={styles.caseTopInfoBarInsideContainer}>
             <div className={styles.leftSection}>
               <h2 className={styles.schoolName}>{caseItem!.title}</h2>
-              <p className={styles.licensingInfo}>
-                <span className={styles.qualityBadge}>
-                  <i className="fas fa-check-circle" />
-                </span>
-                تصريح رسمي من وزارة الخارجية – قسم التنسيق للعمل الإنساني (HAC)
-                لتوثيق المدارس ميدانيًا.
-              </p>
-              <p className={styles.educationalPricing}>
-                <span className={styles.qualityBadge}>
-                  <i className="fas fa-check-circle" />
-                </span>
-                تسعير وزارة التربية والتعليم
-              </p>
+
+              {/* 👇 يظهر فقط إذا كانت مدرسة */}
+              {isSchool && (
+                <>
+                  <p className={styles.licensingInfo}>
+                    <span className={styles.qualityBadge}>
+                      <i className="fas fa-check-circle" />
+                    </span>
+                    تصريح رسمي من وزارة الخارجية – قسم التنسيق للعمل الإنساني (HAC)
+                    لتوثيق المدارس ميدانيًا.
+                  </p>
+                  <p className={styles.educationalPricing}>
+                    <span className={styles.qualityBadge}>
+                      <i className="fas fa-check-circle" />
+                    </span>
+                    أسعار المنتجات مُعتمدة من وزارة التربية لضمان الشفافية
+                  </p>
+                </>
+              )}
+
+              {/* 👇 يظهر فقط إذا كانت مسجد */}
+              {isMosque && (
+                <>
+                  <p className={styles.licensingInfo}>
+                    <span className={styles.qualityBadge}>
+                      <i className="fas fa-truck" />
+                    </span>
+                    نقوم بالشحن عند جمع كمية كافية من كل منتج، وبأسرع وقت ممكن مع التوثيق الكامل.
+                  </p>
+                  <p className={styles.educationalPricing}>
+                    <span className={styles.qualityBadge}>
+                      <i className="fas fa-check-circle" />
+                    </span>
+                    أسعار المنتجات مُعتمدة من وزارة الأوقاف لضمان الشفافية
+                  </p>
+                </>
+              )}
             </div>
 
             <div className={styles.rightSection}>
@@ -268,15 +284,9 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({
                 </p>
               </div>
               <div className={styles.directDonateInput}>
-                <Link
-                  href={`/cases/request-need/${caseItem!.id}`}
-                  passHref
-                >
-                  <button
-                    className={`${styles.requestDetailsBtn} btn`}
-                    type="button"
-                  >
-                    طلب تفصيل الاحتياج <i className="fas fa-list-alt" />
+                <Link href={`/cases/request-need/${caseItem!.id}`} passHref>
+                  <button className={`${styles.requestDetailsBtn} btn`} type="button">
+                   تفصيل الاحتياج <i className="fas fa-list-alt" />
                   </button>
                 </Link>
                 <button
@@ -292,15 +302,9 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({
 
           {/* تبويبات */}
           <div className={styles.caseSubNavSectionTabs}>
-            <div
-              className={styles.subNavContainer}
-              role="tablist"
-              aria-label="التنقل داخل تفاصيل الحالة"
-            >
+            <div className={styles.subNavContainer} role="tablist" aria-label="التنقل داخل تفاصيل الحالة">
               <button
-                className={`${styles.navItem} ${
-                  mainContentTab === "products" ? styles.active : ""
-                }`}
+                className={`${styles.navItem} ${mainContentTab === "products" ? styles.active : ""}`}
                 onClick={() => setMainContentTab("products")}
                 role="tab"
                 aria-selected={mainContentTab === "products"}
@@ -309,9 +313,7 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({
                 صفحة المنتجات
               </button>
               <button
-                className={`${styles.navItem} ${
-                  mainContentTab === "about" ? styles.active : ""
-                }`}
+                className={`${styles.navItem} ${mainContentTab === "about" ? styles.active : ""}`}
                 onClick={() => setMainContentTab("about")}
                 role="tab"
                 aria-selected={mainContentTab === "about"}
@@ -320,9 +322,7 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({
                 عن المؤسسة + توثيق وصور
               </button>
               <button
-                className={`${styles.navItem} ${
-                  mainContentTab === "inquiries" ? styles.active : ""
-                }`}
+                className={`${styles.navItem} ${mainContentTab === "inquiries" ? styles.active : ""}`}
                 onClick={() => setMainContentTab("inquiries")}
                 role="tab"
                 aria-selected={mainContentTab === "inquiries"}
@@ -342,12 +342,8 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({
 
           {/* ✅ هذا هو التعديل المطلوب: تحقق إذا كانت الحالة ممولة بالكامل لعرض الرسالة */}
           {isFullyFunded ? (
-            <div
-              className={`${styles.infoMessage} ${styles.fullyFundedMessage}`}
-              role="status"
-            >
-              تم تمويل جميع الاحتياجات في هذه الحالة بالكامل. شكرًا لمساهمتكم
-              الكريمة.
+            <div className={`${styles.infoMessage} ${styles.fullyFundedMessage}`} role="status">
+              تم تمويل جميع الاحتياجات في هذه الحالة بالكامل. شكرًا لمساهمتكم الكريمة.
             </div>
           ) : (
             <div className={styles.tabContentArea}>
@@ -358,17 +354,13 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({
                     <div className={`${styles.categoryTabsContainer} mb-40`}>
                       {categories.length > 0 ? (
                         categories.map((categoryName) => {
-                          const firstNeedInCat =
-                            needsByCategory[categoryName][0];
-                          const categoryIcon =
-                            firstNeedInCat?.icon || "fas fa-box-open";
+                          const firstNeedInCat = needsByCategory[categoryName][0];
+                          const categoryIcon = firstNeedInCat?.icon || "fas fa-box-open";
                           return (
                             <button
                               key={categoryName}
                               className={`${styles.categoryTabItem} ${
-                                selectedCategory === categoryName
-                                  ? styles.activeTab
-                                  : ""
+                                selectedCategory === categoryName ? styles.activeTab : ""
                               }`}
                               onClick={() => setSelectedCategory(categoryName)}
                               aria-pressed={selectedCategory === categoryName}
@@ -381,22 +373,17 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({
                           );
                         })
                       ) : (
-                        <p
-                          className={`text-center ${styles.noProductsMessage}`}
-                        >
+                        <p className={`text-center ${styles.noProductsMessage}`}>
                           لا توجد فئات متاحة.
                         </p>
                       )}
                     </div>
 
                     <div className={`${styles.productsListSection} mt-40`}>
-                      <h3 className={styles.productCategoryTitle}>
-                        {selectedCategory}
-                      </h3>
+                      <h3 className={styles.productCategoryTitle}></h3>
                       <div className={styles.productsNeedsGrid}>
                         {needsByCategory[selectedCategory].map((need) => {
-                          const currentQuantity =
-                            donationQuantities[String(need.id)] || 0;
+                          const currentQuantity = donationQuantities[String(need.id)] || 0;
                           const remainingQuantity = Math.max(
                             0,
                             (need.quantity || 0) - (need.funded || 0)
@@ -405,10 +392,7 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({
                             currentQuantity * (need.unitPrice || 0);
 
                           return (
-                            <div
-                              key={need.id}
-                              className={styles.productCardNewDesign}
-                            >
+                            <div key={need.id} className={styles.productCardNewDesign}>
                               <div className={styles.productImageWrapper}>
                                 <Image
                                   src={need.image}
@@ -422,16 +406,12 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({
                                   }}
                                 />
                               </div>
-                              <h5 className={styles.productItemNameNew}>
-                                {need.item}
-                              </h5>
+                              <h5 className={styles.productItemNameNew}>{need.item}</h5>
 
                               <div className={styles.productPriceAndControls}>
                                 <div className={styles.productPriceGroup}>
                                   <span className={styles.productPriceValue}>
-                                    {formatCurrencyWestern(
-                                      totalPriceForCurrentQuantity
-                                    )}
+                                    {formatCurrencyWestern(totalPriceForCurrentQuantity)}
                                   </span>
                                 </div>
 
@@ -455,10 +435,7 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({
                                     className={styles.quantityInputNew}
                                     value={String(currentQuantity)}
                                     onChange={(e) =>
-                                      handleQuantityChange(
-                                        String(need.id),
-                                        e.target.value
-                                      )
+                                      handleQuantityChange(String(need.id), e.target.value)
                                     }
                                     min={0}
                                     max={remainingQuantity}
@@ -474,9 +451,7 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({
                                         String(currentQuantity + 1)
                                       )
                                     }
-                                    disabled={
-                                      currentQuantity >= remainingQuantity
-                                    }
+                                    disabled={currentQuantity >= remainingQuantity}
                                     aria-label="زيادة الكمية"
                                     type="button"
                                   >
@@ -487,8 +462,7 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({
 
                               {remainingQuantity > 0 ? (
                                 <p className={styles.remainingUnitsInfo}>
-                                  متبقي:{" "}
-                                  {formatNumberWestern(remainingQuantity)} وحدات
+                                  متبقي: {formatNumberWestern(remainingQuantity)} وحدات
                                 </p>
                               ) : (
                                 <p
@@ -509,10 +483,7 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({
                                 }
                                 type="button"
                               >
-                                <i
-                                  className="fas fa-heart"
-                                  aria-hidden="true"
-                                />
+                                <i className="fas fa-heart" aria-hidden="true" />
                                 <span className={styles.donateText}>تبرع</span>
                               </button>
                             </div>
@@ -537,7 +508,8 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({
                       <strong>المدينة:</strong> {caseItem!.city}
                     </p>
                     <p>
-                      <strong>نوع المؤسسة:</strong> {typeTranslations[caseItem!.type]}
+                      <strong>نوع المؤسسة:</strong>{" "}
+                      {typeTranslations[caseItem!.type]}
                     </p>
                     <p>
                       <strong>درجة الاحتياج:</strong> {caseItem!.needLevel}
@@ -550,9 +522,9 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({
                         <div key={index} className={styles.galleryItem}>
                           <Image
                             src={imgSrc}
-                            alt={`${
-                              caseItem!.title
-                            } - صورة ${formatNumberWestern(index + 1)}`}
+                            alt={`${caseItem!.title} - صورة ${formatNumberWestern(
+                              index + 1
+                            )}`}
                             width={400}
                             height={300}
                             style={{ objectFit: "cover" }}
@@ -569,9 +541,7 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({
                 <div
                   className={`${styles.inquiriesTabContent} ${styles.tabPane} py-40`}
                 >
-                  <h2 className="section-title text-center">
-                    أسئلة واستفسارات
-                  </h2>
+                  <h2 className="section-title text-center">أسئلة واستفسارات</h2>
                   <div className={`${styles.inquiriesBlock} mb-40`}>
                     <p>هنا يمكنك إضافة محتوى صفحة الأسئلة والاستفسارات.</p>
                     <p>يمكن أن يتضمن نموذجًا للأسئلة الشائعة أو نموذج اتصال.</p>

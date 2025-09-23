@@ -5,7 +5,7 @@
 // عبر طلب لاحق إلى wp/v2/users/me لاستخراج المعرّف.
 // ==========================================================
 
-import NextAuth from "next-auth";
+import NextAuth, { NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
 
@@ -39,7 +39,8 @@ async function fetchWpCurrentUserId(jwt: string): Promise<number | null> {
   }
 }
 
-const handler = NextAuth({
+// ✨ صدّر كائن الإعدادات ليستعمله getServerSession في مسارات أخرى
+export const authOptions: NextAuthOptions = {
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID as string,
@@ -73,43 +74,42 @@ const handler = NextAuth({
           const data = await response.json();
           console.log("[Credentials] WP Response:", data);
 
-          // 1) إن جاء token فقط بدون user_id، نجيب المعرّف من users/me
-          if (data?.token) {
-            let wpUserId = data?.user_id;
-            if (!wpUserId) {
-              wpUserId = await fetchWpCurrentUserId(data.token);
+          // 1) التحقق من وجود التوكن، وإذا لم يكن موجودًا نعالج الأخطاء
+          if (!response.ok || !data?.token) {
+            if (data?.code === "rest_email_not_verified") {
+              // نرمي خطأ مخصص يوصله NextAuth للواجهة في result.error
+              throw new Error("Email not verified. Please check your inbox.");
             }
+            console.error("[Credentials] WP backend error (no token):", data);
+            return null;
+          }
 
-            if (wpUserId) {
-              const user = {
-                id: String(wpUserId),
-                name: data.user_display_name || credentials.email,
-                email: data.user_email || credentials.email,
-                wordpressJwt: data.token,
-                wordpressUserId: Number(wpUserId),
-                wordpressUserName: data.user_display_name || credentials.email,
-                wordpressUserEmail: data.user_email || credentials.email,
-                wordpressUserLocale: data.user_locale || "en-US",
-              };
-              return user as any;
-            }
+          // 2) جلب معرف المستخدم، وإذا لم يكن موجودًا نجري طلب آخر
+          let wpUserId = data?.user_id;
+          if (!wpUserId) {
+            wpUserId = await fetchWpCurrentUserId(data.token);
+          }
 
-            // لو فشلنا في جلب id رغم وجود token نعتبره خطأ
+          if (!wpUserId) {
             console.error("[Credentials] Got token but couldn't resolve user_id.");
             return null;
           }
 
-          // 2) أخطاء مخصّصة
-          if (data?.code === "rest_email_not_verified") {
-            throw new Error("Email not verified. Please check your inbox.");
-          }
-
-          console.error("[Credentials] WP backend error (no token):", data);
-          return null;
+          const user = {
+            id: String(wpUserId),
+            name: data.user_display_name || credentials.email,
+            email: data.user_email || credentials.email,
+            wordpressJwt: data.token,
+            wordpressUserId: Number(wpUserId),
+            wordpressUserName: data.user_display_name || credentials.email,
+            wordpressUserEmail: data.user_email || credentials.email,
+            wordpressUserLocale: data.user_locale || "en-US",
+          };
+          return user as any;
         } catch (err: any) {
           console.error("[Credentials] WP connect error:", err?.message || err);
           if (String(err?.message || "").includes("Email not verified")) {
-            throw err; // يسمح بوصول الرسالة للواجهة عبر result.error
+            throw err;
           }
           return null;
         }
@@ -159,7 +159,7 @@ const handler = NextAuth({
         if (response.ok && data?.token) {
           (user as any).wordpressJwt = data.token;
 
-          // نفس فكرة الـ credentials: لو ما فيه user_id حاول نجيبه
+          // لو ما فيه user_id حاول نجيبه
           let wpUserId = data?.user_id;
           if (!wpUserId) {
             wpUserId = await fetchWpCurrentUserId(data.token);
@@ -232,6 +232,8 @@ const handler = NextAuth({
     signIn: "/auth/login",
     error: "/auth/error",
   },
-});
+};
 
+// ✨ استخدم الإعدادات لإنشاء الـ handler وصدّره كـ GET/POST
+const handler = NextAuth(authOptions);
 export { handler as GET, handler as POST };

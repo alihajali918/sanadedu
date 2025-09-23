@@ -1,67 +1,70 @@
 /* ==========================================================
-Case Details Page Styles - Updated with Quality Badge
-========================================================== */
+   Case Details Page Styles - Modern & Full-Screen (RTL)
+   ========================================================== */
 
 /* Main Page Container */
 .caseDetailsPageContent {
     background-color: var(--light-grey);
     padding: 0;
-    padding-top: 100px !important; /* This is the desktop padding */
+    padding-top: 100px;
     padding-bottom: 40px;
+    direction: rtl;
+    min-height: 100vh;
 }
 
-/* --- FIX: Adjust padding for mobile screens --- */
+/* --- Mobile Fix for Padding --- */
 @media screen and (max-width: 768px) {
     .caseDetailsPageContent {
-        padding-top: 20px !important;
+        padding-top: 50px;
     }
 }
 /* --- End of Fix --- */
 
-/* Updated Layout Container */
-.splitLayoutContainer {
-    padding-top: 50px;
-    padding-bottom: 50px;
-    max-width: 1400px;
-    margin: 0 auto;
-}
-
-/* Main Content Area (Now fills the full container width) */
+/* Main Content Area */
 .mainContentArea {
-    background-color: var(--background-white);
-    border-radius: 15px;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
-    padding: 40px;
+    background-color: transparent;
+    border-radius: 0;
+    box-shadow: none;
+    padding: 20px 0;
+    width: 100%;
 }
 
-/* --- Mobile First Approach for Top Info Bar --- */
-/* The base styles here are for mobile (small screens) */
+/* === UPDATED: Top Info Bar for Mobile === */
 .caseTopInfoBarInsideContainer {
     display: flex;
-    flex-direction: column; /* Stacks items vertically on mobile */
-    align-items: flex-start; /* Aligns content to the left */
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
     flex-wrap: wrap;
     gap: 15px;
-    padding-bottom: 20px;
-    border-bottom: 1px solid var(--light-grey);
-    margin-bottom: 40px;
-    direction: ltr; /* Sets direction to left-to-right for mobile layout */
+    padding: 20px 20px 20px 20px;
+    border-bottom: none;
+    margin-bottom: 20px;
+    direction: rtl;
 }
+
+/* === Revert to horizontal on desktop === */
+@media screen and (min-width: 769px) {
+    .caseTopInfoBarInsideContainer {
+        flex-direction: row;
+        align-items: flex-start;
+        justify-content: space-between;
+        padding: 0 20px 20px 20px;
+    }
+}
+/* === End of UPDATED === */
 
 .leftSection,
 .rightSection {
-    width: 100%; /* Sections take up full width on mobile */
-    align-items: flex-start;
+    width: auto;
+    align-items: center;
+    text-align: center;
 }
 
 .schoolName {
-    font-family: var(--font-changa);
-    font-size: 1.8em; /* Smaller font size for mobile readability */
-    color: var(--primary-green);
-    margin: 0;
-    text-align: right;
-    white-space: normal; /* Allows text to wrap */
-    width: 100%;
+    font-size: 2.2em;
+    text-align: center;
+    white-space: normal;
 }
 
 .licensingInfo {
@@ -71,7 +74,7 @@ Case Details Page Styles - Updated with Quality Badge
     margin-top: 5px;
     font-size: 0.9em;
     color: #555;
-    text-align: right;
+    text-align: center;
 }
 
 .licensingInfo p {
@@ -89,15 +92,13 @@ Case Details Page Styles - Updated with Quality Badge
     gap: 5px;
     font-size: 0.9em;
     margin-top: 5px;
-    text-align: right;
+    text-align: center;
 }
 
 .remainingFundsDisplay p {
-    font-size: 1.2em;
-    color: var(--text-black);
-    margin: 0;
-    white-space: normal; /* Allows funds text to wrap */
-    text-align: right;
+    font-size: 1.4em;
+    text-align: center;
+    white-space: normal;
 }
 
 .highlightGold {
@@ -110,78 +111,71 @@ Case Details Page Styles - Updated with Quality Badge
     font-weight: bold;
 }
 
+/* === NEW: Unified button styling === */
 .directDonateInput {
     display: flex;
-    align-items: flex-end; /* Aligns buttons to the right */
-    gap: 10px;
-    margin-top: 10px;
     flex-direction: column; /* Stacks buttons vertically on mobile */
+    align-items: center; /* Centers the buttons */
+    gap: 10px;
+    margin-top: 20px;
     width: 100%;
+}
+.directDonateInput a {
+    width: 100% !important;
+}
+.donateBtn {
+    /* Base styles for both buttons */
+    padding: 12px 20px;
+    border-radius: 5px;
+    font-weight: bold;
+    width: 90%;
+    max-width: 300px;
+    text-align: center;
+    transition: all 0.3s ease;
 }
 
 .donateGeneralBtn {
-    padding: 12px; /* Increased padding for easier tapping */
+    /* "Tabanni" button styles */
     background-color: var(--highlight-gold);
     color: var(--text-white);
-    border-radius: 5px;
-    font-weight: bold;
-    transition: background-color 0.3s ease;
-    width: 100%; /* Full-width buttons for mobile */
-    text-align: center;
+    border: none;
+    width: 100%;
 }
 
 .donateGeneralBtn:hover {
     background-color: #b18a37;
 }
 
-/* --- Media Query for Desktop (reverts to original layout) --- */
+.requestDetailsBtn {
+    /* "Talab Tafasil" button styles */
+    background-color: transparent;
+    color: var(--text-black);
+    border: 1px solid var(--primary-green);
+    width: 100%;
+}
+
+.requestDetailsBtn:hover {
+    background-color: var(--light-grey);
+}
+
 @media screen and (min-width: 769px) {
-    .caseTopInfoBarInsideContainer {
-        flex-direction: row; /* Changes to horizontal layout on desktop */
-        align-items: flex-start;
-        direction: rtl; /* Reverts to right-to-left for desktop layout */
-    }
-
-    .leftSection {
-        align-items: flex-start;
-        flex-grow: 1;
-        width: auto;
-    }
-
-    .rightSection {
-        align-items: flex-end;
-        flex-grow: 1;
-        width: auto;
-    }
-
-    .schoolName {
-        font-size: 2.2em;
-        white-space: nowrap; /* Prevents wrapping on desktop */
-    }
-
-    .remainingFundsDisplay p {
-        white-space: nowrap; /* Prevents wrapping on desktop */
-    }
-
     .directDonateInput {
-        flex-direction: row-reverse; /* Reverts to original button layout */
+        flex-direction: row;
         width: auto;
     }
-
-    .donateGeneralBtn {
-        padding: 10px 20px;
+    .donateBtn {
         width: auto;
     }
 }
-/* --- End of Mobile Responsiveness Section --- */
+/* === End of NEW === */
 
 /* Case Sub-Navigation (Tabs) */
 .caseSubNavSectionTabs {
-    margin-bottom: 40px;
-    background-color: var(--light-grey);
+    margin-bottom: 20px;
+    background-color: var(--background-white);
     border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
     padding: 10px;
-    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .caseSubNavSectionTabs .subNavContainer {
@@ -190,7 +184,22 @@ Case Details Page Styles - Updated with Quality Badge
     align-items: center;
     flex-wrap: wrap;
     gap: 10px;
+    padding: 0;
 }
+
+/* === UPDATED: Mobile styling for sub navigation tabs === */
+@media screen and (max-width: 768px) {
+    .caseSubNavSectionTabs .subNavContainer {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .caseSubNavSectionTabs .navItem {
+        width: 100%;
+        text-align: center;
+        white-space: normal;
+    }
+}
+/* === End of UPDATED === */
 
 .caseSubNavSectionTabs .navItem {
     flex-grow: 1;
@@ -215,7 +224,7 @@ Case Details Page Styles - Updated with Quality Badge
 .caseSubNavSectionTabs .navItem.active {
     background-color: var(--primary-green);
     color: var(--background-white);
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    box-shadow: none;
 }
 
 .caseSubNavSectionTabs .navItem.active:hover {
@@ -239,11 +248,11 @@ Case Details Page Styles - Updated with Quality Badge
     overflow-x: auto;
     white-space: nowrap;
     gap: 15px;
-    padding: 10px 0;
-    -webkit-overflow-scrolling: touch;
+    padding: 10px 20px;
     scrollbar-width: none;
-    border-bottom: 2px solid var(--light-grey);
-    margin-bottom: 40px;
+    border-bottom: none;
+    margin-bottom: 20px;
+    direction: rtl;
 }
 
 .categoryTabsContainer::-webkit-scrollbar {
@@ -252,9 +261,9 @@ Case Details Page Styles - Updated with Quality Badge
 
 .categoryTabItem {
     flex-shrink: 0;
-    background-color: var(--light-grey);
-    color: var(--text-black);
+    background-color: var(--background-white);
     border: 1px solid var(--light-grey);
+    color: var(--text-black);
     border-radius: 50px;
     padding: 10px 20px;
     font-size: 0.95rem;
@@ -274,7 +283,8 @@ Case Details Page Styles - Updated with Quality Badge
 .categoryTabItem.activeTab {
     background-color: var(--primary-green);
     color: var(--background-white);
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    box-shadow: none;
+    border: 1px solid var(--primary-green);
 }
 
 .categoryTabItem.activeTab:hover {
@@ -292,6 +302,7 @@ Case Details Page Styles - Updated with Quality Badge
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
     gap: 25px;
     justify-items: center;
+    padding: 0 20px;
 }
 
 /* Product Card - New Design */
@@ -305,7 +316,6 @@ Case Details Page Styles - Updated with Quality Badge
     flex-direction: column;
     align-items: center;
     text-align: center;
-    overflow: hidden;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
     position: relative;
     width: 100%;
@@ -321,7 +331,7 @@ Case Details Page Styles - Updated with Quality Badge
     height: 120px;
     position: relative;
     overflow: hidden;
-    border-radius: 10px;
+    border-radius: 0;
     margin-bottom: 10px;
 }
 
@@ -427,27 +437,27 @@ Case Details Page Styles - Updated with Quality Badge
     align-items: center;
     gap: 8px;
     transition: all 0.3s ease;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    box-shadow: none;
     padding: 10px 15px;
     margin-top: 15px;
     font-family: var(--font-changa);
 }
 
 .btnDonateNew:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+    transform: none;
+    box-shadow: none;
     background-color: #b18a37;
 }
 
-/* General Case Details Blocks (for description, gallery, etc.) */
+/* General Case Details Blocks */
 .caseDescriptionBlock,
 .caseGalleryBlock {
-    background-color: var(--background-white);
-    padding: 30px;
-    border-radius: 10px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-    margin-top: 40px;
-    border: 1px solid var(--light-grey);
+    background-color: transparent;
+    padding: 20px 0;
+    border-radius: 0;
+    box-shadow: none;
+    margin-top: 20px;
+    border: none;
 }
 
 .caseDescriptionBlock h2,
@@ -457,6 +467,7 @@ Case Details Page Styles - Updated with Quality Badge
     margin-bottom: 20px;
     font-family: var(--font-changa);
     text-align: right;
+    padding-right: 20px;
 }
 
 .caseDescriptionBlock p {
@@ -464,6 +475,8 @@ Case Details Page Styles - Updated with Quality Badge
     line-height: 1.7;
     color: var(--text-black);
     margin-bottom: 10px;
+    text-align: right;
+    padding: 0 20px;
 }
 
 .caseDescriptionBlock p strong {
@@ -474,6 +487,7 @@ Case Details Page Styles - Updated with Quality Badge
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
     gap: 15px;
+    padding: 0 20px;
 }
 
 .galleryItem {

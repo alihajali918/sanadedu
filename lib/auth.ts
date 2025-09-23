@@ -1,25 +1,21 @@
 // ==========================================================
-// FILE: src/app/api/auth/[...nextauth]/route.ts
-// DESCRIPTION: NextAuth.js route with Google + Credentials (WordPress).
-// إصلاح: التعامل مع استجابة WP التي تُرجع token بدون user_id
-// عبر طلب لاحق إلى wp/v2/users/me لاستخراج المعرّف.
+// FILE: src/lib/auth.ts
+// DESCRIPTION: NextAuth.js configuration shared across the application.
+// This file is the single source of truth for auth settings.
 // ==========================================================
 
-import NextAuth, { NextAuthOptions } from "next-auth";
+import { NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
 
 const WORDPRESS_BASE_URL = process.env.NEXT_PUBLIC_WORDPRESS_API_URL as string;
-// مثال متوقّع: https://cms.sanadedu.org/wp-json
 
 if (!WORDPRESS_BASE_URL) {
   console.warn("[NextAuth] Warning: NEXT_PUBLIC_WORDPRESS_API_URL is not set.");
 }
 
-async function fetchWpCurrentUserId(jwt: string): Promise<number | null> {
+export async function fetchWpCurrentUserId(jwt: string): Promise<number | null> {
   try {
-    // إذا كان WORDPRESS_BASE_URL = ".../wp-json"
-    // فـ users/me = ".../wp-json/wp/v2/users/me"
     const url = `${WORDPRESS_BASE_URL}/wp/v2/users/me`;
     const resp = await fetch(url, {
       headers: { Authorization: `Bearer ${jwt}` },
@@ -30,7 +26,6 @@ async function fetchWpCurrentUserId(jwt: string): Promise<number | null> {
       return null;
     }
     const me = await resp.json();
-    // عادة يرجع { id, name, slug, ... }
     if (me?.id) return Number(me.id);
     return null;
   } catch (e) {
@@ -39,8 +34,8 @@ async function fetchWpCurrentUserId(jwt: string): Promise<number | null> {
   }
 }
 
-// ✨ تم إزالة الـ `export` من هنا ليتوافق مع App Router
-const authOptions: NextAuthOptions = {
+// ✨ هذا هو كائن الإعدادات الذي سيتم استخدامه في جميع أنحاء التطبيق
+export const authOptions: NextAuthOptions = {
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID as string,
@@ -74,17 +69,14 @@ const authOptions: NextAuthOptions = {
           const data = await response.json();
           console.log("[Credentials] WP Response:", data);
 
-          // 1) التحقق من وجود التوكن، وإذا لم يكن موجودًا نعالج الأخطاء
           if (!response.ok || !data?.token) {
             if (data?.code === "rest_email_not_verified") {
-              // نرمي خطأ مخصص يوصله NextAuth للواجهة في result.error
               throw new Error("Email not verified. Please check your inbox.");
             }
             console.error("[Credentials] WP backend error (no token):", data);
             return null;
           }
 
-          // 2) جلب معرف المستخدم، وإذا لم يكن موجودًا نجري طلب آخر
           let wpUserId = data?.user_id;
           if (!wpUserId) {
             wpUserId = await fetchWpCurrentUserId(data.token);
@@ -159,7 +151,6 @@ const authOptions: NextAuthOptions = {
         if (response.ok && data?.token) {
           (user as any).wordpressJwt = data.token;
 
-          // لو ما فيه user_id حاول نجيبه
           let wpUserId = data?.user_id;
           if (!wpUserId) {
             wpUserId = await fetchWpCurrentUserId(data.token);
@@ -233,8 +224,3 @@ const authOptions: NextAuthOptions = {
     error: "/auth/error",
   },
 };
-
-// ✨ هنا يكمن الحل: استخدم الإعدادات لإنشاء الـ handler
-// وقم بتصديره كـ GET و POST ليتوافق مع Next.js App Router.
-const handler = NextAuth(authOptions);
-export { handler as GET, handler as POST };

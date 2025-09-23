@@ -1,225 +1,303 @@
+// app/api/donations/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "lib/auth";
 import { getCaseById } from "../../../../lib/api";
 
-// يمكن ضبط هذا المسار حسب احتياجاتك. الكود يستخدم المسار العام لـ WP
-// إذا كان لديك مسار خاص، احتفظ بالمسار الذي كان لديك.
 const WP_BASE = process.env.NEXT_PUBLIC_WORDPRESS_API_URL;
 const WP_DONATIONS_REST = `${WP_BASE}/wp/v2/donations`;
-// هذا هو المسار الخاص الذي تم استخدامه في الكود الثاني
 const WP_DONATIONS_CUSTOM = `${WP_BASE}/sanad/v1/record-donation`;
+
 const json = (data: any, status = 200) => NextResponse.json(data, { status });
 
-// -------- GET: عرض التبرعات الخاصة بالمستخدم --------
-// تم تعديل هذا الكود ليقوم بجلب التبرعات التي قام بها المستخدم الحالي فقط.
+/* -----------------------------------------------------------
+ * أدوات مساعدة
+ * ----------------------------------------------------------- */
+
+// تحويل الأرقام العربية-الهندية إلى لاتينية وإزالة الفواصل/المسافات
+const toNumberSafe = (v: unknown): number => {
+  if (typeof v === "number" && isFinite(v)) return v;
+
+  if (typeof v === "string") {
+    // أرقام عربية-هندية (٠-٩) و (۰-۹)
+    const map: Record<string, string> = {
+      "٠": "0", "١": "1", "٢": "2", "٣": "3", "٤": "4",
+      "٥": "5", "٦": "6", "٧": "7", "٨": "8", "٩": "9",
+      "۰": "0", "۱": "1", "۲": "2", "۳": "3", "۴": "4",
+      "۵": "5", "۶": "6", "۷": "7", "۸": "8", "۹": "9",
+    };
+    const normalized = v
+      .replace(/[٠-٩۰-۹]/g, (d) => map[d] ?? d)
+      .replace(/[,\s\u00A0]/g, "") // فواصل ومسافات
+      .replace(/^\+/, ""); // علامة + في البداية إن وجدت
+    const num = Number(normalized);
+    return isFinite(num) ? num : NaN;
+  }
+
+  return NaN;
+};
+
+// دالة مساعدة لاستخراج مبلغ التبرع من حقول مختلفة
+const getDonationAmount = (donation: any): number => {
+  const fields = [
+    donation?.donation_amount,
+    donation?.amount,
+    donation?.acf?.donation_amount,
+    donation?.acf?.amount,
+  ];
+  for (const field of fields) {
+    const n = toNumberSafe(field);
+    if (isFinite(n) && n > 0) return n;
+  }
+  return NaN;
+};
+
+// قراءة كل صفحات ووردبريس (حتى 100 عنصر لكل صفحة) — نكتفي بأول 3 صفحات تحسبًا
+const fetchWpPages = async (url: string, headers: Record<string, string>) => {
+  const all: any[] = [];
+  for (let page = 1; page <= 3; page++) {
+    const sep = url.includes("?") ? "&" : "?";
+    const res = await fetch(`${url}${sep}per_page=100&page=${page}`, {
+      headers,
+      cache: "no-store",
+    });
+    if (!res.ok) {
+      const body = await res.text().catch(() => "");
+      throw new Error(`WP error ${res.status}: ${body}`);
+    }
+    const chunk = await res.json();
+    if (!Array.isArray(chunk) || chunk.length === 0) break;
+    all.push(...chunk);
+    if (chunk.length < 100) break; // لا مزيد من الصفحات
+  }
+  return all;
+};
+
+/* -----------------------------------------------------------
+ * GET: عرض التبرعات الخاصة بالمستخدم
+ * ----------------------------------------------------------- */
 export async function GET(_req: NextRequest) {
-  const session = await getServerSession(authOptions);
-  const jwt = (session?.user as any)?.wordpressJwt as string | undefined;
-  // 1. جلب معرف المستخدم من الجلسة
-  const userId = (session?.user as any)?.wordpressUserId as number | undefined;
+  const session = await getServerSession(authOptions);
+  const jwt = (session?.user as any)?.wordpressJwt as string | undefined;
+  const userId = (session?.user as any)?.wordpressUserId as number | undefined;
 
-  // 2. التحقق من وجود رمز التوثيق ومعرف المستخدم. إذا لم يكن المستخدم مسجلاً، لن يكون لديه معرف مستخدم، ونعيد خطأ 401
-  if (!jwt || !userId) {
-    return NextResponse.json({ ok: false, error: "Authentication required" }, { status: 401 });
-  }
+  if (!jwt || !userId) {
+    return json({ ok: false, error: "Authentication required" }, 401);
+  }
 
-  try {
-    // 3. تعديل رابط الجلب (fetch) لإضافة معلمة "author" لتصفية النتائج حسب معرف المستخدم
-    // نفترض أن نقطة نهاية التبرعات في WordPress تدعم التصفية بمعرف المستخدم.
-    const wpRes = await fetch(`${WP_DONATIONS_REST}?author=${userId}`, {
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${jwt}` },
-      cache: "no-store",
-    });
+  try {
+    const headers = { "Content-Type": "application/json", Authorization: `Bearer ${jwt}` };
 
-    if (!wpRes.ok) {
-      const body = await wpRes.text().catch(() => "");
-      return NextResponse.json({ ok: false, error: `WP error ${wpRes.status}: ${body}` }, { status: 502 });
-    }
+    // نجلب تبرعات المستخدم فقط
+    const rawDonations = await fetchWpPages(`${WP_DONATIONS_REST}?author=${userId}`, headers);
+    // console.log("البيانات الخام من WordPress:", rawDonations);
 
-    const rawDonations = await wpRes.json();
-    console.log("البيانات الخام من WordPress:", rawDonations);
+    // تجميع معرفات الحالات الفريدة
+    const uniqueCaseIds: number[] = Array.isArray(rawDonations)
+      ? [
+          ...new Set(
+            rawDonations
+              .map((d: any) => toNumberSafe(d?.acf?.case_id))
+              .filter((id: number) => Number.isInteger(id) && id > 0)
+          ),
+        ]
+      : [];
 
-    // 4. جمع معرفات الحالات الفريدة (الآن ستكون فقط حالات المستخدم)
-    let uniqueCaseIds: number[] = [];
-    if (Array.isArray(rawDonations)) {
-      uniqueCaseIds = [...new Set(rawDonations
-        .map((d: any) => Number(d.acf?.case_id))
-        .filter((id: number) => Number.isInteger(id) && id > 0)
-      )];
-    }
+    // جلب بيانات الحالات دفعة واحدة
+    const caseResults = await Promise.all(
+      uniqueCaseIds.map(async (id) => {
+        try {
+          return await getCaseById(id);
+        } catch {
+          return null;
+        }
+      })
+    );
 
-    // 5. جلب بيانات الحالات دفعة واحدة
-    const casePromises = uniqueCaseIds.map(id => getCaseById(id));
-    const caseResults = await Promise.all(casePromises);
+    const caseNameMap = new Map<number, string>();
+    caseResults.forEach((c: any) => {
+      if (c && Number.isInteger(c.id)) {
+        caseNameMap.set(c.id, c.title);
+      }
+    });
 
-    // 6. إنشاء خريطة لربط معرف الحالة باسمها
-    const caseNameMap = new Map<number, string>();
-    caseResults.forEach(caseData => {
-      if (caseData) {
-        caseNameMap.set(caseData.id, caseData.title);
-      }
-    });
+    // تجميع التبرعات حسب الحالة
+    const aggregated: Record<number, { caseId: string; caseName: string; totalAmount: number }> =
+      rawDonations.reduce((acc: any, d: any) => {
+        const caseId = toNumberSafe(d?.acf?.case_id);
+        const amount = getDonationAmount(d);
+        if (Number.isInteger(caseId) && caseId > 0 && isFinite(amount) && amount > 0) {
+          if (!acc[caseId]) {
+            acc[caseId] = {
+              caseId: String(caseId),
+              caseName: caseNameMap.get(caseId) || "—",
+              totalAmount: 0,
+            };
+          }
+          acc[caseId].totalAmount += amount;
+        }
+        return acc;
+      }, {});
 
-    // 7. تجميع التبرعات حسب الحالة
-    const aggregatedDonations = rawDonations.reduce((acc: any, d: any) => {
-      const caseId = Number(d.acf?.case_id);
+    const donations = Object.values(aggregated);
+    // console.log("البيانات المجمعة النهائية:", donations);
 
-      // Attempt to find the donation amount from multiple potential fields
-      let amount = 0;
-      if (typeof d?.donation_amount === 'number' || typeof d?.donation_amount === 'string') {
-        amount = Number(d.donation_amount);
-      } else if (typeof d?.amount === 'number' || typeof d?.amount === 'string') {
-        amount = Number(d.amount);
-      } else if (typeof d.acf?.donation_amount === 'number' || typeof d.acf?.donation_amount === 'string') {
-        amount = Number(d.acf.donation_amount);
-      } else if (typeof d.acf?.amount === 'number' || typeof d.acf?.amount === 'string') {
-        amount = Number(d.acf.amount);
-      }
-
-      if (isNaN(amount)) {
-        amount = 0;
-      }
-
-      console.log(`Processing donation with ID ${d.id}:`, d);
-      console.log(`Extracted amount:`, amount);
-
-      const caseName = Number.isInteger(caseId) ? caseNameMap.get(caseId) || "—" : "—";
-
-      if (Number.isInteger(caseId) && caseId > 0) {
-        if (!acc[caseId]) {
-          acc[caseId] = {
-            caseId: String(caseId),
-            caseName: caseName,
-            totalAmount: 0,
-          };
-        }
-        acc[caseId].totalAmount += amount;
-      }
-      return acc;
-    }, {});
-
-    // 8. تحويل الكائن إلى مصفوفة
-    const donations = Object.values(aggregatedDonations);
-    console.log("البيانات المجمعة النهائية:", donations);
-
-    return NextResponse.json({ ok: true, donations: donations });
-  } catch (e) {
-    console.error("[Donations GET] error:", e);
-    return NextResponse.json({ ok: false, error: "Internal error while fetching donations" }, { status: 500 });
-  }
+    return json({ ok: true, donations });
+  } catch (e: any) {
+    console.error("[Donations GET] error:", e);
+    return json({ ok: false, error: "Internal error while fetching donations" }, 500);
+  }
 }
 
-// -------- POST: تسجيل تبرّع جديد --------
-// هذا الكود يظل كما هو دون تغيير
+/* -----------------------------------------------------------
+ * POST: تسجيل تبرّع جديد
+ * ----------------------------------------------------------- */
 export async function POST(req: NextRequest) {
-  const trace = `don-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  const trace = `don-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  const session = await getServerSession(authOptions);
+  const jwt = (session?.user as any)?.wordpressJwt as string | undefined;
 
-  const session = await getServerSession(authOptions);
-  const jwt = (session?.user as any)?.wordpressJwt as string | undefined;
+  try {
+    const body = (await req.json().catch(() => ({}))) as any;
 
-  // تم حذف التحقق من وجود JWT في بداية الكود للسماح بالتبرعات من غير المسجلين
-  // الآن سيتم التعامل مع التوثيق داخل fetch
-  
-  try {
-    const body = (await req.json().catch(() => ({}))) as any;
-    
-    // تصحيح: استخدام اسم الحقل donation_amount من الواجهة الأمامية
-    // تم التعديل لفحص كلا الحقلين donation_amount و amount لضمان التوافق
-    const amount = Number(body.donation_amount ?? body.amount);
-    const caseId = Number(body.caseId);
-    const stripePaymentIntentId = String(body.stripePaymentIntentId || "");
-    let userId = body.userId;
+    // استخراج البيانات
+    const amount = getDonationAmount(body);
+    // نقبل caseId من body.caseId أو body.case_id تحسبًا
+    const caseIdRaw = Number.isFinite(toNumberSafe(body?.caseId))
+      ? toNumberSafe(body?.caseId)
+      : toNumberSafe(body?.case_id);
+    const caseId = Number(caseIdRaw);
+    const stripePaymentIntentId = String(body?.stripePaymentIntentId || body?.transaction_id || "");
 
-    // إذا كان المستخدم مسجلاً، نستخدم معرّفه من الجلسة
-    if (session) {
-      userId = (session?.user as any)?.wordpressUserId;
-    } else {
-      // إذا كان المستخدم غير مسجل، نستخدم القيمة 0
-      userId = 0;
-    }
+    // userId من الجلسة أو 0 (قد تتجاهله نقطة النهاية وتعتمد على JWT)
+    const userId = toNumberSafe((session?.user as any)?.wordpressUserId ?? 0) || 0;
+    console.log(`[Donations POST] Determined userId: ${userId}`);
 
-    const isMissingAmount = !isFinite(amount) || amount <= 0;
-    const isMissingCaseId = !Number.isInteger(caseId) || caseId <= 0;
-    
-    // تم إزالة التحقق من وجود userId لأن التبرعات غير المسجلة مقبولة الآن
-    if (isMissingAmount || isMissingCaseId) {
-      return json(
-        {
-          error: "Missing required fields",
-          details: { isMissingAmount, isMissingCaseId },
-          // تصحيح: إظهار القيمة الصحيحة في رسالة الخطأ
-          got: { amount: body.donation_amount ?? body.amount, caseId: body.caseId, stripePaymentIntentId, userId },
-          trace,
-        },
-        400
-      );
-    }
-    
-    // استخدام المسار الخاص لتسجيل التبرع
-    const endpoint = `${WP_BASE}/sanad/v1/record-donation`;
-    
-    // البيانات المطلوبة من قبل المسار الخاص
-    const wpPayload = {
-      userId: Number(userId),
-      // تصحيح: استخدام اسم الحقل الصحيح من ملف ACF
-      case_id: caseId,
-      // تصحيح: استخدام اسم الحقل الصحيح من ملف ACF
-      donation_amount: amount,
-      status: "مكتمل", // يتم تعيين هذه الحالة من قبل الواجهة الخلفية
-      payment_method: "Stripe",
-      transaction_id: stripePaymentIntentId,
-    };
-    
-    // إعداد الهيدر مع توثيق JWT (إذا كان متاحاً)
-    const headers: Record<string, string> = {
-      "Content-Type": "application/json",
-      "X-Trace-Id": trace,
-    };
-    if (jwt) {
-      headers["Authorization"] = `Bearer ${jwt}`;
-    }
+    // تحققات أولية
+    if (!isFinite(amount) || amount <= 0 || !Number.isInteger(caseId) || caseId <= 0) {
+      return json(
+        {
+          ok: false,
+          error: "Missing or invalid required fields",
+          details: {
+            isMissingAmount: !isFinite(amount) || amount <= 0,
+            isMissingCaseId: !Number.isInteger(caseId) || caseId <= 0,
+          },
+          got: { amount, caseId, stripePaymentIntentId, userId },
+          trace,
+        },
+        400
+      );
+    }
 
-    const wpRes = await fetch(endpoint, {
-      method: "POST",
-      headers: headers, // استخدام الهيدر المحدث
-      body: JSON.stringify(wpPayload),
-      cache: "no-store",
-    });
+    // تحقق من وجود الحالة قبل الإرسال
+    try {
+      const caseData = await getCaseById(caseId);
+      if (!caseData || !Number.isInteger(caseData?.id)) {
+        return json(
+          { ok: false, error: "المعرف caseId غير موجود", details: { caseId }, trace },
+          400
+        );
+      }
+    } catch {
+      return json(
+        { ok: false, error: "تعذر التحقق من الحالة (caseId)", details: { caseId }, trace },
+        502
+      );
+    }
 
-    const wpText = await wpRes.text();
-    let wpData: any;
-    try { wpData = JSON.parse(wpText); } catch { wpData = { raw: wpText }; }
+    // تجهيز الحمولة — نرسل الشكلين لضمان التوافق مع نقطة ووردبريس
+    const wpPayload = {
+      // الهوية (قد تتجاهلها نقطة النهاية وتستخدم JWT)
+      userId: Number(userId),
 
-    if (!wpRes.ok) {
-      return json(
-        {
-          error: wpData?.message || wpData?.error || `WordPress ${wpRes.status}`,
-          wordpressStatus: wpRes.status,
-          sent: wpPayload,
-          received: wpData,
-          trace,
-        },
-        502
-      );
-    }
+      // caseId بالشكلين
+      caseId: Number(caseId),
+      case_id: Number(caseId),
 
-    const successFlag = wpData?.success ?? true;
-    if (!successFlag) {
-      return json(
-        {
-          error: "WordPress did not confirm success",
-          wordpressStatus: wpRes.status,
-          sent: wpPayload,
-          received: wpData,
-          trace,
-        },
-        502
-      );
-    }
+      // amount بالشكلين
+      amount: Number(amount),
+      donation_amount: Number(amount),
 
-    return json({ ok: true, result: wpData, trace }, 200);
-  } catch (e: any) {
-    return json({ error: e?.message || "Unknown server error", trace }, 500);
-  }
+      // حالة دفع معيارية (إنجليزية) لتفادي قوائم ثابتة
+      status: "completed",
+
+      // معلومات الدفع
+      payment_method: "Stripe",
+      transaction_id: stripePaymentIntentId,
+    };
+
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+      "X-Trace-Id": trace,
+    };
+    if (jwt) headers["Authorization"] = `Bearer ${jwt}`;
+
+    const wpRes = await fetch(WP_DONATIONS_CUSTOM, {
+      method: "POST",
+      headers,
+      body: JSON.stringify(wpPayload),
+      cache: "no-store",
+    });
+
+    const wpText = await wpRes.text();
+    let wpData: any;
+    try {
+      wpData = JSON.parse(wpText);
+    } catch {
+      wpData = { raw: wpText };
+    }
+
+    if (!wpRes.ok) {
+      console.error("[Donations POST] WordPress responded with an error:", {
+        status: wpRes.status,
+        sent: wpPayload,
+        received: wpData,
+        trace,
+      });
+      return json(
+        {
+          ok: false,
+          error: wpData?.message || wpData?.error || `WordPress Error: ${wpRes.status}`,
+          details: {
+            wordpressStatus: wpRes.status,
+            sentPayload: wpPayload,
+            receivedData: wpData,
+            trace,
+          },
+        },
+        502
+      );
+    }
+
+    // بعض نقاط النهاية تعيد { success: false } رغم 200
+    const successFlag =
+      typeof wpData?.success === "boolean" ? wpData.success : true;
+
+    if (!successFlag) {
+      console.error("[Donations POST] WordPress did not confirm success:", {
+        sent: wpPayload,
+        received: wpData,
+        trace,
+      });
+      return json(
+        {
+          ok: false,
+          error: wpData?.message || "WordPress did not confirm success",
+          details: {
+            wordpressStatus: wpRes.status,
+            sentPayload: wpPayload,
+            receivedData: wpData,
+            trace,
+          },
+        },
+        502
+      );
+    }
+
+    return json({ ok: true, result: wpData, trace }, 200);
+  } catch (e: any) {
+    console.error("[Donations POST] Unexpected server error:", e);
+    return json({ ok: false, error: e?.message || "Unknown server error", trace }, 500);
+  }
 }

@@ -33,17 +33,44 @@ export async function POST(req: NextRequest) {
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object as Stripe.Checkout.Session;
 
-    const caseId = session.metadata?.caseId;
-    const amountInCents = session.amount_total;
+    // 🆕 الخطوة الأساسية: استرجاع تفاصيل عناصر السلة مع التوسيع
+    // 'expand' أمر ضروري للحصول على بيانات المنتج الكاملة، بما في ذلك الميتا داتا.
+    const sessionWithLineItems = await stripe.checkout.sessions.retrieve(
+        session.id,
+        {
+            expand: ['line_items.data.price.product'],
+        }
+    );
+
+    const caseId = sessionWithLineItems.metadata?.caseId;
+    const amountInCents = sessionWithLineItems.amount_total;
 
     if (caseId && amountInCents) {
       const amountInDollars = amountInCents / 100;
-      
+
       console.log(`✅ تم استلام تبرع بنجاح للحالة رقم: ${caseId}`);
       console.log(`المبلغ المتبرع به: ${amountInDollars} دولار`);
       
+      // 🆕 الخطوة الثانية: جمع بيانات المنتجات المتبرع بها
+      const donatedItems = sessionWithLineItems.line_items?.data.map((item: any) => {
+          const product = item.price?.product as Stripe.Product;
+          // ✅ يجب أن يتم تخزين الـ ID الخاص بحقل ACF في الميتا داتا للمنتج على Stripe.
+          // نستخدم اسم حقل افتراضي هنا، تأكد من أنه يطابق الاسم الذي تستخدمه.
+          const acfFieldId = product.metadata?.acf_field_id; 
+          
+          if (!acfFieldId) {
+            console.warn(`⚠️ المنتج "${product.name}" ليس لديه معرف ACF في الميتا داتا.`);
+            return null;
+          }
+
+          return {
+              id: acfFieldId,
+              quantity: item.quantity,
+          };
+      }).filter(item => item !== null);
+
       try {
-        // ✅ إرسال طلب تحديث آمن إلى نقطة نهاية API ووردبريس
+        // ✅ الخطوة الثالثة: إرسال طلب تحديث آمن إلى ووردبريس مع البيانات الجديدة
         const wpUpdateResponse = await fetch('https://cms.sanadedu.org/wp-json/sanad/v1/update-case', {
           method: 'POST',
           headers: {
@@ -52,6 +79,7 @@ export async function POST(req: NextRequest) {
           body: JSON.stringify({
             caseId: caseId,
             amount: amountInDollars,
+            donatedItems: donatedItems, // 🆕 إرسال المنتجات وكمياتها
             api_key: sanadApiKey,
           }),
         });

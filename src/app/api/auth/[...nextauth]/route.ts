@@ -39,7 +39,7 @@ async function fetchWpCurrentUserId(jwt: string): Promise<number | null> {
   }
 }
 
-// ✨ صدّر كائن الإعدادات ليستعمله getServerSession في مسارات أخرى
+// ✨ تم إعادة الـ `export` هنا لحل الخطأ في الملفات الأخرى.
 export const authOptions: NextAuthOptions = {
   providers: [
     GoogleProvider({
@@ -234,6 +234,7 @@ export const authOptions: NextAuthOptions = {
   },
 };
 
-// ✨ استخدم الإعدادات لإنشاء الـ handler وصدّره كـ GET/POST
+// ✨ هنا يكمن الحل: استخدم الإعدادات لإنشاء الـ handler
+// وقم بتصديره كـ GET و POST ليتوافق مع Next.js App Router.
 const handler = NextAuth(authOptions);
 export { handler as GET, handler as POST };

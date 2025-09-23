@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import { useSession } from "next-auth/react";
+import Link from "next/link"; // ✅ Added this import
 
 // صفحة التحميل
 const LoadingPage = () => (
@@ -134,12 +135,13 @@ const DonationsPage: React.FC = () => {
               <p className="text-lg text-gray-700 mb-4">
                 لم تقم بأي تبرعات حتى الآن. ابدأ بتصفح الحالات لدعم قضايانا!
               </p>
-              <a
+              {/* ✅ The problematic <a> tag is replaced with <Link> */}
+              <Link
                 href="/cases"
                 className="inline-block py-2 px-6 rounded-full text-white font-bold bg-blue-600 hover:bg-blue-700 transition-colors duration-200"
               >
                 تصفح الحالات
-              </a>
+              </Link>
             </div>
           ) : (
             <div className="space-y-6">
@@ -183,12 +185,13 @@ const DonationsPage: React.FC = () => {
 
                     {donation.caseId !== "غير معروف" && (
                       <div className="mt-4">
-                        <a
+                        {/* ✅ The problematic <a> tag is replaced with <Link> */}
+                        <Link
                           href={`/cases/${donation.caseId}`}
                           className="block text-center py-2 px-4 rounded-lg text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 transition-colors duration-200"
                         >
                           عرض تفاصيل الحالة
-                        </a>
+                        </Link>
                       </div>
                     )}
                   </div>

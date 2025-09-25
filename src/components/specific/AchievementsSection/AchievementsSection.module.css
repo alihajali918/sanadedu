@@ -1,63 +1,128 @@
 /* src/components/specific/AchievementsSection/AchievementsSection.module.css */
 
+/*
+   تعريف بعض المتغيرات الافتراضية إذا لم تكن موجودة في ملف آخر،
+   لنفترض أن:
+   --primary-green: #004d40; (أخضر داكن وفخم)
+   --highlight-gold: #ffc107; (ذهبي/أصفر لامع)
+   --background-white: #ffffff;
+   --text-black: #333333;
+   --text-gray: #666666;
+*/
+
+
 /* Achievements Section Styles */
-.achievementsSection { /* تم التغيير: achievements-section -> achievementsSection */
-    padding: 60px 0;
-    background-color: var(--background-white);
+.achievementsSection {
+    padding: 80px 0; /* زيادة الحشو لإضافة مساحة "هادئة" */
+    background-color: #f8f8f8; /* خلفية رمادية فاتحة جداً لإبراز العناصر */
     text-align: center;
 }
 
-.sectionTitle { /* تم التغيير: section-title -> sectionTitle */
-    font-size: 2em;
-    font-weight: 700;
+.sectionTitle {
+    font-size: 2.5em; /* زيادة حجم العنوان ليكون مهيباً */
+    font-weight: 800; /* خط سميك */
     color: var(--text-black);
-    margin-bottom: 50px;
-    text-align: center;
+    margin-bottom: 60px;
+    position: relative;
+    /* خط تحت العنوان */
+}
+.sectionTitle::after {
+    content: '';
+    position: absolute;
+    bottom: -15px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80px;
+    height: 4px;
+    background-color: var(--primary-green, #004d40); /* استخدام لون القوة */
+    border-radius: 2px;
 }
 
-.achievementsGrid { /* تم التغيير: achievements-grid -> achievementsGrid */
+
+/* ======================================================= */
+/* تنسيق الشبكة لعرض 5 عناصر في صف واحد على الكمبيوتر */
+/* ======================================================= */
+.achievementsGrid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 30px;
+    gap: 30px; 
+    padding: 20px 0;
     justify-items: center;
-    align-items: start;
+    align-items: stretch; /* لجعل جميع المربعات بنفس الارتفاع */
+
+    /* التنسيق الافتراضي: عرض عمودين للأجهزة الصغيرة جدًا */
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
 }
 
-.achievementItem { /* تم التغيير: achievement-item -> achievementItem */
+@media (min-width: 1200px) {
+    .achievementsGrid {
+        /* فرض 5 أعمدة متساوية على شاشات الكمبيوتر */
+        grid-template-columns: repeat(5, 1fr);
+        gap: 20px; 
+    }
+}
+
+@media (min-width: 768px) and (max-width: 1199px) {
+    .achievementsGrid {
+        /* عرض 3 أعمدة على الأجهزة اللوحية */
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+/* ======================================================= */
+
+/* تصميم عنصر الميزة الفردي (الذي يعطي الهيبة) */
+.achievementItem {
     display: flex;
     flex-direction: column;
     align-items: center;
     text-align: center;
-    padding: 20px;
+    padding: 25px 15px; /* زيادة الحشو لجعله يبدو أكبر */
+    background-color: var(--background-white, #ffffff); /* خلفية بيضاء نقية */
+    border-radius: 12px; /* حواف مستديرة للمسة عصرية */
+    transition: transform 0.3s ease, box-shadow 0.3s ease; /* للتحريك عند المرور */
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05); /* ظل خفيف لبداية الهيبة */
+    height: 100%; /* مهم لـ align-items: stretch */
 }
 
-.achievementIcon { /* تم التغيير: achievement-icon -> achievementIcon */
-    width: 100px;
-    height: 100px;
+/* تأثير الهوفر (Hover Effect) - يعطي تفاعلية و"هيبة" */
+.achievementItem:hover {
+    transform: translateY(-8px); /* رفع العنصر للأعلى */
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15); /* ظل عميق وواضح */
+}
+
+.achievementIcon {
+    width: 90px; /* تكبير حجم الأيقونة قليلاً */
+    height: 90px;
     border-radius: 50%;
-    background-color: var(--primary-green);
+    background-color: var(--primary-green, #004d40); /* لون خلفية قوي */
     display: flex;
     align-items: center;
     justify-content: center;
     margin-bottom: 20px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    /* ظل داخلي خفيف على الأيقونة لإضافة عمق */
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.2); 
 }
 
-.achievementIcon i { /* تم التغيير: achievement-icon i -> achievementIcon i */
-    font-size: 3.5em;
-    color: var(--background-white);
+.achievementIcon i {
+    font-size: 3em; /* حجم أكبر لرمز الأيقونة */
+    color: var(--highlight-gold, #ffc107); /* لون ذهبي/لامع للأيقونة نفسها */
 }
 
-.achievementNumber { /* تم التغيير: achievement-number -> achievementNumber */
-    font-size: 2.8em;
-    font-weight: 700;
-    color: var(--highlight-gold);
+/* عناوين الميزات */
+.featureTitle {
+    font-size: 1.25em; /* زيادة حجم الخط */
+    font-weight: 800; /* خط سميك */
+    color: var(--text-black);
     margin-bottom: 10px;
 }
 
-.achievementTitle { /* تم التغيير: achievement-title -> achievementTitle */
-    font-size: 1.1em;
-    font-weight: 600;
-    color: var(--text-black);
-    line-height: 1.4;
+/* وصف الميزات */
+.featureDescription {
+    font-size: 1em; /* حجم خط طبيعي ومقروء */
+    color: var(--text-gray, #666666);
+    line-height: 1.6;
+}
+
+/* حذف أو إخفاء الكلاسات القديمة */
+.achievementNumber, .achievementTitle {
+    display: none; 
 }

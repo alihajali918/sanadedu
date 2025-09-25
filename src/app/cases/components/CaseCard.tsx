@@ -30,7 +30,6 @@ const CaseCard: React.FC<CaseCardProps> = ({ caseData }) => {
       <div className={styles.caseContent}>
         <h3 className={styles.caseTitle}>{caseData.title}</h3>
         <p className={styles.caseGovernorate}><i className="fas fa-map-marker-alt"></i> {caseData.governorate}</p>
-        <p className={styles.caseDescription}>{caseData.description}</p>
         
         <div className={styles.caseProgressBarWrapper}>
           <div className={styles.caseProgressBar} style={{ width: `${caseData.progress}%` }}></div>

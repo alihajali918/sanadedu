@@ -29,25 +29,25 @@ export async function POST(req: Request) {
 
         const body = await req.json().catch(() => ({}));
 
-        // normalize donated_items: تأكد أنها مصفوفة
+        // normalize donated_items: تأكد أنها مصفوفة (يستقبلها كائن أو سلسلة نصية JSON)
         const donatedItemsArr: any[] = Array.isArray(body.donated_items)
             ? body.donated_items
             : (() => { try { return JSON.parse(body.donated_items); } catch { return []; } })();
 
-        // استخلاص معرفات الحالات
+        // استخلاص معرفات الحالات (Case IDs)
         const case_ids: number[] = Array.isArray(body.case_ids)
             ? body.case_ids.map((x: any) => Number(x)).filter(Boolean)
             : [...new Set(donatedItemsArr.map((i) => Number(i?.case_id)).filter(Boolean))];
 
         const payload = {
-            amount: Number(body.amount || 0),
+            amount: Number(body.amount || 0), // المبلغ الإجمالي (بالسنت)
             subtotal_amount: Number(body.subtotal_amount || 0),
             shipping_fees: Number(body.shipping_fees || 0),
             custom_donation: Number(body.custom_donation || 0),
-            // 💡 التصحيح/التوحيد: دائماً أرسل الحمولة الموحدة كـ JSON string من المصفوفة المُحللة
+            // 💡 التوحيد: إرسال الحمولة الموحدة كـ JSON string لتخزينها في 'donated_items_list'
             donated_items: JSON.stringify(donatedItemsArr), 
             case_ids,
-            transaction_id: body.transaction_id || body.paymentIntentId || "",
+            transaction_id: body.transaction_id || body.paymentIntentId || "", // مفتاح المطابقة للـ Webhook
             userId: Number(body.userId || body.user_id || 0),
             user_id: Number(body.user_id || body.userId || 0),
             status: body.status || "pending",

@@ -1,11 +1,74 @@
 'use client';
 
 import { useState } from 'react';
-import { useCart } from '../context/CartContext';
+import { useCart, CartItem } from '../context/CartContext'; // استيراد CartItem
 import Image from 'next/image';
 import Link from 'next/link';
 import styles from './DonationBasketPage.module.css';
 
+// -----------------------------------------------------------
+// 1. تعريف هيكل البيانات الذي يتوقعه ووردبريس
+// -----------------------------------------------------------
+interface DonationItemForWP {
+    case_id: number;
+    line_total: number;
+    item_quantity: number;
+    acf_field_id?: string;
+    need_id?: string; // لرسوم التشغيل (case_id: 0)
+}
+
+// -----------------------------------------------------------
+// 2. دالة بناء الحمولة الموحدة
+// -----------------------------------------------------------
+/**
+ * تبني مصفوفة العناصر المتبرع بها بالشكل الذي يتوقعه ووردبريس، 
+ * وتدمج عناصر السلة، رسوم النقل، والتبرع المخصص.
+ */
+const buildDonatedItemsPayload = (
+    items: CartItem[], 
+    shippingFees: number, 
+    customDonation: number
+): DonationItemForWP[] => {
+    const payload: DonationItemForWP[] = [];
+
+    // أ. إضافة عناصر السلة (الحالات المخصصة)
+    items.forEach(item => {
+        // نستخدم item_quantity و acfFieldId لتحديث الكميات العينية
+        payload.push({
+            case_id: Number(item.institutionId), // مُعرّف الحالة
+            line_total: item.totalPrice, // المبلغ النقدي لهذه الحالة
+            item_quantity: item.quantity, // الكمية العينية
+            acf_field_id: item.acfFieldId, // مفتاح ACF (مثلاً: 'received_quantity')
+            need_id: item.needId, // مُعرّف الاحتياج إن وُجد
+        });
+    });
+
+    // ب. إضافة أجور النقل (لميزانية التشغيل)
+    if (shippingFees > 0) {
+        payload.push({
+            case_id: 0, // 0 يعني تبرع عام أو تشغيلي
+            line_total: shippingFees,
+            item_quantity: 0,
+            need_id: 'operational-costs', // مفتاح المعالجة في ووردبريس
+        });
+    }
+
+    // ج. إضافة التبرع المخصص (لميزانية التشغيل)
+    if (customDonation > 0) {
+        payload.push({
+            case_id: 0, // 0 يعني تبرع عام أو تشغيلي
+            line_total: customDonation,
+            item_quantity: 0,
+            need_id: 'operational-costs', // مفتاح المعالجة في ووردبريس
+        });
+    }
+
+    return payload;
+};
+
+// -----------------------------------------------------------
+// 3. مكون الصفحة (DonationBasketPage)
+// -----------------------------------------------------------
 const DonationBasketPage = () => {
     const { cartItems, removeItem, updateItemQuantity, clearCart, getTotalAmount } = useCart();
     
@@ -27,30 +90,24 @@ const DonationBasketPage = () => {
 
     const handleQuantityChange = (id: string, value: string) => {
         const newQuantity = parseInt(value, 10);
-        if (!isNaN(newQuantity) && newQuantity >= 0) {
+        // نُضيف شرط لتجنب تحديث الكمية إلى 0، حيث يُفضل أن يتم الحذف بدلاً من ذلك.
+        if (!isNaN(newQuantity) && newQuantity > 0) { 
             updateItemQuantity(id, newQuantity);
+        } else if (newQuantity === 0) {
+            removeItem(id); // حذف العنصر إذا كانت الكمية صفر
         }
     };
 
-    // المجموع الفرعي من عناصر سلة التبرع المخصصة 
+    // الحسابات
     const subtotal = getTotalAmount();
-    
-    // رسوم النقل والتوصيل الثابتة
     const shippingFeeValue = 5; 
     
-    // يتم احتساب التبرع المخصص فقط إذا كان حقل الإدخال مرئياً وصحيحاً
     const parsedCustomDonation = showCustomDonationInput 
         ? (parseFloat(customDonationAmount) || 0) 
         : 0;
 
-    // احتساب رسوم النقل إذا تم اختيارها
     const optionalShippingFees = addShippingFees ? shippingFeeValue : 0;
-    
-    // الإجمالي الكلي: المجموع الفرعي + رسوم النقل الاختيارية + التبرع المخصص
     const finalTotal = subtotal + optionalShippingFees + parsedCustomDonation;
-
-    const firstItem = cartItems.length > 0 ? cartItems[0] : null;
-    const caseId = firstItem?.institutionId || '';
 
     // التحقق من صلاحية التبرع المخصص (رقم غير سالب)
     const isCustomDonationValid = parsedCustomDonation >= 0 && !isNaN(parseFloat(customDonationAmount));
@@ -59,11 +116,21 @@ const DonationBasketPage = () => {
     const canProceedToCheckout = finalTotal > 0 && 
                                  (showCustomDonationInput ? (isCustomDonationValid || parsedCustomDonation === 0) : true);
 
+    // 💡 بناء الحمولة الموحدة للإرسال عبر رابط الدفع
+    const finalPayload = buildDonatedItemsPayload(
+        cartItems, 
+        optionalShippingFees, 
+        parsedCustomDonation
+    );
+    
+    // 💡 تشفير الحمولة الموحدة لـ URL
+    const encodedDonatedItems = encodeURIComponent(JSON.stringify(finalPayload));
 
     return (
         <div className={styles.basketContainer} dir="rtl">
             <h1 className={styles.pageTitle}>سلة التبرعات</h1>
 
+            {/* تم تبسيط شرط رسالة السلة الفارغة */}
             {cartItems.length === 0 && optionalShippingFees === 0 && parsedCustomDonation === 0 ? (
                 // رسالة السلة الفارغة
                 <div className={styles.emptyCartMessage}>
@@ -74,6 +141,7 @@ const DonationBasketPage = () => {
                 </div>
             ) : (
                 <div className={styles.cartLayout}>
+                    {/* ... (بقية كود عرض العناصر - لم يتغير) ... */}
                     <div className={styles.cartItemsList}>
                         <div className={styles.cartHeader}>
                             <h3>عناصر التبرع المخصصة</h3>
@@ -148,7 +216,7 @@ const DonationBasketPage = () => {
                             ))
                         )}
                     </div>
-
+                    {/* ... (بقية كود ملخص الدفع - لم يتغير) ... */}
                     <div className={styles.cartSummary}>
                         <div className={styles.summarySection}>
                             <h3>ملخص الدفع</h3>
@@ -231,9 +299,9 @@ const DonationBasketPage = () => {
                             </div>
                         )}
 
-                        {/* عرض المجموع الفرعي إذا كانت العناصر المخصصة موجودة، قبل الإجمالي الكلي مباشرة */}
+                        {/* عرض المجموع الفرعي */}
                         {subtotal > 0 && (
-                             <div className={styles.summaryRow}>
+                            <div className={styles.summaryRow}>
                                 <span>إجمالي تبرعات العناصر المخصصة:</span>
                                 <span>{formatCurrencyWestern(subtotal)}</span>
                             </div>
@@ -251,8 +319,9 @@ const DonationBasketPage = () => {
                         </p>
 
                         <div className={styles.summaryActions}>
+                            {/* 💡 التعديل الرئيسي: تمرير الحمولة الموحدة المشفرة بدلاً من العناصر المنفصلة */}
                             <Link 
-                                href={`/checkout?caseId=${caseId}&shippingFees=${optionalShippingFees}&customDonation=${parsedCustomDonation}`}
+                                href={`/checkout?donatedItems=${encodedDonatedItems}&totalAmount=${finalTotal}`}
                                 className={styles.checkoutButton}
                                 onClick={(e) => { 
                                     if (!canProceedToCheckout) e.preventDefault(); 

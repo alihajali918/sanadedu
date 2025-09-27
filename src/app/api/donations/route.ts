@@ -1,5 +1,3 @@
-// app/api/record-donation/route.ts
-
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic"; // لا كاش
@@ -65,11 +63,13 @@ export async function POST(req: Request) {
     }
     // ----------------------------------------------------
 
-    // --- case_ids (فريدة وأعداد صحيحة)
-    // نعتمد الآن على قائمة العناصر الموحدة بعد إضافة بند الدعم التشغيلي
-    const caseIdsFromItems = donatedItemsArr.map((i: any) => Number(i?.case_id || i?.caseId)).filter(Boolean);
-    // لا نعتمد على body.case_ids الأصلية لأنها قد تكون قديمة
-    const case_ids = Array.from(new Set([...caseIdsFromItems].map((x: any) => Number(x)).filter(Boolean)));
+    // --- case_ids (فريدة وأعداد صحيحة موجبة)
+    // نستخرج مُعرفات الحالات (باستثناء ID=0 للدعم التشغيلي)
+    const caseIdsFromItems = donatedItemsArr
+      .map((i: any) => Number(i?.case_id || i?.caseId))
+      .filter((id: number) => id > 0); // 🌟 تم التأكد من أن IDs أكبر من 0
+
+    const case_ids = Array.from(new Set(caseIdsFromItems));
     
 
     // --- payload إلى ووردبريس
@@ -80,7 +80,7 @@ export async function POST(req: Request) {
       amount: amountCents, // بالسنت
       subtotal_amount: numOr0(body.subtotal_amount),
       shipping_fees: numOr0(body.shipping_fees),
-      custom_donation: customDonationAmount, // نرسل القيمة الأصلية أو الموحدة
+      custom_donation: customDonationAmount,
 
       // توحيد: نرسل JSON string للقائمة الموحدة (WP يخزنه في donated_items_list)
       donated_items: JSON.stringify(donatedItemsArr),
@@ -107,6 +107,11 @@ export async function POST(req: Request) {
         { error: "ValidationError", details: { amount: "amount (in cents) is required (>0)" }, got: payload },
         { status: 400 }
       );
+    }
+
+    // 🌟 تحقق إضافي لضمان وجود الـ Endpoint
+    if (!SANAD_API_ENDPOINT) {
+      throw new Error("SANAD_API_ENDPOINT is not configured, check WP_API_BASE.");
     }
 
     // --- تجهيز الهيدرز + مهلة للطلب

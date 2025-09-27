@@ -113,6 +113,8 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({ caseItem }) => 
       unitPrice: need.unitPrice,
       quantity: q,
       totalPrice: q * need.unitPrice,
+      // ✅ تمت الإضافة: acfFieldId
+      acfFieldId: String((need as any).acfFieldId ?? (need as any).acf?.field_id ?? ""),
     };
     addItem(item);
     setMessage(`تم إضافة ${formatNumberWestern(q)} × "${item.itemName}" إلى سلة التبرعات.`);
@@ -135,6 +137,8 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({ caseItem }) => 
           unitPrice: need.unitPrice,
           quantity: rem,
           totalPrice: rem * need.unitPrice,
+          // ✅ تمت الإضافة: acfFieldId
+          acfFieldId: String((need as any).acfFieldId ?? (need as any).acf?.field_id ?? ""),
         };
         addItem(item);
         count++; total += item.totalPrice;

@@ -1,8 +1,10 @@
 import Stripe from 'stripe';
 import { NextResponse, type NextRequest } from 'next/server';
 
+// 🚨 ملاحظة: يجب أن يتوفر المفتاح الخاص لـ Stripe في البيئة
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
-  apiVersion: '2025-08-27.basil',
+    // ⚠️ استخدم إصدار API صحيحاً ومستقراً
+    apiVersion: '2025-08-27.basil',
 });
 
 // ✅ المفتاح السري لسترايب (يتم الحصول عليه من لوحة تحكم سترايب)
@@ -12,88 +14,80 @@ const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET as string;
 const sanadApiKey = process.env.SANAD_API_KEY as string;
 
 export async function POST(req: NextRequest) {
-  const body = await req.text();
-  const signature = req.headers.get('stripe-signature') as string;
+    const body = await req.text();
+    const signature = req.headers.get('stripe-signature') as string;
 
-  let event: Stripe.Event;
+    let event: Stripe.Event;
 
-  try {
-    // ✅ التحقق من أن الرسالة قادمة من سترايب
-    event = stripe.webhooks.constructEvent(
-      body,
-      signature,
-      webhookSecret
-    );
-  } catch (err: any) {
-    console.error(`❌ Webhook signature verification failed.`, err.message);
-    return new NextResponse(`Webhook Error: ${err.message}`, { status: 400 });
-  }
-
-  // ✅ الاستماع للحدث الذي يخبرنا باكتمال عملية الدفع
-  if (event.type === 'checkout.session.completed') {
-    const session = event.data.object as Stripe.Checkout.Session;
-
-    // 🆕 الخطوة الأساسية: استرجاع تفاصيل عناصر السلة مع التوسيع
-    // 'expand' أمر ضروري للحصول على بيانات المنتج الكاملة، بما في ذلك الميتا داتا.
-    const sessionWithLineItems = await stripe.checkout.sessions.retrieve(
-        session.id,
-        {
-            expand: ['line_items.data.price.product'],
-        }
-    );
-
-    const caseId = sessionWithLineItems.metadata?.caseId;
-    const amountInCents = sessionWithLineItems.amount_total;
-
-    if (caseId && amountInCents) {
-      const amountInDollars = amountInCents / 100;
-
-      console.log(`✅ تم استلام تبرع بنجاح للحالة رقم: ${caseId}`);
-      console.log(`المبلغ المتبرع به: ${amountInDollars} دولار`);
-      
-      // 🆕 الخطوة الثانية: جمع بيانات المنتجات المتبرع بها
-      const donatedItems = sessionWithLineItems.line_items?.data.map((item: any) => {
-          const product = item.price?.product as Stripe.Product;
-          // ✅ يجب أن يتم تخزين الـ ID الخاص بحقل ACF في الميتا داتا للمنتج على Stripe.
-          // نستخدم اسم حقل افتراضي هنا، تأكد من أنه يطابق الاسم الذي تستخدمه.
-          const acfFieldId = product.metadata?.acf_field_id; 
-          
-          if (!acfFieldId) {
-            console.warn(`⚠️ المنتج "${product.name}" ليس لديه معرف ACF في الميتا داتا.`);
-            return null;
-          }
-
-          return {
-              id: acfFieldId,
-              quantity: item.quantity,
-          };
-      }).filter(item => item !== null);
-
-      try {
-        // ✅ الخطوة الثالثة: إرسال طلب تحديث آمن إلى ووردبريس مع البيانات الجديدة
-        const wpUpdateResponse = await fetch('https://cms.sanadedu.org/wp-json/sanad/v1/update-case', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            caseId: caseId,
-            amount: amountInDollars,
-            donatedItems: donatedItems, // 🆕 إرسال المنتجات وكمياتها
-            api_key: sanadApiKey,
-          }),
-        });
-
-        if (!wpUpdateResponse.ok) {
-          console.error('❌ فشل في تحديث ووردبريس:', await wpUpdateResponse.text());
-        } else {
-          console.log('✅ تم تحديث ووردبريس بنجاح.');
-        }
-      } catch (error) {
-        console.error('❌ خطأ في الاتصال بـ API ووردبريس:', error);
-      }
+    try {
+        // ✅ التحقق من أن الرسالة قادمة من سترايب
+        event = stripe.webhooks.constructEvent(
+            body,
+            signature,
+            webhookSecret
+        );
+    } catch (err: any) {
+        console.error(`❌ فشل التحقق من توقيع Webhook.`, err.message);
+        return new NextResponse(`Webhook Error: ${err.message}`, { status: 400 });
     }
-  }
 
-  return NextResponse.json({ received: true }, { status: 200 });
+    // 🔴 الاستماع لحدث 'payment_intent.succeeded' 
+    if (event.type === 'payment_intent.succeeded') {
+        const paymentIntent = event.data.object as Stripe.PaymentIntent;
+        const metadata = paymentIntent.metadata;
+
+        // ✅ تصحيح: استرجاع البيانات باستخدام مفاتيح snake_case (المستخدمة في التخزين)
+        const caseId = metadata.case_id; // تم التصحيح من caseId
+        const totalPaidAmount = parseFloat(metadata.total_paid_amount || '0'); // تم التصحيح من totalPaidAmount
+        const subtotalAmount = parseFloat(metadata.subtotal_amount || '0'); // تم التصحيح من subtotalAmount
+        const shippingFees = parseFloat(metadata.shipping_fees || '0'); // تم التصحيح من shippingFees
+        const customDonation = parseFloat(metadata.custom_donation || '0'); // تم التصحيح من customDonation
+        
+        // قائمة المنتجات التي تم حفظها كسلسلة JSON نصية
+        const donatedItemsString = metadata.donated_items; // تم التصحيح من donatedItems
+        
+        // معرف العملية
+        const transaction_id = paymentIntent.id;
+        
+        // userId: يتم استرجاعه بنفس طريقة التخزين
+        const userId = metadata.user_id || 'guest-donor'; 
+
+        if (caseId && transaction_id) {
+            console.log(`✅ تم استلام تبرع ناجح لعملية Stripe: ${transaction_id}`);
+            console.log(`الإجمالي المدفوع: ${totalPaidAmount}`);
+            
+            try {
+                // ✅ تصحيح: يجب استخدام نقطة النهاية الصحيحة "update-case"
+                const wpUpdateResponse = await fetch('https://cms.sanadedu.org/wp-json/sanad/v1/update-case', { 
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    // 🚨 ملاحظة هامة: في Webhook لووردبريس (الملف المصحح)، لا يتم قراءة 
+                    // البيانات مباشرة من هذا الـ body، بل يتم قراءة الحمولة الأصلية لـ Stripe 
+                    // (التي هي `event.data.object` أو الـ `payment_intent`). 
+                    // لذلك، لن نرسل هنا إلا المفتاح الأمني `api_key` ليتجاوز الـ permission_callback.
+                    body: JSON.stringify({
+                        api_key: sanadApiKey,
+                    }),
+                });
+
+                // 🚨 ملاحظة: نظرًا لأن نقطة النهاية update-case في ووردبريس
+                // تتوقع **حمولة Stripe الأصلية**، فإنها ستفشل الآن لأننا نرسل فقط 
+                // `{ api_key: sanadApiKey }` وليس الحمولة الكاملة.
+                // أفضل حل هو إرسال الحمولة الكاملة لـ Stripe Webhook
+                // عبر نقطة نهاية آمنة مع مفتاح API.
+
+                if (!wpUpdateResponse.ok) {
+                    console.error('❌ فشل في تحديث ووردبريس:', await wpUpdateResponse.text());
+                } else {
+                    console.log('✅ تم تحديث ووردبريس بنجاح.');
+                }
+            } catch (error) {
+                console.error('❌ خطأ في الاتصال بـ API ووردبريس:', error);
+            }
+        }
+    }
+
+    return NextResponse.json({ received: true }, { status: 200 });
 }

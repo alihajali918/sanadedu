@@ -1,5 +1,3 @@
-// src/app/context/CartContext.tsx
-
 "use client";
 
 import React, {
@@ -11,15 +9,16 @@ import React, {
 } from "react";
 
 export interface CartItem {
-  id: string;
-  institutionId: string;
-  institutionName: string;
-  needId: string;
-  itemName: string;
-  itemImage: string;
-  unitPrice: number;
-  quantity: number;
-  totalPrice: number;
+  id: string;                // مُعرّف السطر داخل السلة (فريد)
+  institutionId: string;     // case_id (مدرسة/مسجد...)
+  institutionName: string;   // اسم المؤسسة/الحالة (اختياري للعرض)
+  needId?: string;           // مُعرّف الاحتياج إن وُجد
+  itemName: string;          // اسم العنصر
+  itemImage?: string;        // صورة للعرض
+  unitPrice: number;         // سعر الوحدة (بالدولار)
+  quantity: number;          // الكمية
+  totalPrice: number;        // = unitPrice * quantity (بالدولار)
+  acfFieldId: string;        // مفتاح ACF الذي سنزيد كميته
 }
 
 interface CartContextType {
@@ -29,7 +28,7 @@ interface CartContextType {
   updateItemQuantity: (id: string, quantity: number) => void;
   clearCart: () => void;
   getTotalItems: () => number;
-  getTotalAmount: () => number;
+  getTotalAmount: () => number; // بالدولار
   isLoading: boolean;
 }
 
@@ -65,17 +64,18 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 
   const addItem = (item: CartItem) => {
     setCartItems((prevItems) => {
-      const existingItemIndex = prevItems.findIndex((i) => i.id === item.id);
-      if (existingItemIndex > -1) {
-        const updatedItems = [...prevItems];
-        const existingItem = updatedItems[existingItemIndex];
+      const existingIndex = prevItems.findIndex((i) => i.id === item.id);
+      if (existingIndex > -1) {
+        const updated = [...prevItems];
+        const existing = updated[existingIndex];
         const newQuantity = item.quantity;
-        updatedItems[existingItemIndex] = {
-          ...existingItem,
+        updated[existingIndex] = {
+          ...existing,
           quantity: newQuantity,
-          totalPrice: newQuantity * existingItem.unitPrice,
+          totalPrice: Number((newQuantity * existing.unitPrice).toFixed(2)),
+          acfFieldId: item.acfFieldId,
         };
-        return updatedItems;
+        return updated;
       } else {
         return [...prevItems, item];
       }
@@ -83,30 +83,32 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const removeItem = (id: string) => {
-    setCartItems((prevItems) => prevItems.filter((item) => item.id !== id));
+    setCartItems((prev) => prev.filter((i) => i.id !== id));
   };
 
   const updateItemQuantity = (id: string, quantity: number) => {
-    setCartItems((prevItems) => 
-      prevItems
+    setCartItems((prev) =>
+      prev
         .map((item) =>
-          item.id === id ? { ...item, quantity, totalPrice: quantity * item.unitPrice } : item
+          item.id === id
+            ? {
+                ...item,
+                quantity,
+                totalPrice: Number((quantity * item.unitPrice).toFixed(2)),
+              }
+            : item
         )
         .filter((item) => item.quantity > 0)
     );
   };
 
-  const clearCart = () => {
-    setCartItems([]);
-  };
+  const clearCart = () => setCartItems([]);
 
-  const getTotalItems = () => {
-    return cartItems.reduce((total, item) => total + item.quantity, 0);
-  };
+  const getTotalItems = () =>
+    cartItems.reduce((total, item) => total + item.quantity, 0);
 
-  const getTotalAmount = () => {
-    return cartItems.reduce((total, item) => total + item.totalPrice, 0);
-  };
+  const getTotalAmount = () =>
+    cartItems.reduce((total, item) => total + item.totalPrice, 0);
 
   return (
     <CartContext.Provider

@@ -399,3 +399,7 @@
         top: 20px;
     }
 }
+.goldenText {
+    color: var(--highlight-gold); /* لون ذهبي */
+    font-weight: bold;
+}

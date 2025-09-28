@@ -2,9 +2,9 @@
 
 "use client";
 
-import { useState, useEffect, useCallback } from 'react';
-import Image from 'next/image';
-import styles from './LoadingPage.module.css';
+import { useState, useEffect, useCallback } from "react";
+import Image from "next/image";
+import styles from "./LoadingPage.module.css";
 
 const LoadingPage = () => {
   // ... كل منطقك يبقى كما هو ...
@@ -29,20 +29,21 @@ const LoadingPage = () => {
         startFadeOut();
       }
     }, MAX_LOAD_TIME);
-    window.addEventListener('load', handleLoad);
+    window.addEventListener("load", handleLoad);
     return () => {
-      window.removeEventListener('load', handleLoad);
+      window.removeEventListener("load", handleLoad);
       clearTimeout(timerId);
     };
   }, [startFadeOut]);
-
 
   if (!isLoading) {
     return null;
   }
 
   return (
-    <div className={`${styles.loadingPage} ${isFadingOut ? styles.fadeOut : ''}`}>
+    <div
+      className={`${styles.loadingPage} ${isFadingOut ? styles.fadeOut : ""}`}
+    >
       <Image
         src="/sanadlogo.svg"
         alt="Sanad Logo"

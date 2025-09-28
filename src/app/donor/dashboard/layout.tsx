@@ -3,15 +3,15 @@
 // DESCRIPTION: Layout for all donor dashboard pages, including a sidebar,
 //              authentication protection, and logout functionality.
 // ==========================================================
-'use client'; // This is required for using hooks like useState and useEffect
+"use client"; // This is required for using hooks like useState and useEffect
 
-import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation'; // For using useRouter for redirection
+import React, { useState, useEffect } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation"; // For using useRouter for redirection
 // تم إزالة استيراد Header هنا لأنه يتم تضمينه في RootLayout
 
-import { useSession, signOut } from 'next-auth/react'; // <--- تم التعديل: استخدام useSession و signOut من NextAuth
-import styles from './dashboard.module.css'; // Import the dashboard specific styles
+import { useSession, signOut } from "next-auth/react"; // <--- تم التعديل: استخدام useSession و signOut من NextAuth
+import styles from "./dashboard.module.css"; // Import the dashboard specific styles
 
 // Define the DashboardLayout props
 interface DashboardLayoutProps {
@@ -31,7 +31,7 @@ const DonorDashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     if (!isLoadingAuth && !isAuthenticated) {
       // استخدام signOut من NextAuth.js لإعادة التوجيه إلى صفحة الدخول
       // هذا يضمن مسح الجلسة بشكل صحيح قبل إعادة التوجيه
-      signOut({ redirect: true, callbackUrl: '/auth/login' }); 
+      signOut({ redirect: true, callbackUrl: "/auth/login" });
     }
   }, [isLoadingAuth, isAuthenticated, router]); // <--- تم تعديل التبعيات
 
@@ -47,7 +47,7 @@ const DonorDashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
 
   // If the user is not authenticated (after checking), don't show anything (as redirection already happened)
   if (!isAuthenticated) {
-    return null; 
+    return null;
   }
 
   return (
@@ -64,23 +64,35 @@ const DonorDashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                 </Link>
               </li>
               <li>
-                <Link href="/donor/dashboard/profile" className={styles.navLink}>
+                <Link
+                  href="/donor/dashboard/profile"
+                  className={styles.navLink}
+                >
                   ملفي الشخصي
                 </Link>
               </li>
               <li>
-                <Link href="/donor/dashboard/donations" className={styles.navLink}>
+                <Link
+                  href="/donor/dashboard/donations"
+                  className={styles.navLink}
+                >
                   تبرعاتي
                 </Link>
               </li>
               <li>
-                <Link href="/donor/dashboard/settings" className={styles.navLink}>
+                <Link
+                  href="/donor/dashboard/settings"
+                  className={styles.navLink}
+                >
                   الإعدادات
                 </Link>
               </li>
               <li>
                 {/* هذا الزر لتسجيل الخروج الفعلي باستخدام signOut من NextAuth */}
-                <button onClick={() => signOut({ callbackUrl: '/auth/login' })} className={styles.logoutButton}> 
+                <button
+                  onClick={() => signOut({ callbackUrl: "/auth/login" })}
+                  className={styles.logoutButton}
+                >
                   تسجيل الخروج
                 </button>
               </li>
@@ -90,7 +102,8 @@ const DonorDashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
 
         {/* The main content area */}
         <main className={styles.mainContent}>
-          {children} {/* This is where the content of the sub-pages will be displayed */}
+          {children}{" "}
+          {/* This is where the content of the sub-pages will be displayed */}
         </main>
       </div>
     </>

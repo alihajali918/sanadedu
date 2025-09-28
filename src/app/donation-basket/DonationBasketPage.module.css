@@ -1,76 +1,111 @@
 /* ==========================================================
-    أنماط صفحة سلة التبرعات (Donation Basket Page Styles)
-    تخطيط مرن (Responsive)
+    File: DonationBasketPage.module.css (Updated with new Root Variables)
+    - استخدام المتغيرات الزيتية والذهبية الجديدة.
+    - تركيز قوي على تقليل السكرول (No-Scroll UX).
     ========================================================== */
 
-/* --- الأنماط الأساسية (Mobile-First) --- */
+/* -------- [0] Helpers & Global Variables (Overridden) -------- */
+:where(.basketContainer){
+    /* الثوابت الهيكلية تبقى كما هي */
+    --radius-lg:16px;
+    --radius-md:12px;
+    --radius-sm:10px;
+    --radius-pill:999px;
+    --shadow-1:0 6px 24px rgba(16,24,40,.08);
+    --shadow-2:0 4px 14px rgba(17,24,39,.06);
+
+    /* 💡 متغيرات الألوان الجديدة */
+    --light-grey: #F8F9FA; 
+    --background-white: #FFFFFF;
+    --text-black: #1C1C1C;
+    --text-grey: #6c757d;
+    --primary-green: #4A6C47;    /* الأخضر الزيتي */
+    --highlight-gold: #CDA349;   /* الذهبي للإبراز */
+    --hover-gold:#ab883e;        /* الذهبي عند التمرير */
+    --cta-red: #B02E30;          /* الأحمر القاني */
+    --text-white: #fff;
+    --font-changa: 'Changa', sans-serif;
+}
+
+/* -------- [1] Page wrapper & Title -------- */
 .basketContainer {
     max-width: 1200px;
-    margin: 20px auto;
+    margin: 40px auto;
     padding: 15px;
-    font-family: 'Changa', sans-serif;
-    direction: rtl; /* الاتجاه من اليمين لليسار */
+    direction: rtl; 
+    min-height: 80vh;
+    font-family: var(--font-changa);
+}
+.body
+{
+    background-color: var(--light-grey); 
+
 }
 
 .pageTitle {
     text-align: center;
-    font-size: 2rem;
-    color: var(--primary-green);
-    margin-bottom: 25px;
+    font-size: 2.5rem;
+    font-weight: 900;
+    color: var(--text-black);
+    margin-bottom: 30px;
+    border-bottom: 4px solid var(--highlight-gold); /* 💡 استخدام highlight-gold */
+    display: block; 
+    padding-bottom: 10px;
+    width: 100%;
+}
+@media (max-width:768px){
+    .pageTitle{ font-size: 2rem; margin-bottom: 20px; }
 }
 
 /* --- حالة السلة الفارغة --- */
 .emptyCartMessage {
     text-align: center;
-    padding: 40px 15px;
+    padding: 60px 20px; 
     background-color: var(--background-white);
-    border-radius: 10px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    border-radius: var(--radius-lg); 
+    box-shadow: var(--shadow-1); 
+    border: 1px solid var(--light-grey);
+    margin: 40px 0;
 }
-
-.emptyCartMessage p {
-    font-size: 1rem;
-    color: #555;
-    margin-bottom: 20px;
-}
-
+.emptyCartMessage p { font-size: 1.2rem; color: var(--text-black); margin-bottom: 30px; font-weight: 600; }
 .emptyCartButton {
-    display: inline-block;
-    padding: 10px 20px;
-    background-color: var(--primary-green);
-    color: var(--background-white);
-    border-radius: 5px;
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 14px 30px;
+    background-color: var(--primary-green); /* 💡 استخدام primary-green */
+    color: var(--text-white);
+    border-radius: var(--radius-md); 
+    font-weight: 800;
+    font-size: 1.05rem;
+    border: 2px solid var(--primary-green);
+    transition: all 0.3s ease;
     text-decoration: none;
-    font-weight: bold;
-    transition: background-color 0.3s ease;
 }
+.emptyCartButton:hover { background-color: var(--highlight-gold); color: var(--text-black); border-color: var(--highlight-gold); } /* 💡 استخدام highlight-gold */
+.emptyCartButton .fas { transform: scaleX(-1); }
 
-.emptyCartButton:hover {
-    background-color: var(--highlight-gold);
-}
-
-.emptyCartButtonArrow {
-    margin-right: 8px;
-    transition: transform 0.3s ease;
-}
-
-.emptyCartButton:hover .emptyCartButtonArrow {
-    transform: translateX(-5px);
-}
-
-/* --- تخطيط السلة الممتلئة (عمود واحد افتراضي على الجوال) --- */
+/* -------- [2] Cart Layout (Grid) -------- */
 .cartLayout {
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 20px; 
+}
+@media (min-width: 992px) {
+    .cartLayout {
+        display: grid;
+        grid-template-columns: 2fr 1.1fr; 
+        gap: 30px;
+        align-items: flex-start;
+    }
 }
 
-/* --- قائمة عناصر السلة --- */
+
+/* -------- [3] Cart Items List & Header -------- */
 .cartItemsList {
     background-color: var(--background-white);
-    padding: 15px;
-    border-radius: 10px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    padding: 20px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-1); 
+    border: 1px solid var(--light-grey);
 }
 
 .cartHeader {
@@ -78,328 +113,292 @@
     justify-content: space-between;
     align-items: center;
     margin-bottom: 15px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid var(--light-grey);
+    padding-bottom: 15px;
+    border-bottom: 2px solid var(--light-grey);
 }
-
-.cartHeader h3 {
-    font-size: 1.2rem;
-    color: var(--primary-green);
-}
-
+.cartHeader h3 { font-size: 1.3rem; color: var(--primary-green); font-weight: 800; } /* 💡 استخدام primary-green */
 .clearAllButton {
-    background: none;
-    border: 1px solid var(--cta-red);
-    color: var(--cta-red);
-    padding: 6px 12px;
-    font-size: 0.9rem;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: all 0.3s ease;
+    background: none; border: 2px solid var(--cta-red); color: var(--cta-red); /* 💡 استخدام cta-red */
+    padding: 6px 12px; font-size: 0.9rem; font-weight: 700; border-radius: var(--radius-md);
+    cursor: pointer; transition: all 0.3s ease;
+}
+.clearAllButton:hover:not(:disabled) { background-color: var(--cta-red); color: var(--text-white); }
+.clearAllButton:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.noSpecificItems {
+    padding: 20px 10px;
+    text-align: center;
+    color: var(--text-grey); /* 💡 استخدام text-grey */
+    font-size: 1rem;
+    font-weight: 500;
 }
 
-.clearAllButton:hover {
-    background-color: var(--cta-red);
-    color: var(--background-white);
-}
-
-.clearAllButton i {
-    margin-left: 5px;
-}
-
-/* --- بطاقة عنصر السلة (تخطيط Flexbox محسّن للجوال) --- */
+/* -------- [4] Cart Item Card (Horizontal Compact) -------- */
 .cartItemCard {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
     padding: 15px 0;
-    border-bottom: 1px solid var(--light-grey);
-    position: relative;
-    gap: 15px;
-}
-
-.cartItemCard:last-child {
-    border-bottom: none;
-}
-
-/* التفاصيل الرئيسية للعنصر (الصورة + الاسم + المؤسسة) */
-.cartItemMainDetails {
-    display: flex;
+    border-bottom: 1px dashed var(--light-grey);
+    display: grid;
     align-items: center;
     gap: 15px;
+    grid-template-columns: 80px 1fr 120px; 
 }
 
-.cartItemImageContainer {
-    width: 80px; /* حجم صورة مناسب للجوال */
-    height: 80px;
+.cartItemCard:last-child { border-bottom: none; }
+
+.cartItemImageContainer { 
     position: relative;
-    border-radius: 5px;
+    width: 80px; 
+    height: 65px; 
+    border-radius: var(--radius-sm); 
     overflow: hidden;
-    background-color: #f0f0f0;
     flex-shrink: 0;
 }
-
-.itemImage {
-    border-radius: 5px;
+.itemImage { 
+    object-fit: cover;
 }
 
-.placeholderImage {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 100%;
-    height: 100%;
-    color: #ccc;
-}
-
-.cartItemDetails {
+.cartItemDetails { 
     display: flex;
     flex-direction: column;
-    gap: 5px;
+    gap: 4px;
+}
+.itemName { 
+    font-size: 1.1rem; color: var(--text-black); font-weight: 800; margin: 0; 
+}
+.itemInstitution { 
+    font-size: 0.85rem; color: var(--text-grey); margin: 0; /* 💡 استخدام text-grey */
+}
+.itemUnitPrice { 
+    font-size: 0.85rem; color: var(--primary-green); margin: 0; font-weight: 600; /* 💡 استخدام primary-green */
 }
 
-.itemName {
-    font-size: 1.1rem;
-    font-weight: bold;
-    color: var(--text-black);
-    margin-bottom: 0;
-}
-
-.itemInstitution, .itemUnitPrice {
-    font-size: 0.85rem;
-    color: #666;
-    margin-bottom: 0;
-}
-
-/* حاوية التحكم بالكمية والسعر الإجمالي */
-.cartItemControlsAndPrice {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 10px;
-}
-
-.quantityControl {
+.cartItemControls {
     display: flex;
     align-items: center;
-    border: 1px solid var(--light-grey);
-    border-radius: 5px;
+    gap: 15px;
+    margin-top: 8px;
 }
 
-.quantityButton {
-    background-color: #f9f9f9;
-    border: none;
-    padding: 8px 12px;
-    cursor: pointer;
-    font-size: 1.2rem;
-    line-height: 1;
+.quantityControl { 
+    display: flex; align-items: center; gap: 5px;
+    border: 1px solid var(--light-grey); border-radius: var(--radius-pill); padding: 4px 6px;
+    box-shadow: var(--shadow-2);
 }
-.quantityButton:disabled {
-    cursor: not-allowed;
-    color: #ccc;
+.quantityButton { 
+    width: 24px; height: 24px; font-size: 14px; 
+    border-radius: 50%; border: 1px solid var(--light-grey); 
+    background: var(--light-grey); cursor: pointer; color: var(--text-black);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 900;
 }
-
-.quantityInput {
-    width: 50px;
-    text-align: center;
-    border: none;
-    border-left: 1px solid var(--light-grey);
-    border-right: 1px solid var(--light-grey);
-    padding: 8px 0;
-    font-size: 1rem;
+.quantityInput { 
+    width: 30px; text-align: center; border: 0; font-weight: 800; font-size: 0.9rem; 
+    background-color: transparent; outline: none;
     -moz-appearance: textfield;
-}
-.quantityInput::-webkit-outer-spin-button,
-.quantityInput::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
 }
 
 .itemActions {
-    position: absolute;
-    top: 10px;
-    right: 10px;
+    margin-inline-start: auto;
 }
-
-.deleteButton {
-    background: none;
-    border: none;
-    color: var(--cta-red);
-    cursor: pointer;
-    font-size: 1.1rem;
+.deleteButton { 
+    background: none; border: 1px solid var(--cta-red); color: var(--cta-red); 
+    padding: 4px 8px; border-radius: var(--radius-md); font-size: 0.9rem; 
+    cursor: pointer; transition: all 0.2s ease;
+    display: flex; align-items: center; gap: 5px;
+    font-weight: 600;
 }
+.deleteButton:hover { background-color: var(--cta-red); color: var(--text-white); }
 
 .itemTotalPrice {
-    font-size: 1.2rem;
-    font-weight: bold;
-    color: var(--primary-green);
-    white-space: nowrap;
+    font-size: 1.3rem; 
+    font-weight: 900; 
+    color: var(--highlight-gold); /* 💡 استخدام highlight-gold */
+    text-align: end;
 }
 
-/* --- ملخص السلة (تخطيط عمود واحد) --- */
+
+/* ترتيب الموبايل (Stacking) */
+@media (max-width: 600px) {
+    .cartItemCard {
+        grid-template-columns: 80px 1fr;
+        grid-template-areas:
+            "image details"
+            "controls controls";
+        gap: 10px;
+    }
+    .itemTotalPrice {
+        grid-area: details; 
+        text-align: start;
+        margin-inline-start: auto;
+    }
+    .cartItemDetails { 
+        grid-area: details; 
+    }
+    .cartItemControls {
+        grid-area: controls;
+        justify-content: space-between;
+        width: 100%;
+        margin-top: 10px;
+        padding-top: 10px;
+        border-top: 1px dotted var(--light-grey);
+    }
+    .itemActions { margin-inline-start: 0; }
+}
+
+.cartItemsFooter {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 15px;
+    margin-top: 15px;
+    border-top: 2px solid var(--primary-green); /* 💡 استخدام primary-green */
+    font-size: 1.1rem;
+    font-weight: 700;
+}
+.continueShoppingLink {
+    color: var(--primary-green); /* 💡 استخدام primary-green */
+    text-decoration: none;
+    font-weight: 800;
+    display: flex; align-items: center; gap: 8px;
+    transition: color 0.2s ease;
+}
+.continueShoppingLink:hover { color: var(--highlight-gold); } /* 💡 استخدام highlight-gold */
+
+/* -------- [5] Cart Summary (Sticky) -------- */
 .cartSummary {
     background-color: var(--background-white);
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    padding: 25px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-1);
+    border: 1px solid var(--light-grey);
     height: fit-content;
-    position: static; /* إزالة الوضع الثابت (sticky) على الجوال */
+}
+@media (min-width: 992px) {
+    .cartSummary { 
+        position: sticky; 
+        top: 20px; 
+    }
 }
 
 .summarySection {
-    padding: 20px 0;
+    padding: 10px 0;
     border-bottom: 1px solid var(--light-grey);
 }
-.summarySection:last-of-type {
+.summarySection:last-child {
     border-bottom: none;
 }
-
 .summarySection h3 {
-    font-size: 1.5rem;
-    margin-bottom: 15px;
-    color: var(--primary-green);
+    font-size: 1.4rem;
+    font-weight: 900;
+    color: var(--text-black);
+    padding-bottom: 15px;
+    margin-bottom: 5px;
+}
+
+.summarySectionBreakdown {
+    padding: 15px 0;
+    margin: 10px 0;
+    border-top: 1px solid var(--light-grey);
+    border-bottom: 1px solid var(--light-grey);
 }
 
 .summaryRow {
     display: flex;
     justify-content: space-between;
-    margin-bottom: 10px;
+    padding: 8px 0;
     font-size: 1rem;
+    font-weight: 600;
 }
 
 .totalRow {
-    font-size: 1.3rem;
-    font-weight: bold;
-    color: var(--text-black);
-    margin-top: 15px;
+    font-size: 1.15rem;
+    padding: 15px 0;
+    border-top: 2px solid var(--primary-green); /* 💡 استخدام primary-green */
 }
 
-/* --- أنماط سياسة التبرعات الجديدة --- */
+/* خيار النقل والتبرع المخصص */
 .feesOptIn {
-    display: flex;
-    align-items: flex-start;
-    gap: 10px;
-    padding: 15px;
-    margin-top: 10px;
-    background-color: #f8f9fa;
-    border: 1px solid var(--light-grey);
-    border-radius: 5px;
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 8px 0;
 }
-
 .feesCheckbox {
-    margin-top: 5px;
-    flex-shrink: 0;
-}
-
-.feesLabel {
-    font-size: 0.9rem;
-    color: #555;
+    margin-top: 4px; flex-shrink: 0; width: 20px; height: 20px; accent-color: var(--primary-green); /* 💡 استخدام primary-green */
     cursor: pointer;
-    line-height: 1.6;
 }
+.feesLabel { font-size: 1rem; color: var(--text-black); cursor: pointer; line-height: 1.4; font-weight: 700; }
 
-.policyNote {
-    font-size: 0.85rem;
-    color: #777;
-    text-align: center;
-    margin-top: 20px;
-    line-height: 1.5;
+/* التبرع المخصص (حقل الإدخال) */
+.customDonationInputGroup {
+    display: flex; align-items: center; gap: 8px;
+    margin-top: 10px;
+    padding-bottom: 15px;
 }
-
-.policyNote a {
-    color: var(--primary-green);
-    text-decoration: underline;
+.customDonationInput {
+    flex-grow: 1; text-align: right; padding: 10px 12px; border: 2px solid var(--light-grey);
+    border-radius: var(--radius-md); font-size: 1.1rem; background-color: var(--light-grey);
+    outline: none; transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
+.customDonationInput:focus {
+    border-color: var(--primary-green); /* 💡 استخدام primary-green */
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary-green) 40%, transparent); /* ظل يتناسب مع primary-green */
+}
+.invalidInput {
+    border-color: var(--cta-red) !important; /* 💡 استخدام cta-red */
+}
+.currencySuffix { font-size: 1.1rem; font-weight: 800; color: var(--text-grey); } /* 💡 استخدام text-grey */
+.errorNote { color: var(--cta-red); font-size: 0.85rem; margin-top: 5px; font-weight: 600; } /* 💡 استخدام cta-red */
 
-/* --- نهاية الأنماط الجديدة --- */
+/* الإجمالي الكلي */
+.finalTotalAmount {
+    font-size: 1.8rem;
+    font-weight: 900;
+    color: var(--primary-green); /* 💡 استخدام primary-green */
+}
 
 .summaryActions {
     margin-top: 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.checkoutButton, .continueShoppingButton {
-    display: block;
-    width: 100%;
-    padding: 15px;
-    text-align: center;
-    border-radius: 5px;
-    text-decoration: none;
-    font-weight: bold;
-    transition: all 0.3s ease;
 }
 
 .checkoutButton {
-    background-color: var(--primary-green);
-    color: var(--background-white);
+    display: flex; justify-content: center; align-items: center; gap: 8px;
+    width: 100%;
+    background-color: var(--highlight-gold); /* 💡 استخدام highlight-gold */
+    color: var(--text-white);
+    padding: 15px;
+    font-size: 1.2rem;
+    font-weight: 900;
+    border-radius: var(--radius-md);
+    box-shadow: 0 5px 15px color-mix(in srgb, var(--highlight-gold) 60%, transparent); /* ظل يتناسب مع highlight-gold */
+    border: 2px solid var(--highlight-gold);
+    text-decoration: none;
+    transition: all 0.2s ease;
 }
-
-.checkoutButton:hover {
-    background-color: var(--highlight-gold);
+.checkoutButton:hover:not([aria-disabled="true"]) { 
+    background-color: var(--hover-gold); /* 💡 استخدام hover-gold */
+    border-color: var(--hover-gold);
+}
+.checkoutButton[aria-disabled="true"] {
+    background-color: #ccc; cursor: not-allowed; opacity: 0.8; box-shadow: none; border-color: #ccc; pointer-events: none;
 }
 
 .continueShoppingButton {
-    background-color: transparent;
-    color: var(--primary-green);
-    border: 1px solid var(--primary-green);
+    display: block;
+    text-align: center;
+    margin-top: 15px;
+    color: var(--primary-green); /* 💡 استخدام primary-green */
+    font-weight: 700;
+    text-decoration: none;
+    font-size: 1rem;
 }
+.continueShoppingButton:hover { text-decoration: underline; color: var(--highlight-gold); } /* 💡 استخدام highlight-gold */
 
-.continueShoppingButton:hover {
-    background-color: var(--primary-green);
-    color: var(--background-white);
+.policyNote {
+    font-size: 0.85rem; color: var(--text-grey); margin-top: 15px; text-align: center; line-height: 1.5; /* 💡 استخدام text-grey */
 }
+.policyNote strong { font-weight: 700; }
+.policyNote a { color: var(--primary-green); text-decoration: none; font-weight: 700; } /* 💡 استخدام primary-green */
+.policyNote a:hover { text-decoration: underline; }
 
-
-/* --- أنماط الشاشات الكبيرة (Desktop & Tablet) --- */
-@media (min-width: 768px) {
-    .basketContainer {
-        margin: 40px auto;
-        padding: 20px;
-    }
-    .pageTitle {
-        font-size: 2.5rem;
-    }
-    .cartLayout {
-        display: grid;
-        grid-template-columns: 2fr 1fr; /* تخطيط عمودين للشاشات الأكبر */
-        gap: 30px;
-    }
-    .cartItemsList {
-        padding: 20px;
-    }
-    .cartItemCard {
-        display: grid;
-        grid-template-columns: 100px 1fr auto;
-        align-items: center;
-        padding: 15px 0;
-        gap: 15px;
-    }
-    .cartItemDetails {
-        justify-content: center;
-        align-items: flex-start;
-    }
-    .cartItemControlsAndPrice {
-        flex-direction: row;
-        align-items: center;
-        justify-content: flex-end;
-        gap: 20px;
-    }
-    .itemActions {
-        position: static;
-    }
-    .deleteButton {
-        position: static; /* إعادة زر الحذف إلى مكانه الطبيعي */
-        font-size: 0.9rem;
-    }
-    .cartSummary {
-        position: sticky; /* إعادة تفعيل الموضع الثابت */
-        top: 20px;
-    }
-}
-.goldenText {
-    color: var(--highlight-gold); /* لون ذهبي */
-    font-weight: bold;
-}
+/* --- ألوان النص المخصص --- */
+.goldenText { color: var(--highlight-gold); font-weight: 800; } /* 💡 استخدام highlight-gold */
+.primaryGreenText { color: var(--primary-green); font-weight: 800; } /* 💡 استخدام primary-green */

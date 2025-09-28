@@ -30,7 +30,7 @@ import { Changa, Cairo } from "next/font/google";
 import { useSession, signIn, signOut, SessionProvider } from "next-auth/react"; // استيراد SessionProvider و useSession
 
 // Define Changa font (for headings)
-import { SpeedInsights } from "@vercel/speed-insights/next"
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const changa = Changa({
   subsets: ["arabic"],
@@ -55,7 +55,8 @@ const AppProviders = ({ children }: { children: React.ReactNode }) => {
   const { data: session, status } = useSession(); // جديد: استخدام useSession() من NextAuth.js
 
   // إظهار مؤشر تحميل بسيط أثناء التحقق من حالة المصادقة
-  if (status === "loading") { // useSession() يوفر "loading" لحالة التحقق
+  if (status === "loading") {
+    // useSession() يوفر "loading" لحالة التحقق
     return (
       <div
         style={{
@@ -77,7 +78,8 @@ const AppProviders = ({ children }: { children: React.ReactNode }) => {
   // LocaleProvider يلف المحتوى الرئيسي ويتلقى الـ locale الأولي من `session.user`
   // هذا يضمن تعيين الـ locale بناءً على تفضيل المستخدم المصادق عليه
   return (
-    <LocaleProvider initialLocale={session?.user?.locale || "en-US"}> {/* استخدام session.user?.locale */}
+    <LocaleProvider initialLocale={session?.user?.locale || "en-US"}>
+      {/* استخدام session.user?.locale */}
       {/* Header Component: يظهر في الجزء العلوي من كل صفحة. */}
       {/* تم نقله داخل الـ providers للوصول إلى LocaleContext و NextAuth Session */}
       <Header />

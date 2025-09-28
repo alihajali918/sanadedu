@@ -166,29 +166,7 @@ const CheckoutPage = () => {
 
                 <div className={styles.checkoutLayout}>
                     <div className={styles.formContainer}>
-                        {/* حقول الضيف */}
-                        <div className={styles.guestBox}>
-                            <label className={styles.label}>
-                                الاسم (اختياري):
-                                <input
-                                    className={styles.input}
-                                    type="text"
-                                    value={guestName}
-                                    onChange={(e) => setGuestName(e.target.value)}
-                                    placeholder="اكتب اسمك أو اتركه فارغًا"
-                                />
-                            </label>
-                            <label className={styles.label}>
-                                البريد الإلكتروني (اختياري):
-                                <input
-                                    className={styles.input}
-                                    type="email"
-                                    value={guestEmail}
-                                    onChange={(e) => setGuestEmail(e.target.value)}
-                                    placeholder="example@email.com"
-                                />
-                            </label>
-                        </div>
+                        
 
                         <Elements stripe={stripePromise}>
                             <CheckoutForm

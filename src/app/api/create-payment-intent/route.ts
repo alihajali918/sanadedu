@@ -5,7 +5,9 @@ import Stripe from "stripe";
 export const dynamic = "force-dynamic";
 
 const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY || "";
-const stripe = new Stripe(STRIPE_SECRET_KEY, { apiVersion: "2025-08-27.basil" });
+const stripe = new Stripe(STRIPE_SECRET_KEY, {
+  apiVersion: "2025-08-27.basil",
+});
 
 // العملة الافتراضية (طابقها مع واجهتك)
 const CURRENCY = process.env.DONATION_CURRENCY || "usd";
@@ -22,7 +24,10 @@ export async function POST(req: Request) {
 
     if (!amount || amount < 1) {
       return NextResponse.json(
-        { error: "ValidationError", details: { amount: "amount (in cents) is required (>0)" } },
+        {
+          error: "ValidationError",
+          details: { amount: "amount (in cents) is required (>0)" },
+        },
         { status: 400 }
       );
     }
@@ -31,21 +36,29 @@ export async function POST(req: Request) {
     const donatedItemsStr =
       typeof body.donated_items === "string"
         ? body.donated_items
-        : JSON.stringify(Array.isArray(body.donated_items) ? body.donated_items : []);
+        : JSON.stringify(
+            Array.isArray(body.donated_items) ? body.donated_items : []
+          );
 
     const case_ids: number[] = Array.isArray(body.case_ids)
       ? body.case_ids.map((n: any) => Number(n)).filter(Boolean)
       : (() => {
           try {
             const arr = JSON.parse(donatedItemsStr) || [];
-            return [...new Set(arr.map((i: any) => Number(i?.case_id)).filter(Boolean))];
+            return [
+              ...new Set(
+                arr.map((i: any) => Number(i?.case_id)).filter(Boolean)
+              ),
+            ];
           } catch {
             return [];
           }
         })();
 
-    const donor_name = (body.donor_name && String(body.donor_name).trim()) || "فاعل خير";
-    const donor_email = (body.donor_email && String(body.donor_email).trim()) || "";
+    const donor_name =
+      (body.donor_name && String(body.donor_name).trim()) || "فاعل خير";
+    const donor_email =
+      (body.donor_email && String(body.donor_email).trim()) || "";
     const user_id = Number(body.user_id || body.userId || 0);
 
     // metadata: نصوص فقط وبحدود Stripe، فاختصرنا
@@ -68,9 +81,15 @@ export async function POST(req: Request) {
       automatic_payment_methods: { enabled: true }, // يسهّل طرق الدفع
     });
 
-    return NextResponse.json({ clientSecret: pi.client_secret }, { status: 200 });
+    return NextResponse.json(
+      { clientSecret: pi.client_secret },
+      { status: 200 }
+    );
   } catch (err: any) {
     console.error("create-payment-intent error:", err);
-    return NextResponse.json({ error: err?.message || "Server error" }, { status: 500 });
+    return NextResponse.json(
+      { error: err?.message || "Server error" },
+      { status: 500 }
+    );
   }
 }

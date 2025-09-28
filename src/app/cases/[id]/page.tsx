@@ -1,7 +1,7 @@
 // src/app/cases/[id]/page.tsx
-import { notFound } from 'next/navigation';
-import { getCaseById } from 'lib/api';
-import CaseDetailsContent from '../components/CaseDetailsContent';
+import { notFound } from "next/navigation";
+import { getCaseById } from "lib/api";
+import CaseDetailsContent from "../components/CaseDetailsContent";
 
 interface DynamicPageProps {
   // ✅ في Next.js 15، params هو Promise

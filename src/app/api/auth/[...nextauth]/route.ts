@@ -91,7 +91,9 @@ const authOptions: NextAuthOptions = {
           }
 
           if (!wpUserId) {
-            console.error("[Credentials] Got token but couldn't resolve user_id.");
+            console.error(
+              "[Credentials] Got token but couldn't resolve user_id."
+            );
             return null;
           }
 
@@ -168,7 +170,8 @@ const authOptions: NextAuthOptions = {
           (user as any).wordpressUserId = wpUserId ?? null;
           (user as any).wordpressUserName =
             data.user_display_name || user.name || "";
-          (user as any).wordpressUserEmail = data.user_email || user.email || "";
+          (user as any).wordpressUserEmail =
+            data.user_email || user.email || "";
           (user as any).wordpressUserLocale = data.user_locale || "en-US";
           return true;
         }

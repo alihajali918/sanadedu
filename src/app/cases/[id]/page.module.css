@@ -1,135 +1,281 @@
-/* ==========================================================
-   File: /app/cases/[id]/page.module.css
-   - الجوال: منتج واحد (أفقي) + شريط علوي فيه الاسم ثم الأزرار
-   - التبويبات والتصنيفات: صف واحد قابل للسحب + Sticky
-   - السعر يتغير مع الكمية (عرض الإجمالي + سعر الوحدة)
-   - استعمال ألوان عبر var(--...)
-   ========================================================== */
+/* ================================================
+   File: /app/cases/[id]/page.module.css
+   (الكود المحدث بناءً على المتطلبات: Sticky + Mobile Header Fix)
+   =============================================== */
 
 /* -------- [0] Helpers -------- */
-:where(.caseDetailsPageContent){
-  --radius-lg:16px;
-  --radius-md:12px;
-  --radius-sm:10px;
-  --radius-pill:999px;
-  --shadow-1:0 6px 24px rgba(16,24,40,.08);
-  --shadow-2:0 4px 14px rgba(17,24,39,.06);
+:where(.caseDetailsPageContent) {
+  --radius-lg: 16px;
+  --radius-md: 12px;
+  --radius-sm: 10px;
+  --radius-pill: 999px;
+  --shadow-1: 0 6px 24px rgba(16, 24, 40, .08);
+  --shadow-2: 0 4px 14px rgba(17, 24, 39, .06);
 
-  /* ارتفاع الهيدر + تقدير ارتفاع التبويبات (لـ sticky) */
+  /* ارتفاع الهيدر + التبويبات + التصنيفات */
   --header-h: 64px;
   --tabs-h: 56px;
+  --categories-h: 56px;
 }
 
 /* -------- [1] Page wrapper -------- */
-.caseDetailsPageContent{ background-color: var(--light-grey); padding:0; padding-top:100px; padding-bottom:40px; direction:rtl; min-height:100vh; }
-@media (max-width:768px){ .caseDetailsPageContent{ padding-top:50px;} }
-.mainContentArea{ background:transparent; border-radius:0; box-shadow:none; padding:20px 0; width:100%; }
-
-/* -------- [2] Mobile header bar (اسم فوق + أزرار تحت + دروب داون) -------- */
-.mobileHeaderBar{ display:none; margin-bottom:12px; }
-@media (max-width:768px){
-  .mobileHeaderBar{ display:block; }
-  .caseTopInfoBarInsideContainer{ display:none !important; } /* إخفاء نسخة الدِسك توب على الجوال */
+.caseDetailsPageContent {
+  background-color: var(--light-grey);
+  padding: 0;
+  padding-top: 100px;
+  padding-bottom: 40px;
+  direction: rtl;
+  min-height: 100vh;
 }
 
-.mobileHeaderRow{
-  display:flex; flex-direction:column; align-items:stretch; gap:8px;
-  background: var(--background-white);
-  border:1px solid var(--light-grey);
-  border-radius:12px; padding:10px; box-shadow:var(--shadow-2);
-}
-.mobileTitle{
-  margin:0; font-size:18px; font-weight:900; color:var(--text-black);
-  line-height:1.3; white-space:normal; font-family: var(--font-changa);
-}
-.mobileActions{
-  display:grid; grid-template-columns: 1fr 1fr auto; gap:8px;
-}
-.infoToggle{
-  border:1px solid var(--light-grey); background:var(--background-white);
-  width:40px; height:40px; border-radius:10px; display:inline-flex; align-items:center; justify-content:center;
-}
-
-/* محتوى الدروب-داون (الجوال فقط) */
-.mobileInfoPanel{
-  display:none; background:var(--background-white); border:1px solid var(--light-grey);
-  border-radius:12px; padding:10px; margin-top:8px; box-shadow:var(--shadow-2);
-}
-.mobileInfoPanel.open{ display:block; }
-.mobileBadgeLine{ display:flex; align-items:center; gap:8px; margin:6px 0; color:var(--text-black); font-weight:600; }
-.mobileBadgeLine i{ color: var(--highlight-gold); }
-
-/* صندوق المتبقي داخل التاب للجوال */
-.mobileProgressBox{
-  margin-top:10px; background:var(--background-white); border:1px solid var(--light-grey); border-radius:12px; padding:10px;
-}
-
-/* -------- [3] Desktop top info -------- */
-.caseTopInfoBarInsideContainer{
-  display:flex; flex-direction:column; align-items:center; justify-content:center;
-  flex-wrap:wrap; gap:15px; padding:20px; border-bottom:none; margin-bottom:20px; direction:rtl;
-}
-@media (min-width:769px){
-  .caseTopInfoBarInsideContainer{
-    flex-direction:row; align-items:flex-start; justify-content:space-between; padding:0 20px 20px;
+@media (max-width:768px) {
+  .caseDetailsPageContent {
+    padding-top: 50px;
   }
 }
-.leftSection,.rightSection{ width:auto; align-items:center; text-align:center; }
-.schoolName{
-  font-size:40px; line-height:1.1; margin:0 0 8px; font-weight:900;
-  color: var(--text-black); text-align:center; white-space:normal;
-}
-.licensingInfo,.educationalPricing{
-  display:flex; align-items:center; gap:8px; margin:6px 0;
-  font-size:.95em; color:#555; text-align:center; font-weight:600;
-}
-.qualityBadge{ color: var(--highlight-gold); font-size:1.1em; }
 
-/* -------- [4] Remaining funds (percentage + progress) -------- */
-.remainingFundsDisplay{
+.mainContentArea {
+  background: transparent;
+  border-radius: 0;
+  box-shadow: none;
+  padding: 20px 0;
+  width: 100%;
+}
+
+/* ------------------------------------------------ */
+/* -------- [2] Mobile header bar (مبسط) -------- */
+/* ------------------------------------------------ */
+.mobileHeaderBar {
+  display: none;
+  margin-bottom: 20px;
+}
+
+@media (max-width:768px) {
+  .mobileHeaderBar {
+    display: block;
+  }
+
+  .caseTopInfoBarInsideContainer {
+    display: none !important;
+  }
+}
+
+.mobileHeaderRow {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
   background: var(--background-white);
   border: 1px solid var(--light-grey);
-  border-radius: 14px;
-  padding: 14px 16px;
+  border-radius: 12px;
+  padding: 16px;
   box-shadow: var(--shadow-2);
 }
-.progressHeader{ display:flex; align-items:center; justify-content:space-between; font-weight:700; color: var(--text-black); margin-bottom:10px; }
-.percentNumber{ color: var(--highlight-gold); font-weight:900; }
-.progressTrack{ width:100%; height:12px; border-radius:999px; background: var(--light-grey); overflow:hidden; position:relative; }
-.progressBar{ height:100%; background: var(--primary-green); border-radius:999px; transition: width .3s ease; }
-.progressFooter{ display:flex; justify-content:space-between; gap:12px; margin-top:10px; font-weight:700; color: var(--text-black); }
-.amountRaised,.amountNeeded{ opacity:.85; }
 
-/* -------- [5] أزرار عامة -------- */
-.directDonateInput{ display:flex; flex-direction:column; align-items:center; gap:10px; margin-top:20px; width:100%; }
-.directDonateInput a{ width:100% !important; }
-.requestDetailsBtn{ background:transparent; color:var(--text-black); border:2px solid var(--primary-green); border-radius:12px; padding:12px 16px; font-weight:800; }
-.requestDetailsBtn:hover{ background:var(--light-grey); }
-.donateGeneralBtn{ min-width:120px; background:var(--primary-green); color:var(--text-white); border:2px solid var(--primary-green); border-radius:12px; padding:12px 16px; font-weight:800; }
-.donateGeneralBtn:hover{ filter:brightness(.95); }
-@media (min-width:769px){ .directDonateInput{ flex-direction:row; width:auto; } }
-
-/* -------- [6] تبويبات الصفحة (Sticky + صف واحد بالسحب) -------- */
-.caseSubNavSectionTabs{
-  margin:18px 0 12px; background:var(--background-white); border-radius:16px; padding:8px;
-  border:1px solid var(--light-grey); box-shadow:var(--shadow-2);
+.mobileTitle {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 900;
+  color: var(--text-black);
+  line-height: 1.3;
+  /* تم التأكيد: السماح بالنص الطويل بالظهور على أكثر من سطر */
+  white-space: normal;
+  font-family: var(--font-changa);
+  text-align: center;
 }
-.stickyTabs{ position:sticky; top:var(--header-h); z-index:40; } /* تبقى تحت الهيدر */
-.subNavContainer{ display:flex; gap:8px; align-items:center; justify-content:flex-start; }
-.navItem{ border-radius:12px; padding:10px 14px; font-weight:800; border:2px solid transparent; background:transparent; color:var(--text-black); cursor:pointer; font-family: var(--font-changa); transition: background-color .2s ease, color .2s ease, border-color .2s ease; white-space:nowrap; }
-.navItem:hover{ background-color: rgba(0,0,0,.05); color: var(--primary-green); }
-.active{ background: var(--primary-green); color: var(--text-white); border-color: var(--primary-green); }
-.scrollRow{ overflow-x:auto; flex-wrap:nowrap; scrollbar-width:none; }
-.scrollRow::-webkit-scrollbar{ display:none; }
 
-/* -------- [7] التصنيفات (Sticky + صف واحد بالسحب + بدون خلفية) -------- */
-.categoryTabsSticky{ position:sticky; top:calc(var(--header-h) + var(--tabs-h) + 8px); z-index:35; }
-.categoryTabsContainer{
-  display:flex; gap:10px; align-items:center;
-  padding:8px 0; margin-bottom:0; direction:rtl; /* بلا خلفية/إطار */
+.mobileActions {
+  display: grid;
+  /* تم التأكيد: ضمان أن الزرين بنفس الحجم */
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
 }
-.categoryTabItem{
-  display:inline-flex; align-items:center; gap:8px;
+
+/* ------------------------------------------------ */
+/* -------- [3] Desktop top info (التصميم الجديد) -------- */
+/* ------------------------------------------------ */
+.caseTopInfoBarInsideContainer {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 30px;
+  padding: 20px;
+  background: var(--background-white);
+  border: 1px solid var(--light-grey);
+  border-radius: 16px;
+  margin-bottom: 20px;
+  box-shadow: var(--shadow-2);
+}
+
+@media (max-width:768px) {
+  .caseTopInfoBarInsideContainer {
+    display: none;
+  }
+}
+
+.leftSection {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 20px;
+}
+
+.rightSection {
+  flex: 0 0 300px;
+}
+
+.schoolName {
+  font-size: 32px;
+  line-height: 1.2;
+  margin: 0;
+  font-weight: 900;
+  color: var(--text-black);
+  text-align: right;
+  white-space: normal;
+  font-family: var(--font-changa);
+}
+
+.desktopButtons {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+  max-width: 400px;
+}
+
+/* ------------------------------------------------ */
+/* -------- [4] الأزرار (بنفس الحجم) -------- */
+/* ------------------------------------------------ */
+.goldenFillBtn,
+.goldenStrokeBtn {
+  border-radius: 12px;
+  padding: 12px 20px;
+  font-weight: 800;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: var(--font-changa);
+  font-size: 14px;
+  min-height: 48px;
+  /* تم التأكيد: يستخدم flex: 1 لضمان نفس الحجم في حاويات grid/flex */
+  flex: 1;
+  text-align: center;
+}
+
+.goldenFillBtn {
+  border: 2px solid var(--highlight-gold);
+  background: var(--highlight-gold);
+  color: var(--text-black);
+}
+
+.goldenFillBtn:hover {
+  background: var(--hover-gold);
+  border-color: var(--hover-gold);
+  filter: brightness(1.05);
+}
+
+.goldenStrokeBtn {
+  border: 2px solid var(--highlight-gold);
+  background: transparent;
+  color: var(--highlight-gold);
+}
+
+.goldenStrokeBtn:hover {
+  background: rgba(205, 163, 73, 0.1);
+  color: var(--hover-gold);
+  border-color: var(--hover-gold);
+}
+
+/* ------------------------------------------------ */
+/* -------- [5] تبويبات الصفحة (Sticky) -------- */
+/* ------------------------------------------------ */
+.caseSubNavSectionTabs {
+  margin: 0 0 20px;
+  background: var(--background-white);
+  border-radius: 16px;
+  padding: 8px;
+  border: 1px solid var(--light-grey);
+  box-shadow: var(--shadow-2);
+}
+
+.stickyTabs {
+  position: sticky;
+  /* تم التأكيد: التثبيت أسفل الهيدر */
+  top: var(--header-h);
+  z-index: 40;
+}
+
+.subNavContainer {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.navItem {
+  border-radius: 12px;
+  padding: 10px 14px;
+  font-weight: 800;
+  border: 2px solid transparent;
+  background: transparent;
+  color: var(--text-black);
+  cursor: pointer;
+  font-family: var(--font-changa);
+  transition: background-color .2s ease, color .2s ease, border-color .2s ease;
+  white-space: nowrap;
+}
+
+.navItem:hover {
+  background-color: rgba(0, 0, 0, .05);
+  color: var(--primary-green);
+}
+
+.active {
+  background: var(--primary-green);
+  color: var(--text-white);
+  border-color: var(--primary-green);
+}
+
+.scrollRow {
+  overflow-x: auto;
+  flex-wrap: nowrap;
+  scrollbar-width: none;
+}
+
+.scrollRow::-webkit-scrollbar {
+  display: none;
+}
+
+/* ------------------------------------------------ */
+/* -------- [6] التصنيفات (Sticky) -------- */
+/* ------------------------------------------------ */
+.categoryTabsSticky {
+  position: sticky;
+  /* تم التعديل: ضمان أن تبويبات الفئات تثبت أسفل تبويبات الصفحة الرئيسية مباشرة */
+  top: calc(var(--header-h) + var(--tabs-h) + 8px);
+  z-index: 35;
+  background: var(--background-white);
+  /* إزالة البادينغ والإطار والظل من هنا ودمجها مع الحاوية الداخلية (إذا لزم الأمر) لتركيز التثبيت */
+  padding: 8px 0;
+  margin-bottom: 20px;
+  border-radius: 16px;
+  border: 1px solid var(--light-grey);
+}
+
+.categoryTabsContainer {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 0 8px;
+  direction: rtl;
+}
+
+.categoryTabItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   background: var(--background-white);
   border: 1px solid var(--light-grey);
   color: var(--text-black);
@@ -142,15 +288,57 @@
   transition: transform .2s ease, background-color .2s ease;
   white-space: nowrap;
 }
-.categoryTabItem:hover{ transform: translateY(-1px); }
-.activeTab{ background: var(--primary-green); color: var(--text-white); border-color: var(--primary-green); }
 
-/* -------- [8] شبكة المنتجات (جوال: 1 عمود، دِسك توب: 2) -------- */
-.productsNeedsGrid{ display:grid; grid-template-columns:1fr; gap:16px; justify-items:stretch; }
-@media (min-width:992px){ .productsNeedsGrid{ grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.categoryTabItem:hover {
+  transform: translateY(-1px);
+}
 
+.activeTab {
+  background: var(--primary-green);
+  color: var(--text-white);
+  border-color: var(--primary-green);
+}
+
+/* ------------------------------------------------ */
+/* -------- [7] التصنيفات (Sticky + صف واحد بالسحب + بدون خلفية) -------- */
+/* ملاحظة: هذه الأنماط مكررة/معدلة وتخدم نفس الغرض، تم تركها للحفاظ على بنية الكود */
+/* ------------------------------------------------ */
+.categoryTabsSticky {
+  position: sticky;
+  top: calc(var(--header-h) + var(--tabs-h) + 8px);
+  z-index: 35;
+}
+
+.categoryTabsContainer {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 8px 0;
+  margin-bottom: 0;
+  direction: rtl;
+  /* بلا خلفية/إطار */
+}
+
+/* ------------------------------------------------ */
+/* -------- [8] شبكة المنتجات -------- */
+/* ------------------------------------------------ */
+.productsNeedsGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  justify-items: stretch;
+}
+
+@media (min-width:992px) {
+  .productsNeedsGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* ------------------------------------------------ */
 /* -------- [9] كرت المنتج (أفقي دائمًا: صورة يمين) -------- */
-.productCardNewDesign{
+/* ------------------------------------------------ */
+.productCardNewDesign {
   background: var(--background-white);
   border: 1px solid var(--light-grey);
   border-radius: 18px;
@@ -160,7 +348,8 @@
   align-items: center;
   gap: 10px;
 
-  grid-template-columns: 140px 1fr;   /* الجوال: image | details */
+  grid-template-columns: 140px 1fr;
+  /* الجوال: image | details */
   grid-template-rows: auto auto auto;
   grid-template-areas:
     "image title"
@@ -170,12 +359,16 @@
   min-height: 120px;
   overflow: visible;
 }
-@media (min-width:768px){
-  .productCardNewDesign{ grid-template-columns: 180px 1fr; min-height: 140px; }
+
+@media (min-width:768px) {
+  .productCardNewDesign {
+    grid-template-columns: 180px 1fr;
+    min-height: 140px;
+  }
 }
 
 /* الصورة يمين */
-.productImageWrapper{
+.productImageWrapper {
   grid-area: image;
   width: 100%;
   aspect-ratio: 4 / 3;
@@ -186,7 +379,7 @@
 }
 
 /* العنوان + السعر (الإجمالي يتغير مع الكمية) */
-.productItemNameNew{
+.productItemNameNew {
   grid-area: title;
   color: var(--text-black);
   font-weight: 800;
@@ -196,85 +389,185 @@
   text-align: right;
   font-family: var(--font-changa);
 }
-.productPriceGroup{
+
+.productPriceGroup {
   grid-area: price;
   display: flex;
   align-items: baseline;
   gap: 8px;
 }
-.productPriceValue{
+
+.productPriceValue {
   color: var(--primary-green);
   font-size: 20px;
   font-weight: 900;
   white-space: nowrap;
 }
-.unitPriceNote{
+
+.unitPriceNote {
   font-size: 12px;
   opacity: .7;
   white-space: nowrap;
 }
 
 /* صف التحكّم: تبرّع + متبقي + ستبر */
-.controlsRow{
+.controlsRow {
   grid-area: controls;
   display: flex;
   align-items: center;
   gap: 8px;
-  flex-wrap: wrap;     /* يمنع القطع على الشاشات الضيقة */
+  flex-wrap: wrap;
   min-width: 0;
 }
-@media (min-width:400px){ .controlsRow{ flex-wrap: nowrap; } }
-.controlsRow > *{ flex: 0 0 auto; }
 
-.btnDonateNew{
+@media (min-width:400px) {
+  .controlsRow {
+    flex-wrap: nowrap;
+  }
+}
+
+.controlsRow>* {
+  flex: 0 0 auto;
+}
+
+.btnDonateNew {
   background: var(--highlight-gold);
   color: var(--text-white);
   font-weight: 900;
   border-radius: 14px;
   padding: 8px 12px;
   border: 1px solid var(--highlight-gold);
-  display: inline-flex; align-items: center; gap: 6px; justify-content: center;
-  transition: filter .2s ease; box-shadow: none; font-family: var(--font-changa);
-  width: max-content; font-size: 13px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  justify-content: center;
+  transition: filter .2s ease;
+  box-shadow: none;
+  font-family: var(--font-changa);
+  width: max-content;
+  font-size: 13px;
 }
-.btnDonateNew:hover{ filter: brightness(.95); }
 
-.remainingBadge{
-  display: inline-flex; align-items: center; gap: 6px;
-  background: var(--primary-green); color: var(--text-white);
-  border-radius: 999px; padding: 6px 10px; font-weight: 900; font-size: 12px;
+.btnDonateNew:hover {
+  filter: brightness(.95);
 }
-.remainingBadge strong{ font-size: 12px; }
 
-.quantityControlNew{
-  display: inline-flex; align-items: center; gap: 6px;
+.remainingBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--primary-green);
+  color: var(--text-white);
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-weight: 900;
+  font-size: 12px;
+}
+
+.remainingBadge strong {
+  font-size: 12px;
+}
+
+.quantityControlNew {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   background: var(--background-white);
   border: 1px solid var(--light-grey);
   border-radius: 999px;
   padding: 4px 6px;
   box-shadow: var(--shadow-2);
-  margin-inline-start: auto; /* يدفع الستِبّر لليسار بالـRTL */
+  margin-inline-start: auto;
 }
-.quantityBtn{
-  width: 24px; height: 24px; border-radius: 50%;
+
+.quantityBtn {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
   border: 1px solid var(--light-grey);
-  background: var(--background-white); cursor: pointer;
-  font-size: 14px; font-weight: 900; display: inline-flex; align-items: center; justify-content: center;
+  background: var(--background-white);
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 900;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   color: var(--text-black);
 }
-.quantityBtn:disabled{ opacity: .45; cursor: not-allowed; }
-.quantityInputNew{ width: 36px; text-align: center; border: 0; background: transparent; font-weight: 800; font-size: 14px; outline: none; color: var(--text-black); }
+
+.quantityBtn:disabled {
+  opacity: .45;
+  cursor: not-allowed;
+}
+
+.quantityInputNew {
+  width: 36px;
+  text-align: center;
+  border: 0;
+  background: transparent;
+  font-weight: 800;
+  font-size: 14px;
+  outline: none;
+  color: var(--text-black);
+}
+
 .quantityInputNew::-webkit-outer-spin-button,
-.quantityInputNew::-webkit-inner-spin-button{ -webkit-appearance: none; margin: 0; }
+.quantityInputNew::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
 
 /* إخفاء السطر النصي القديم للمتبقي إن وُجد */
-.remainingUnitsInfo{ display:none !important; }
+.remainingUnitsInfo {
+  display: none !important;
+}
 
+/* ------------------------------------------------ */
 /* -------- [10] تبويبات/معرض/نصوص عامة -------- */
-.tabPane{ background: var(--background-white); border: 1px solid var(--light-grey); border-radius: 16px; box-shadow: var(--shadow-2); padding: 16px; }
-.caseDescriptionBlock p{ margin: 0 0 10px; color: var(--text-black); }
-.inquiriesBlock p{ margin: 0 0 10px; }
-.noDataMessage{ background: var(--background-white); border: 1px solid var(--light-grey); border-radius: 12px; padding: 16px; box-shadow: var(--shadow-2); color: var(--text-black); font-weight: 600; margin-bottom: 12px; }
-.backLinkWrapper{ text-align: center; margin-top: 12px; }
-.backLink{ display: inline-block; padding: 10px 14px; border-radius: 12px; border: 2px solid var(--primary-green); color: var(--primary-green); font-weight: 800; text-decoration: none; }
-.backLink:hover{ background: var(--light-grey); }
+/* ------------------------------------------------ */
+.tabPane {
+  background: var(--background-white);
+  border: 1px solid var(--light-grey);
+  border-radius: 16px;
+  box-shadow: var(--shadow-2);
+  padding: 16px;
+}
+
+.caseDescriptionBlock p {
+  margin: 0 0 10px;
+  color: var(--text-black);
+}
+
+.inquiriesBlock p {
+  margin: 0 0 10px;
+}
+
+.noDataMessage {
+  background: var(--background-white);
+  border: 1px solid var(--light-grey);
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: var(--shadow-2);
+  color: var(--text-black);
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.backLinkWrapper {
+  text-align: center;
+  margin-top: 12px;
+}
+
+.backLink {
+  display: inline-block;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 2px solid var(--primary-green);
+  color: var(--primary-green);
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.backLink:hover {
+  background: var(--light-grey);
+}

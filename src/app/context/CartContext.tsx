@@ -1,3 +1,4 @@
+// CartContext.tsx
 "use client";
 
 import React, {
@@ -9,16 +10,16 @@ import React, {
 } from "react";
 
 export interface CartItem {
-  id: string;                // مُعرّف السطر داخل السلة (فريد)
-  institutionId: string;     // case_id (مدرسة/مسجد...)
-  institutionName: string;   // اسم المؤسسة/الحالة (اختياري للعرض)
-  needId?: string;           // مُعرّف الاحتياج إن وُجد
-  itemName: string;          // اسم العنصر
-  itemImage?: string;        // صورة للعرض
-  unitPrice: number;         // سعر الوحدة (بالدولار)
-  quantity: number;          // الكمية
-  totalPrice: number;        // = unitPrice * quantity (بالدولار)
-  acfFieldId: string;        // مفتاح ACF الذي سنزيد كميته
+  id: string; // مُعرّف السطر داخل السلة (فريد)
+  institutionId: string; // case_id (مدرسة/مسجد...)
+  institutionName: string; // اسم المؤسسة/الحالة (اختياري للعرض)
+  needId?: string; // مُعرّف الاحتياج إن وُجد
+  itemName: string; // اسم العنصر
+  itemImage?: string; // صورة للعرض
+  unitPrice: number; // سعر الوحدة (بالدولار)
+  quantity: number; // الكمية
+  totalPrice: number; // = unitPrice * quantity (بالدولار)
+  acfFieldId: string; // مفتاح ACF الذي سنزيد كميته
 }
 
 interface CartContextType {
@@ -30,6 +31,8 @@ interface CartContextType {
   getTotalItems: () => number;
   getTotalAmount: () => number; // بالدولار
   isLoading: boolean;
+  // 💡 إضافة الخاصية 'isLoggedIn' لتصحيح خطأ 2339 في Checkout page
+  isLoggedIn: boolean;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -37,6 +40,8 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 export const CartProvider = ({ children }: { children: ReactNode }) => {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  // 💡 إضافة حالة 'isLoggedIn' - يجب ربطها بمنطق تسجيل الدخول الفعلي في مشروعك لاحقاً
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
     const storedCart = localStorage.getItem("sanad_cart");
@@ -121,9 +126,11 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         getTotalItems,
         getTotalAmount,
         isLoading,
+        // 💡 تمرير الخاصية الجديدة
+        isLoggedIn,
       }}
     >
-      {children}
+    {children}{" "}
     </CartContext.Provider>
   );
 };

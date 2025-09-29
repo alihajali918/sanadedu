@@ -1,5 +1,45 @@
 /* src/app/checkout/page.module.css */
 
+/* إضافة تعريف للـ inputField لاستخدامه بشكل مباشر في TypeScript */
+.inputField,
+.formGroup input[type="text"],
+.formGroup input[type="email"] {
+    width: 100%;
+    padding: 12px 15px;
+    /* الحفاظ على التنسيق السفلي المميز */
+    border-bottom: 2px solid var(--highlight-gold) !important;
+    border: 1px solid #ccc; /* إضافة حدود لتظهر الحقول بوضوح */
+    border-radius: 8px;
+    font-size: 1em;
+    color: var(--text-black);
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* تنسيق التركيز */
+.inputField:focus,
+.formGroup input[type="text"]:focus,
+.formGroup input[type="email"]:focus {
+    border-color: var(--primary-green);
+    box-shadow: 0 0 0 3px rgba(74, 108, 71, 0.2); /* ظل خفيف للتركيز */
+    outline: none;
+}
+
+/* تنسيق مجموعة الحقل (Label + Input) */
+.formGroup {
+    margin-bottom: 25px;
+    text-align: right; /* محاذاة التسميات لليمين */
+}
+
+.formGroup label {
+    display: block;
+    font-size: 1.1em;
+    color: var(--text-dark);
+    margin-bottom: 8px;
+    font-weight: 600;
+}
+
+
+/* الكود الأصلي في الجزء العلوي */
 .checkoutPage {
     padding: 60px 20px;
     background-color: #f8f9fa;

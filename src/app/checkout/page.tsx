@@ -9,7 +9,6 @@ import { useCart } from '../context/CartContext';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import styles from './page.module.css';
-
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || '');
 
 // -----------------------------------------------------------
@@ -166,8 +165,28 @@ const CheckoutPage = () => {
 
                 <div className={styles.checkoutLayout}>
                     <div className={styles.formContainer}>
-                        
-
+                        <div className={styles.formGroup}>
+                            <label htmlFor="guestName">الاسم الكامل (اختياري):</label>
+                            <input
+                                id="guestName"
+                                type="text"
+                                value={guestName}
+                                onChange={(e) => setGuestName(e.target.value)}
+                                className={styles.inputField}
+                                placeholder="الاسم"
+                            />
+                        </div>
+                        <div className={styles.formGroup}>
+                            <label htmlFor="guestEmail">البريد الإلكتروني (اختياري):</label>
+                            <input
+                                id="guestEmail"
+                                type="email"
+                                value={guestEmail}
+                                onChange={(e) => setGuestEmail(e.target.value)}
+                                className={styles.inputField}
+                                placeholder="البريد الإلكتروني"
+                            />
+                        </div>
                         <Elements stripe={stripePromise}>
                             <CheckoutForm
                                 caseId={firstCaseId}

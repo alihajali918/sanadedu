@@ -1,6 +1,6 @@
 // ================================================
 // File: /app/cases/[id]/CaseDetailsContent.tsx
-// (الكود المحدث بناءً على المتطلبات: الأنماط جاهزة للتثبيت وتوحيد الحجم)
+// (الكود المحدث: تنسيقات الأزرار والمنتجات وشريط الجوال)
 // ================================================
 "use client";
 
@@ -47,7 +47,7 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({
     [currencyFormatter]
   );
 
-  // ===== [C] نوع المؤسسة (للسياق) =====
+  // ===== [C] نوع المؤسسة (للسياق) - لم يتغير =====
   // const normalizedType = useMemo(() => String(caseItem?.type ?? "").trim().toLowerCase(), [caseItem?.type]);
   // const isSchool = useMemo(() => ["school", "مدرسة", "مدرسه"].includes(normalizedType), [normalizedType]);
   // const isMosque = useMemo(() => ["mosque", "مسجد", "جامع"].includes(normalizedType), [normalizedType]);
@@ -239,7 +239,7 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({
     <main className={styles.caseDetailsPageContent}>
       <div className="container">
         <div className={styles.mainContentArea}>
-          {/* ========== شريط الجوال المبسط (الأزرار هنا يجب أن تكون موحدة الحجم أيضاً) ========== */}
+          {/* ========== شريط الجوال المبسط (الأزرار موحدة الحجم وواضحة) ========== */}
           <div className={styles.mobileHeaderBar}>
             <div className={styles.mobileHeaderRow}>
               <h2 className={styles.mobileTitle} title={caseItem!.title}>
@@ -247,20 +247,22 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({
               </h2>
 
               <div className={styles.mobileActions}>
+                {/* زر تبني المؤسسة (موحد الحجم) */}
                 <button
                   onClick={handleDonateAllRemainingNeeds}
-                  className={`${styles.goldenFillBtn} ${styles.mobileActionBtn}`}
+                  className={`${styles.goldenFillBtn} ${styles.fixedSizeButton} ${styles.mobileActionBtn}`}
                   type="button"
                 >
-                  تبني
+                  تبني المؤسسة
                 </button>
 
+                {/* زر تفصيل الاحتياج (موحد الحجم) */}
                 <Link href={`/cases/request-need/${caseItem!.id}`} passHref>
                   <button
-                    className={`${styles.goldenStrokeBtn} ${styles.mobileActionBtn}`}
+                    className={`${styles.goldenStrokeBtn} ${styles.fixedSizeButton} ${styles.mobileActionBtn}`}
                     type="button"
                   >
-                    تفصيل
+                    تفصيل الاحتياج
                   </button>
                 </Link>
               </div>
@@ -274,15 +276,6 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({
               <h2 className={styles.schoolName}>{caseItem!.title}</h2>
 
               <div className={styles.desktopButtons}>
-                <Link href={`/cases/request-need/${caseItem!.id}`} passHref>
-                  {/* الزر الأول: تفصيل الاحتياج */}
-                  <button
-                    className={`${styles.goldenStrokeBtn} ${styles.fixedSizeButton}`}
-                    type="button"
-                  >
-                    تفصيل الاحتياج <i className="fas fa-list-alt" />
-                  </button>
-                </Link>
                 {/* الزر الثاني: تبني المؤسسة */}
                 <button
                   onClick={handleDonateAllRemainingNeeds}
@@ -291,6 +284,15 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({
                 >
                   تبني المؤسسة <i className="fas fa-heart" />
                 </button>
+                {/* الزر الأول: تفصيل الاحتياج */}
+                <Link href={`/cases/request-need/${caseItem!.id}`} passHref>
+                  <button
+                    className={`${styles.goldenStrokeBtn} ${styles.fixedSizeButton}`}
+                    type="button"
+                  >
+                    تفصيل الاحتياج <i className="fas fa-list-alt" />
+                  </button>
+                </Link>
               </div>
             </div>
 
@@ -343,7 +345,7 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({
             </div>
           </div>
 
-          {/* ========== تبويبات الصفحة (Sticky Header) ========== */}
+          {/* ========== تبويبات الصفحة (Sticky Header) - لم تتغير ========== */}
           <div
             className={`${styles.caseSubNavSectionTabs} ${styles.stickyTabGroup}`}
           >
@@ -408,7 +410,7 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({
                 selectedCategory &&
                 needsByCategory[selectedCategory]?.length > 0 && (
                   <div className={styles.productsNeedsGridTab}>
-                    {/* ========== التصنيفات (Sticky Categories) ========== */}
+                    {/* ========== التصنيفات (Sticky Categories) - لم تتغير ========== */}
                     <div
                       className={`${styles.categoryTabsSticky} ${styles.stickyTabGroup}`}
                     >
@@ -440,7 +442,7 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({
                       </div>
                     </div>
 
-                    {/* ========== شبكة المنتجات (للسياق) ========== */}
+                    {/* ========== شبكة المنتجات (المُعدّلة) ========== */}
                     <div className={`${styles.productsListSection} mt-40`}>
                       <div className={styles.productsNeedsGrid}>
                         {needsByCategory[selectedCategory].map((need) => {
@@ -474,6 +476,14 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({
                               <h5 className={styles.productItemNameNew}>
                                 {need.item}
                               </h5>
+                              
+                              {/* NEW: عرض المتبقي */}
+                              <div className={styles.remainingInfoTop}>
+                                <span>المتبقي:</span>
+                                <strong>
+                                  {formatNumberWestern(remainingQty)}
+                                </strong>
+                              </div>
 
                               <div className={styles.productPriceGroup}>
                                 <span className={styles.productPriceValue}>
@@ -482,33 +492,7 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({
                               </div>
 
                               <div className={styles.controlsRow}>
-                                <button
-                                  className={styles.btnDonateNew}
-                                  onClick={() => addNeedToCart(need)}
-                                  disabled={
-                                    remainingQty <= 0 ||
-                                    q <= 0 ||
-                                    !need.unitPrice ||
-                                    need.unitPrice <= 0
-                                  }
-                                  type="button"
-                                >
-                                  <i
-                                    className="fas fa-heart"
-                                    aria-hidden="true"
-                                  />
-                                  <span className={styles.donateText}>
-                                    تبرع
-                                  </span>
-                                </button>
-
-                                <span className={styles.remainingBadge}>
-                                  <span>متبقي</span>
-                                  <strong>
-                                    {formatNumberWestern(remainingQty)}
-                                  </strong>
-                                </span>
-
+                                {/* NEW: عداد الكمية (على اليمين) */}
                                 <div className={styles.quantityControlNew}>
                                   <button
                                     className={styles.quantityBtn}
@@ -557,6 +541,35 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({
                                     +
                                   </button>
                                 </div>
+
+                                {/* NEW: زر التبرع (يملأ المساحة) */}
+                                <button
+                                  className={styles.btnDonateNew}
+                                  onClick={() => addNeedToCart(need)}
+                                  disabled={
+                                    remainingQty <= 0 ||
+                                    q <= 0 ||
+                                    !need.unitPrice ||
+                                    need.unitPrice <= 0
+                                  }
+                                  type="button"
+                                >
+                                  <i
+                                    className="fas fa-heart"
+                                    aria-hidden="true"
+                                  />
+                                  <span className={styles.donateText}>
+                                    تبرع
+                                  </span>
+                                </button>
+                                
+                                {/* OLD: تم إخفاء هذا العنصر في الـ CSS */}
+                                {/* <span className={styles.remainingBadge}>
+                                  <span>متبقي</span>
+                                  <strong>
+                                    {formatNumberWestern(remainingQty)}
+                                  </strong>
+                                </span> */}
                               </div>
                             </div>
                           );
@@ -566,7 +579,7 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({
                   </div>
                 )}
 
-              {/* ... تبويبات عن المؤسسة والاستفسارات ... */}
+              {/* ... تبويبات عن المؤسسة والاستفسارات - لم تتغير ... */}
               {mainContentTab === "about" && (
                 <div
                   className={`${styles.aboutSchoolTabContent} ${styles.tabPane} py-40`}
@@ -575,7 +588,7 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({
                     عن المؤسسة + توثيق وصور
                   </h2>
                   <div className={`${styles.caseDescriptionBlock} mb-40`}>
-                    <p>{caseItem!.description}</p>
+                    
                     <p>
                       <strong>المحافظة:</strong> {caseItem!.governorate}،{" "}
                       <strong>المدينة:</strong> {caseItem!.city}

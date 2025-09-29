@@ -1,89 +1,97 @@
 /* src/app/globals.css */
 
 /* ==========================================================
-   متغيرات الألوان (Color Variables)
+   متغيرات الألوان (Color Variables) + أبعاد عامة
    ========================================================== */
 :root {
-    --primary-green: #4A6C47;        /* الأخضر الزيتي */
-    --cta-red: #B02E30;              /* الأحمر القاني لزر التبرع */
-    --highlight-gold: #CDA349;       /* الذهبي للإبراز */
-    --hover-gold:#ab883e;            /* الذهبي عند التمرير */
-    --background-white: #FFFFFF;     /* الأبيض للخلفيات */
-    --text-black: #1C1C1C;           /* الأسود المحايد للنصوص */
-    --text-white: #fff;               /* الأبيض للنصوص */
-    --light-grey: #F8F9FA;           /* للحدود أو بعض الخلفيات الفاتحة جداً */
-    --text-grey: #6c757d;            /* الرمادي للنصوص الثانوية */
-    --font-changa: var(--font-changa);
+  --primary-green: #4A6C47;        /* الأخضر الزيتي */
+  --cta-red: #B02E30;              /* الأحمر القاني لزر التبرع */
+  --highlight-gold: #CDA349;       /* الذهبي للإبراز */
+  --hover-gold:#ab883e;            /* الذهبي عند التمرير */
+  --background-white: #FFFFFF;     /* الأبيض للخلفيات */
+  --text-black: #1C1C1C;           /* الأسود المحايد للنصوص */
+  --text-white: #fff;              /* الأبيض للنصوص */
+  --light-grey: #F8F9FA;           /* للحدود أو بعض الخلفيات الفاتحة جداً */
+  --text-grey: #6c757d;            /* الرمادي للنصوص الثانوية */
+  --font-changa: var(--font-changa);
 
+  /* ارتفاعات الهيدر الموحّدة (استخدمها مع sticky عبر top: var(--header-h-*)) */
+  --header-h-desktop: 64px;
+  --header-h-mobile: 50px;
 }
+
 /* ==========================================================
    الأنماط العامة وإعادة الضبط (Global Styles & Resets)
    ========================================================== */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+/* اجعل التمرير على الـ viewport وليس داخل حاوية */
+html, body {
+  overflow-x: hidden;
+  overflow-y: auto;
+  font-family: 'Changa', sans-serif !important;
 }
 
-html, body {
-    overflow-x: hidden; /* لمنع التمرير الأفقي غير المرغوب فيه */
-    font-family: 'Changa', sans-serif !important;
+/* حاوية Next.js الرئيسية: لا تقفل الـ overflow حتى لا تكسر sticky */
+#__next, main {
+  overflow: visible;
 }
 
 body {
-    font-family: 'Changa', sans-serif !important; /* تم تحديث الخط إلى Changa */
-    direction: rtl; /* للتأكد من الاتجاه من اليمين لليسار */
-    unicode-bidi: embed; /* لضمان تطبيق الاتجاه بشكل صحيح */
-    text-align: right; /* محاذاة النص لليمين */
-    color: var(--text-black);
-    background-color: var(--background-white);
-    padding-top: 100px; /* هذا البادينغ لتعويض ارتفاع الهيدر الثابت */
-    font-feature-settings: "lnum"; /* لضمان استخدام الأرقام الغربية (lining numbers) */
-    font-variant-numeric: lining-nums; /* لضمان استخدام الأرقام الغربية (lining numbers) */
+  /* مهم: لا نضيف padding-top هنا حتى لا يتعارض مع صفحات تضبط الـ offset بنفسها
+     عوّض الهيدر داخل كل صفحة أو داخل الهيدر نفسه */
+  direction: rtl;
+  unicode-bidi: embed;
+  text-align: right;
+  color: var(--text-black);
+  background-color: var(--background-white);
+  font-feature-settings: "lnum";
+  font-variant-numeric: lining-nums;
+  padding-top: 80px;
 }
+
 /* لمنع التمرير عندما تكون قائمة الموبايل مفتوحة */
-body.no-scroll {
-    overflow: hidden;
-}
+body.no-scroll { overflow: hidden; }
+
+/* لو عندك صفحات قديمة تعتمد على offset عام، فعّل التالي مؤقتاً:
+   body.has-fixed-header { padding-top: var(--header-h-desktop); } */
+
 main {
-  padding-top: 10px; /* لتعويض ارتفاع الهيدر الثابت */
+  /* لا تضيف padding-top عام كبير هنا — خليه محلي بالصفحة */
+  padding-top: 10px;
 }
+
 /* نمط لـ SVG (من كودك الأصلي) */
 .cls-1 {
-    fill: var(--primary-green);
-    stroke: var(--background-white);
+  fill: var(--primary-green);
+  stroke: var(--background-white);
 }
 
-a {
-    text-decoration: none;
-    color: inherit; /* ليرث اللون من العنصر الأب */
-}
-
-ul {
-    list-style: none;
-}
+a { text-decoration: none; color: inherit; }
+ul { list-style: none; }
 
 /* ==========================================================
    أنماط التخطيط والفئات المساعدة (Layout & Utility Classes)
    ========================================================== */
 .container {
-    max-width: 1200px; /* عرض أقصى للمحتوى */
-    margin: 0 auto; /* توسيط المحتوى */
-    padding: 0 15px; /* هذا البادينغ كما أرسلته أنت */
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 15px;
 }
 
 /* أزرار الـ CTA الأساسية */
 .btn {
-    display: inline-block;
-    padding: 15px 30px; /* تم تعديل الـ padding هنا */
-    border-radius: 5px; /* حواف دائرية بسيطة */
-    transition: background-color 0.3s ease, color 0.3s ease;
-    font-weight: bold;
-    font-family: 'Changa', sans-serif; /* تم تحديث الخط إلى Changa */
-    text-align: center;
+  display: inline-block;
+  padding: 15px 30px;
+  border-radius: 5px;
+  transition: background-color .3s ease, color .3s ease;
+  font-weight: bold;
+  font-family: 'Changa', sans-serif;
+  text-align: center;
 }
+
+/* موبايل */
 @media (max-width: 768px) {
-    body {
-        padding-top: 0; /* This removes the padding on screens up to 768px wide */
-    }
+  /* لا نحتاج padding-top عام على body بالموبايل */
+  body { padding-top: 0; }
 }

@@ -1,6 +1,6 @@
 /* ================================================
    File: /app/cases/[id]/page.module.css
-   (الكود المحدث بناءً على المتطلبات: Sticky + Mobile Header Fix)
+   (Sticky fixed + mobile header offsets unified)
    =============================================== */
 
 /* -------- [0] Helpers -------- */
@@ -12,12 +12,18 @@
   --shadow-1: 0 6px 24px rgba(16, 24, 40, .08);
   --shadow-2: 0 4px 14px rgba(17, 24, 39, .06);
 
-  /* ارتفاع الهيدر + التبويبات + التصنيفات */
-  --header-h: 64px;
+  /* ارتفاعات الهيدر/التبويبات */
+  --header-h-desktop: 64px;
+  --header-h-mobile: 50px;
+  /* عدّلها إذا كان ارتفاع الهيدر الفعلي مختلف */
   --tabs-h: 56px;
   --categories-h: 56px;
+
+  /* الألوان (يجب تعريفها في ملفك الرئيسي أو هنا كافتراض) */
+
 }
 
+/* (مهم) منع أي overflow عالمي يكسر sticky داخل صفحات Next.js */
 /* -------- [1] Page wrapper -------- */
 .caseDetailsPageContent {
   background-color: var(--light-grey);
@@ -26,6 +32,8 @@
   padding-bottom: 40px;
   direction: rtl;
   min-height: 100vh;
+  /* تأكيد عدم كسر الـ sticky من أي overflow على الأسلاف */
+  overflow: visible;
 }
 
 @media (max-width:768px) {
@@ -40,6 +48,8 @@
   box-shadow: none;
   padding: 20px 0;
   width: 100%;
+  /* تأكيد عدم كسر الـ sticky */
+  overflow: visible;
 }
 
 /* ------------------------------------------------ */
@@ -78,7 +88,6 @@
   font-weight: 900;
   color: var(--text-black);
   line-height: 1.3;
-  /* تم التأكيد: السماح بالنص الطويل بالظهور على أكثر من سطر */
   white-space: normal;
   font-family: var(--font-changa);
   text-align: center;
@@ -86,13 +95,12 @@
 
 .mobileActions {
   display: grid;
-  /* تم التأكيد: ضمان أن الزرين بنفس الحجم */
   grid-template-columns: 1fr 1fr;
   gap: 12px;
 }
 
 /* ------------------------------------------------ */
-/* -------- [3] Desktop top info (التصميم الجديد) -------- */
+/* -------- [3] Desktop top info -------- */
 /* ------------------------------------------------ */
 .caseTopInfoBarInsideContainer {
   display: flex;
@@ -122,7 +130,8 @@
 }
 
 .rightSection {
-  flex: 0 0 300px;
+  flex: 0 0 320px;
+  /* زيادة بسيطة للعرض البصري */
 }
 
 .schoolName {
@@ -134,6 +143,7 @@
   text-align: right;
   white-space: normal;
   font-family: var(--font-changa);
+  margin-right: 12px;
 }
 
 .desktopButtons {
@@ -144,8 +154,20 @@
 }
 
 /* ------------------------------------------------ */
-/* -------- [4] الأزرار (بنفس الحجم) -------- */
+/* -------- [4] Buttons (equal width) -------- */
 /* ------------------------------------------------ */
+/* توحيد حجم الأزرار في الديسك توب والجوال (Fixed Size Button) */
+.fixedSizeButton {
+  min-width: 150px;
+  padding: 10px 16px;
+  text-align: center;
+}
+
+.mobileActionBtn {
+  flex-grow: 1;
+  font-size: 13px;
+}
+
 .goldenFillBtn,
 .goldenStrokeBtn {
   border-radius: 12px;
@@ -159,7 +181,6 @@
   font-family: var(--font-changa);
   font-size: 14px;
   min-height: 48px;
-  /* تم التأكيد: يستخدم flex: 1 لضمان نفس الحجم في حاويات grid/flex */
   flex: 1;
   text-align: center;
 }
@@ -167,7 +188,7 @@
 .goldenFillBtn {
   border: 2px solid var(--highlight-gold);
   background: var(--highlight-gold);
-  color: var(--text-black);
+  color: var(--text-white);
 }
 
 .goldenFillBtn:hover {
@@ -188,9 +209,85 @@
   border-color: var(--hover-gold);
 }
 
+/* تنسيق أيقونات الأزرار */
+.goldenFillBtn i,
+.goldenStrokeBtn i {
+  font-size: 14px;
+}
+
+/* ------------------------------------------------ */
+/* -------- [4.5] عرض المجموع والمتبقي (الشكل البصري الجديد) -------- */
+/* ------------------------------------------------ */
+.remainingFundsDisplay {
+  background: var(--light-grey);
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.progressHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: var(--font-changa);
+}
+
+.progressHeader span {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-black);
+}
+
+.percentNumber {
+  font-size: 24px;
+  font-weight: 900;
+  color: var(--primary-green);
+  /* لون النسبة المتبقية */
+}
+
+.progressTrack {
+  height: 10px;
+  background: #e5e7eb;
+  /* لون خلفية شريط الاكتمال */
+  border-radius: 999px;
+  overflow: hidden;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+  direction: ltr;
+  /* مهم لضمان نمو الشريط من اليسار لليمين */
+}
+
+.progressBar {
+  height: 100%;
+  background: var(--primary-green);
+  /* لون الشريط المكتمل */
+  border-radius: 999px;
+  transition: width 0.6s ease-in-out;
+}
+
+.progressFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: #6b7280;
+}
+
+.amountRaised {
+  color: var(--text-black);
+}
+
+.amountNeeded {
+  color: var(--primary-green);
+  font-weight: 800;
+}
+
 /* ------------------------------------------------ */
 /* -------- [5] تبويبات الصفحة (Sticky) -------- */
 /* ------------------------------------------------ */
+/* خلي الحاوية البيضاء نفسها sticky لضمان ثبات موحّد */
 .caseSubNavSectionTabs {
   margin: 0 0 20px;
   background: var(--background-white);
@@ -198,13 +295,33 @@
   padding: 8px;
   border: 1px solid var(--light-grey);
   box-shadow: var(--shadow-2);
+
+  position: sticky;
+  /* << */
+  top: var(--header-h-desktop);
+  /* << */
+  z-index: 100;
+  isolation: isolate;
 }
 
+@media (max-width:768px) {
+  .caseSubNavSectionTabs {
+    top: var(--header-h-mobile);
+  }
+}
+
+/* احتفظنا بالكلاس الداخلي كـ fallback (مش ضروري) */
 .stickyTabs {
+  position: -webkit-sticky;
   position: sticky;
-  /* تم التأكيد: التثبيت أسفل الهيدر */
-  top: var(--header-h);
-  z-index: 40;
+  top: var(--header-h-desktop);
+  z-index: 100;
+}
+
+@media (max-width:768px) {
+  .stickyTabs {
+    top: var(--header-h-mobile);
+  }
 }
 
 .subNavContainer {
@@ -240,8 +357,11 @@
 
 .scrollRow {
   overflow-x: auto;
+  overflow-y: visible;
+  /* لا تقفل محور Y داخل الحاوية اللاصقة */
   flex-wrap: nowrap;
   scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
 }
 
 .scrollRow::-webkit-scrollbar {
@@ -251,17 +371,25 @@
 /* ------------------------------------------------ */
 /* -------- [6] التصنيفات (Sticky) -------- */
 /* ------------------------------------------------ */
+/* عنصر التصنيفات نفسه هو اللاصق */
 .categoryTabsSticky {
+  position: -webkit-sticky;
   position: sticky;
-  /* تم التعديل: ضمان أن تبويبات الفئات تثبت أسفل تبويبات الصفحة الرئيسية مباشرة */
-  top: calc(var(--header-h) + var(--tabs-h) + 8px);
-  z-index: 35;
+  top: calc(var(--header-h-desktop) + var(--tabs-h) + 8px);
+  z-index: 95;
+  /* تحت التبويبات الرئيسية بقليل */
   background: var(--background-white);
-  /* إزالة البادينغ والإطار والظل من هنا ودمجها مع الحاوية الداخلية (إذا لزم الأمر) لتركيز التثبيت */
   padding: 8px 0;
   margin-bottom: 20px;
   border-radius: 16px;
   border: 1px solid var(--light-grey);
+  isolation: isolate;
+}
+
+@media (max-width:768px) {
+  .categoryTabsSticky {
+    top: calc(var(--header-h-mobile) + var(--tabs-h) + 8px);
+  }
 }
 
 .categoryTabsContainer {
@@ -300,26 +428,6 @@
 }
 
 /* ------------------------------------------------ */
-/* -------- [7] التصنيفات (Sticky + صف واحد بالسحب + بدون خلفية) -------- */
-/* ملاحظة: هذه الأنماط مكررة/معدلة وتخدم نفس الغرض، تم تركها للحفاظ على بنية الكود */
-/* ------------------------------------------------ */
-.categoryTabsSticky {
-  position: sticky;
-  top: calc(var(--header-h) + var(--tabs-h) + 8px);
-  z-index: 35;
-}
-
-.categoryTabsContainer {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  padding: 8px 0;
-  margin-bottom: 0;
-  direction: rtl;
-  /* بلا خلفية/إطار */
-}
-
-/* ------------------------------------------------ */
 /* -------- [8] شبكة المنتجات -------- */
 /* ------------------------------------------------ */
 .productsNeedsGrid {
@@ -345,16 +453,20 @@
   box-shadow: var(--shadow-1);
   padding: 12px;
   display: grid;
-  align-items: center;
+  align-items: start;
+  /* مهم لتنسيق المربعات الجديدة */
   gap: 10px;
 
+  /* الترتيب الجديد: العنوان، المتبقي، السعر، التحكم */
   grid-template-columns: 140px 1fr;
-  /* الجوال: image | details */
-  grid-template-rows: auto auto auto;
+  grid-template-rows: auto auto auto auto;
   grid-template-areas:
     "image title"
+    "image remaining"
+    /* << جديد: خانة المتبقي */
     "image price"
     "image controls";
+  /* << صف التحكم في الأسفل */
 
   min-height: 120px;
   overflow: visible;
@@ -378,7 +490,7 @@
   background: var(--light-grey);
 }
 
-/* العنوان + السعر (الإجمالي يتغير مع الكمية) */
+/* العنوان + السعر */
 .productItemNameNew {
   grid-area: title;
   color: var(--text-black);
@@ -390,11 +502,42 @@
   font-family: var(--font-changa);
 }
 
+/* ------------------------------------------------ */
+/* -------- [9.1] كلاس جديد لعرض الكمية المتبقية (فوق السعر) -------- */
+/* ------------------------------------------------ */
+.remainingInfoTop {
+  grid-area: remaining;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  /* لجعله في أقصى اليمين في RTL */
+  gap: 8px;
+  margin-bottom: 4px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--primary-green);
+}
+
+.remainingInfoTop span {
+  font-weight: 600;
+  color: var(--text-black);
+}
+
+.remainingInfoTop strong {
+  font-size: 16px;
+  font-weight: 900;
+  color: var(--primary-green);
+}
+
+/* ------------------------------------------------ */
+
 .productPriceGroup {
   grid-area: price;
   display: flex;
   align-items: baseline;
   gap: 8px;
+  margin-top: 4px;
+  /* فصل بسيط عن المتبقي */
 }
 
 .productPriceValue {
@@ -410,26 +553,25 @@
   white-space: nowrap;
 }
 
-/* صف التحكّم: تبرّع + متبقي + ستبر */
+/* صف التحكّم */
+/* تعديل صف التحكم: زر التبرع يملأ، والعداد بجواره */
 .controlsRow {
   grid-area: controls;
   display: flex;
   align-items: center;
   gap: 8px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  /* لا تكسر السطر */
   min-width: 0;
-}
-
-@media (min-width:400px) {
-  .controlsRow {
-    flex-wrap: nowrap;
-  }
+  /* نعكس الاتجاه ليكون العداد على اليمين في تخطيط RTL */
+  flex-direction: row-reverse;
 }
 
 .controlsRow>* {
   flex: 0 0 auto;
 }
 
+/* زر التبرع (يملأ المساحة) */
 .btnDonateNew {
   background: var(--highlight-gold);
   color: var(--text-white);
@@ -444,30 +586,26 @@
   transition: filter .2s ease;
   box-shadow: none;
   font-family: var(--font-changa);
-  width: max-content;
-  font-size: 13px;
+  /* التعديلات الهامة */
+  flex-grow: 1;
+  /* ليأخذ المساحة كاملة (لليسار في RTL) */
+  width: auto;
+  order: 1;
+  /* لتحديد الترتيب بجانب العداد (على اليسار) */
+  font-size: 14px;
+  padding: 12px 16px;
 }
 
 .btnDonateNew:hover {
   filter: brightness(.95);
 }
 
+/* إخفاء الشارة القديمة للمتبقي */
 .remainingBadge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: var(--primary-green);
-  color: var(--text-white);
-  border-radius: 999px;
-  padding: 6px 10px;
-  font-weight: 900;
-  font-size: 12px;
+  display: none !important;
 }
 
-.remainingBadge strong {
-  font-size: 12px;
-}
-
+/* عداد الكمية */
 .quantityControlNew {
   display: inline-flex;
   align-items: center;
@@ -477,7 +615,10 @@
   border-radius: 999px;
   padding: 4px 6px;
   box-shadow: var(--shadow-2);
-  margin-inline-start: auto;
+  margin-inline-start: 0;
+  /* إلغاء الـ auto margin */
+  order: 2;
+  /* لتحديد الترتيب (على اليمين) */
 }
 
 .quantityBtn {

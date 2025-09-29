@@ -1,4 +1,3 @@
-// src/lib/api.ts
 import { unstable_cache } from 'next/cache';
 import { z } from 'zod';
 import { CaseItem, Need } from './types';
@@ -31,6 +30,8 @@ export async function fetchWordPressData(
   const timeout = setTimeout(() => controller.abort(), 10_000);
 
   try {
+    // 💡 ملاحظة: revalidate هنا هي فقط لإعداد طلب fetch الأولي.
+    // يتم استخدام unstable_cache لاحقًا للتحكم في التخزين المؤقت الفعلي.
     const res = await fetch(finalUrlStr, { next: { revalidate: 3600 }, signal: controller.signal });
     clearTimeout(timeout);
 
@@ -130,16 +131,40 @@ function dedupeImages(imgs: string[]) {
   return Array.from(new Set(imgs.filter(Boolean)));
 }
 
+// src/lib/api.ts
+
 function parseQuantitiesMap(text: string | undefined | null) {
   const map = new Map<string, number>();
   if (!text || typeof text !== 'string') return map;
-  text.split(',')
+
+  // 1. محاولة التحليل كـ JSON أولاً (التنسيق الجديد والمستقر)
+  try {
+    const jsonObject = JSON.parse(text);
+    if (typeof jsonObject === 'object' && jsonObject !== null) {
+      // تحويل كائن JSON إلى Map مع التحقق من النوع
+      for (const key in jsonObject) {
+        const value = jsonObject[key];
+        if (typeof value === 'number' && !isNaN(value) && value >= 0) {
+          map.set(String(key), value);
+        }
+      }
+      // إذا نجح التحليل كـ JSON وأنتج Map غير فارغة، نعتمد عليه
+      if (map.size > 0) return map;
+    }
+  } catch (e) {
+    // فشل التحليل كـ JSON. نستمر في المحاولة بالطريقة القديمة
+  }
+
+  // 2. التحليل بالطريقة القديمة (ID=Quantity,ID=Quantity) للتوافق
+  text
+    .split(',')
     .map(p => p.trim())
     .filter(Boolean)
     .forEach(pair => {
       const [id, q] = pair.split('=').map(s => s.trim());
       if (id && q && !isNaN(Number(q))) map.set(String(id), Number(q));
     });
+
   return map;
 }
 
@@ -198,7 +223,7 @@ export const formatCaseData = async (
 
   const { governorate, city } = extractLocationNames(terms);
 
-  const description = acf?.description || 'لا يوجد وصف.';
+  const description = acf?.description || '';
   const totalNeeded = Number(acf?.total_needed) || 0;
   const totalDonated = Number(acf?.total_donated) || 0;
   const progress = totalNeeded > 0 ? Math.round((totalDonated / totalNeeded) * 100) : 0;
@@ -298,18 +323,22 @@ async function getNeedsList(postType: 'school_needs' | 'mosque_needs') {
 export const getSchoolNeedsList = unstable_cache(
   () => getNeedsList('school_needs'),
   ['school-needs-list'],
-  { revalidate: 3600 }
+  // ✅ إضافة tags: ['needs-lists'] للتحديث الفوري بعد التبرع
+  { revalidate: 3600, tags: ['needs-lists'] }
 );
 
 export const getMosqueNeedsList = unstable_cache(
   () => getNeedsList('mosque_needs'),
   ['mosque-needs-list'],
-  { revalidate: 3600 }
+  // ✅ إضافة tags: ['needs-lists'] للتحديث الفوري بعد التبرع
+  { revalidate: 3600, tags: ['needs-lists'] }
 );
 
 /* ============ Case APIs ============ */
 
 export async function getCaseById(id: number): Promise<CaseItem | null> {
+  // ملاحظة: getCaseById غير مخزنة مؤقتًا (غير ملفوفة بـ unstable_cache)
+  // لذلك يتم تحديثها في كل طلب (إذا لم تكن البيانات الداخلية مخزنة)
   const [schoolNeedsList, mosqueNeedsList] = await Promise.all([getSchoolNeedsList(), getMosqueNeedsList()]);
   const allNeedsMap = new Map([...schoolNeedsList, ...mosqueNeedsList].map(n => [String(n.id), n]));
 
@@ -382,7 +411,8 @@ export async function getCases(params: URLSearchParams = new URLSearchParams()):
       return allCases;
     },
     ['cases', typeKey, pageKey, searchKey, perPageKey],
-    { revalidate: 3600 }
+    // ✅ إضافة tags: ['cases'] للتحديث الفوري بعد التبرع
+    { revalidate: 3600, tags: ['cases'] } 
   );
 
   return cachedFn();
@@ -419,5 +449,7 @@ export const getDonations = unstable_cache(
     }
   },
   ['user-donations'],
+  // 💡 لا تحتاج لإضافة Tag هنا لأن هذه بيانات شخصية (للمستخدم المسجل دخول)
+  // وبالتالي لا يتم تخزينها مؤقتًا على مستوى عام.
   { revalidate: 3600 }
 );

@@ -353,7 +353,7 @@ export const formatCaseData = async (
         // 💡 تضمين حقول المسجد المعدّلة
         ...(type === 'mosque' && {
             regularWorshippers, // الحقل الذي يطابق regular_days
-            fridayWorshippers,  // الحقل الذي يطابق friday_prayer
+            fridayWorshippers,  // الحقل الذي يطابق friday_prayer
             mosqueArea,
         }),
     };
@@ -430,9 +430,9 @@ export async function getCaseById(id: number): Promise<CaseItem | null> {
 export async function getCases(params: URLSearchParams = new URLSearchParams()): Promise<CaseItem[]> {
     const paramsString = params.toString();
     const typeKey = (params.get('type') || 'all').toLowerCase();
-    const pageKey = params.get('page') || '';
-    const searchKey = params.get('search') || '';
-    const perPageKey = params.get('per_page') || '';
+    const pageKey = params.get('page') || '1';
+    const searchKey = params.get('search') || 'none';
+    const perPageKey = params.get('per_page') || '10';
 
     const cachedFn = unstable_cache(
         async () => {
@@ -467,8 +467,9 @@ export async function getCases(params: URLSearchParams = new URLSearchParams()):
             }
             return allCases;
         },
-        ['cases', typeKey, pageKey, searchKey, perPageKey],
-        // ✅ إضافة tags: ['cases'] للتحديث الفوري بعد التبرع
+        // 🚨 التعديل لضمان التحديث على Vercel
+        // نستخدم مفتاح فريد لجميع البارامترات، ونعتمد على التاج 'cases' للمسح الشامل.
+        ['cases-fetch', typeKey, pageKey, searchKey, perPageKey], 
         { revalidate: 3600, tags: ['cases'] }
     );
 
@@ -489,7 +490,8 @@ export interface Donation {
 export const getDonations = unstable_cache(
     async (userId: string): Promise<Donation[]> => {
         try {
-            // بناء الرابط لنقطة النهاية المخصصة
+            // 💡 ملاحظة: يجب تعديل هذا الجزء ليتوافق مع نقطة النهاية المخصصة (sanad/v1)
+            // إذا لم يتمكن fetchWordPressData من التعامل مع المسارات المخصصة
             const endpoint = `/my-donations?userId=${userId}`;
             const res = await fetchWordPressData(endpoint, undefined);
             const data = res?.data;
@@ -507,6 +509,5 @@ export const getDonations = unstable_cache(
     },
     ['user-donations'],
     // 💡 لا تحتاج لإضافة Tag هنا لأن هذه بيانات شخصية (للمستخدم المسجل دخول)
-    // وبالتالي لا يتم تخزينها مؤقتًا على مستوى عام.
     { revalidate: 3600 }
 );

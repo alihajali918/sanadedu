@@ -6,20 +6,13 @@ import styles from './About.module.css'; // ١. استيراد الموديول
 
 const AboutPage = () => {
   return (
-    // لا تحتاج كلاس للمحتوى الرئيسي إلا إذا أردت تنسيقه
     <main>
       {/* يمكنك ترك كلاسات الهيرو عامة في globals.css إذا كانت مشتركة */}
-      <section className="pageHeroSection" style={{ backgroundImage: "url('/images/about-hero-bg.jpg')" }}>
-        <div className="container">
-          <h1 className="pageHeroTitle">من نحن</h1>
-        </div>
-      </section>
-
       {/* ٢. تطبيق الأنماط باستخدام الكائن styles */}
       <section id="aboutSanadSection" className={styles.aboutSection}>
         <div className={`${styles.grid} container`}> {/* دمج كلاس الموديول مع كلاس عام */}
           <div className={`${styles.imageContainer} ${styles.orderImage}`}>
-            <Image src="/images/about-sanad-image.jpg" alt="صورة عن سند" width={600} height={400} className={styles.responsiveImage} />
+            <Image src="/sanad-team.jpg" alt="صورة عن سند" width={600} height={400} className={styles.responsiveImage} />
           </div>
           <div className={`${styles.textContent} ${styles.orderText}`}>
           <h2 /* لم نعد نحتاج كلاس هنا لأن الاختيار يتم من الأعلى */>من هي &quot;سند&quot;؟</h2>

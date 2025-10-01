@@ -67,8 +67,7 @@ export const LocaleProvider: React.FC<LocaleProviderProps> = ({
   return (
     <LocaleContext.Provider
       value={{ currentLocale, setLocale, toggleLocale, formatCurrency }}
-    >
-      {children}
+    >{children}
     </LocaleContext.Provider>
   );
 };

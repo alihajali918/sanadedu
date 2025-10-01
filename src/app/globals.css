@@ -47,7 +47,7 @@ body {
   background-color: var(--background-white);
   font-feature-settings: "lnum";
   font-variant-numeric: lining-nums;
-  padding-top: 80px;
+  padding-top: 120px !important;
 }
 
 /* لمنع التمرير عندما تكون قائمة الموبايل مفتوحة */

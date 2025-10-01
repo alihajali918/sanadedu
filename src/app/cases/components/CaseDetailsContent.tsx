@@ -1,6 +1,6 @@
 // ================================================
 // File: /app/cases/[id]/CaseDetailsContent.tsx
-// (الكود المحدث: تنسيقات الأزرار والمنتجات وشريط الجوال)
+// (الكود المحدث: تم إصلاح منطق عرض بيانات المسجد)
 // ================================================
 "use client";
 
@@ -47,10 +47,10 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({
     [currencyFormatter]
   );
 
-  // ===== [C] نوع المؤسسة (للسياق) - لم يتغير =====
-  // const normalizedType = useMemo(() => String(caseItem?.type ?? "").trim().toLowerCase(), [caseItem?.type]);
-  // const isSchool = useMemo(() => ["school", "مدرسة", "مدرسه"].includes(normalizedType), [normalizedType]);
-  // const isMosque = useMemo(() => ["mosque", "مسجد", "جامع"].includes(normalizedType), [normalizedType]);
+  // ===== [C] نوع المؤسسة (للسياق) - تم تعديل الشرط قليلاً للتأكد من الحالة المنظفة
+  const normalizedType = useMemo(() => String(caseItem?.type ?? "").trim().toLowerCase(), [caseItem?.type]);
+  const isSchool = useMemo(() => normalizedType === "school", [normalizedType]);
+  const isMosque = useMemo(() => normalizedType === "mosque", [normalizedType]);
 
   // ===== [D] الاحتياجات + تصنيفها =====
   const needs: Need[] = useMemo(
@@ -69,7 +69,7 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({
     [needsByCategory]
   );
 
-  // ===== [E] الفئة المختارة + تبويب الصفحة =====
+  // ===== [E] الفئة المختارة + تبويب الصفحة (المُعدّل) =====
   const [selectedCategory, setSelectedCategory] = useState<string | null>(
     categories[0] || null
   );
@@ -80,8 +80,9 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({
   }, [categories]);
 
   const [mainContentTab, setMainContentTab] = useState<
-    "products" | "about" | "inquiries"
+    "products" | "about" | "documentation"
   >("products");
+  // تمت إزالة "inquiries" من أنواع التبويبات المُحتملة.
 
   // ===== [F] كميات التبرع الافتراضية (للسياق) =====
   const [donationQuantities, setDonationQuantities] = useState<
@@ -234,7 +235,104 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({
     );
   }
 
-  // ===== [M] العرض =====
+  // ===============================================
+  // 💡 المكون الفرعي لعرض تفاصيل المدرسة/المسجد
+  // ===============================================
+  const InstitutionDetails: React.FC<{ item: CaseItem }> = ({ item }) => {
+
+    // دالة مساعدة للتحقق من وجود قيمة (أي قيمة رقمية، أو رقم أكبر من صفر، أو نص غير فارغ)
+    const hasValue = (val: any) => {
+      // نقبل 0 كرقم صحيح، لذا نستخدم != null للتحقق من وجوده (باستثناء null و undefined)
+      if (typeof val === 'number') return val != null; 
+      if (typeof val === 'string') return val.trim().length > 0;
+      return val != null;
+    };
+    
+    // منطق عرض تفاصيل المدرسة
+    const showSchoolDetails = isSchool && (
+        hasValue(item.numberOfStudents) || 
+        hasValue(item.numberOfClassrooms) || 
+        hasValue(item.educationLevel)
+    );
+    
+    // منطق عرض تفاصيل المسجد - 💡 تم إصلاح استخدام الحقول الجديدة
+    const showMosqueDetails = isMosque && (
+        hasValue(item.regularWorshippers) || // الحقل الجديد 1
+        hasValue(item.fridayWorshippers) ||  // الحقل الجديد 2
+        hasValue(item.mosqueArea)
+    );
+    
+    return (
+      <>
+        <div className={`${styles.caseDescriptionBlock} mb-40`}>
+            <h3>معلومات عامة</h3>
+            <p>
+              <strong>المحافظة:</strong> {item.governorate}،{" "}
+              <strong>المدينة:</strong> {item.city}
+            </p>
+            <p>
+              <strong>نوع المؤسسة:</strong>{" "}
+              {typeTranslations[item.type] || item.type}
+            </p>
+            <p>
+              <strong>درجة الاحتياج:</strong> {item.needLevel}
+            </p>
+        </div>
+
+        {/* تفاصيل المدرسة */}
+        {showSchoolDetails && (
+            <div className={`${styles.caseDescriptionBlock} mb-40`}>
+                <h3>تفاصيل المدرسة</h3>
+                {item.numberOfStudents != null && (
+                    <p>
+                        <strong>عدد الطلاب:</strong> {formatNumberWestern(item.numberOfStudents)} طالب
+                    </p>
+                )}
+                {item.numberOfClassrooms != null && (
+                    <p>
+                        <strong>عدد الفصول:</strong> {formatNumberWestern(item.numberOfClassrooms)} فصل
+                    </p>
+                )}
+                {hasValue(item.educationLevel) && (
+                    <p>
+                        <strong>المستوى التعليمي:</strong> {item.educationLevel}
+                    </p>
+                )}
+            </div>
+        )}
+
+        {/* تفاصيل المسجد - المُحدَّثة 💡 تم استخدام الحقول الجديدة */}
+        {showMosqueDetails && (
+            <div className={`${styles.caseDescriptionBlock} mb-40`}>
+                <h3>تفاصيل المسجد</h3>
+                
+                {/* 💡 عرض المصلين في الأيام العادية */}
+                {item.regularWorshippers != null && (
+                    <p>
+                        <strong>عدد المصلين (أيام عادية):</strong> {formatNumberWestern(item.regularWorshippers)} مصلٍ/مصلية
+                    </p>
+                )}
+                
+                {/* 💡 عرض المصلين يوم الجمعة */}
+                {item.fridayWorshippers != null && (
+                    <p>
+                        <strong>عدد المصلين (يوم الجمعة):</strong> {formatNumberWestern(item.fridayWorshippers)} مصلٍ/مصلية
+                    </p>
+                )}
+                
+                {item.mosqueArea != null && (
+                    <p>
+                        <strong>مساحة المسجد (م²):</strong> {formatNumberWestern(item.mosqueArea)} م²
+                    </p>
+                )}
+            </div>
+        )}
+      </>
+    );
+  };
+  // ===============================================
+
+  // ===== [M] العرض (المُعدّل) =====
   return (
     <main className={styles.caseDetailsPageContent}>
       <div className="container">
@@ -345,7 +443,7 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({
             </div>
           </div>
 
-          {/* ========== تبويبات الصفحة (Sticky Header) - لم تتغير ========== */}
+          {/* ========== تبويبات الصفحة (Sticky Header) - المُعدّلة ========== */}
           <div
             className={`${styles.caseSubNavSectionTabs} ${styles.stickyTabGroup}`}
           >
@@ -374,19 +472,20 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({
                 aria-selected={mainContentTab === "about"}
                 type="button"
               >
-                عن المؤسسة + توثيق وصور
+                عن المؤسسة
               </button>
               <button
                 className={`${styles.navItem} ${
-                  mainContentTab === "inquiries" ? styles.active : ""
+                  mainContentTab === "documentation" ? styles.active : ""
                 }`}
-                onClick={() => setMainContentTab("inquiries")}
+                onClick={() => setMainContentTab("documentation")}
                 role="tab"
-                aria-selected={mainContentTab === "inquiries"}
+                aria-selected={mainContentTab === "documentation"}
                 type="button"
               >
-                أسئلة واستفسارات
+                توثيق وصور
               </button>
+              {/* تم حذف زر "أسئلة واستفسارات" */}
             </div>
           </div>
 
@@ -476,7 +575,7 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({
                               <h5 className={styles.productItemNameNew}>
                                 {need.item}
                               </h5>
-                              
+
                               {/* NEW: عرض المتبقي */}
                               <div className={styles.remainingInfoTop}>
                                 <span>المتبقي:</span>
@@ -562,7 +661,7 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({
                                     تبرع
                                   </span>
                                 </button>
-                                
+
                                 {/* OLD: تم إخفاء هذا العنصر في الـ CSS */}
                                 {/* <span className={styles.remainingBadge}>
                                   <span>متبقي</span>
@@ -579,43 +678,48 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({
                   </div>
                 )}
 
-              {/* ... تبويبات عن المؤسسة والاستفسارات - لم تتغير ... */}
-              {mainContentTab === "about" && (
+              {/* === تبويبة: عن المؤسسة (المُحدثة) === */}
+              {mainContentTab === "about" && caseItem && (
                 <div
                   className={`${styles.aboutSchoolTabContent} ${styles.tabPane} py-40`}
                 >
-                  <h2 className="section-title text-center">
-                    عن المؤسسة + توثيق وصور
-                  </h2>
-                  <div className={`${styles.caseDescriptionBlock} mb-40`}>
-                    
-                    <p>
-                      <strong>المحافظة:</strong> {caseItem!.governorate}،{" "}
-                      <strong>المدينة:</strong> {caseItem!.city}
-                    </p>
-                    <p>
-                      <strong>نوع المؤسسة:</strong>{" "}
-                      {typeTranslations[caseItem!.type]}
-                    </p>
-                    <p>
-                      <strong>درجة الاحتياج:</strong> {caseItem!.needLevel}
-                    </p>
-                  </div>
+                  <h2 className="section-title text-center">عن المؤسسة</h2>
+                  {/* استدعاء المكون الفرعي الجديد هنا */}
+                  <InstitutionDetails item={caseItem} />
                 </div>
               )}
 
-              {mainContentTab === "inquiries" && (
+              {/* === تبويبة: توثيق وصور === */}
+              {mainContentTab === "documentation" && (
                 <div
                   className={`${styles.inquiriesTabContent} ${styles.tabPane} py-40`}
                 >
-                  <h2 className="section-title text-center">
-                    أسئلة واستفسارات
-                  </h2>
+                  <h2 className="section-title text-center">توثيق وصور</h2>
                   <div className={`${styles.inquiriesBlock} mb-40`}>
-                    <p>هنا يمكنك إضافة محتوى صفحة الأسئلة والاستفسارات.</p>
+                    <p>هنا يمكنك إضافة محتوى توثيق الحالة والصور الخاصة بها.</p>
+                    {/* إضافة عرض بسيط للصور */}
+                    <div className={styles.galleryGrid}>
+                        {caseItem?.images.map((imgUrl, index) => (
+                            <div key={index} className={styles.galleryImageWrapper}>
+                                <Image
+                                    src={imgUrl}
+                                    alt={`صورة توثيقية رقم ${index + 1}`}
+                                    width={300}
+                                    height={200}
+                                    style={{
+                                        objectFit: "cover",
+                                        width: "100%",
+                                        height: "100%",
+                                    }}
+                                />
+                            </div>
+                        ))}
+                    </div>
                   </div>
                 </div>
               )}
+              
+              {/* تم حذف محتوى تبويبة "inquiries" */}
             </div>
           )}
         </div>

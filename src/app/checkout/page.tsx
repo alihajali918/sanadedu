@@ -5,40 +5,40 @@ import React, { useState } from 'react';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements } from '@stripe/react-stripe-js';
 import CheckoutForm from './CheckoutForm';
-import { useCart } from '../context/CartContext';
+// 🛑 استيراد userName و userEmail من Context
+import { useCart } from '../context/CartContext'; 
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import styles from './page.module.css';
+
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || '');
 
 // -----------------------------------------------------------
-// تعريف الواجهة الموسعة والمصححة لتلبية متطلبات 'DonatedItem'
+// تعريف الواجهة
 // -----------------------------------------------------------
 interface DonatedItemForDisplay {
     case_id: number;
     line_total: number;
     item_quantity: number;
-    // 💡 تصحيح الخطأ: acf_field_id أصبح مطلوباً الآن
     acf_field_id: string; 
     need_id?: string;
-    // الحقول الإضافية المطلوبة للعرض
     item_name: string; 
     unit_price: number; 
 }
 
 const CheckoutPage = () => {
-    const { isLoading } = useCart(); 
+    // 🛑 يتم استخدام userName و userEmail هنا
+    const { isLoading, isLoggedIn, userName, userEmail } = useCart(); 
     const searchParams = useSearchParams();
 
-    // رسمياً: نجمع بيانات الضيف لو ما في جلسة
+    // بيانات الضيف (تُستخدم فقط إذا كان isLoggedIn هو false)
     const [guestName, setGuestName] = useState('');
     const [guestEmail, setGuestEmail] = useState('');
 
     // 1) قراءة بارامترات الحمولة الموحدة الجديدة من الـ URL
     const donatedItemsString = searchParams.get('donatedItems');
-    // totalAmountString: يمكن استخدامه للتحقق إذا لزم الأمر
-
-    // 2) فك تشفير وتحويل الحمولة إلى مصفوفة (النسخة التي سيتم تمريرها للـ CheckoutForm)
+    
+    // 2) فك تشفير وتحويل الحمولة إلى مصفوفة
     let richDonatedItems: DonatedItemForDisplay[] = [];
     let apiPayload: any[] = []; 
 
@@ -48,30 +48,26 @@ const CheckoutPage = () => {
             const rawPayload: any[] = JSON.parse(decodedString);
             apiPayload = rawPayload; 
 
-            // نحول الحمولة لتشمل الحقول المطلوبة للعرض (item_name, unit_price, acf_field_id)
+            // نحول الحمولة لتشمل الحقول المطلوبة للعرض
             richDonatedItems = rawPayload.map(item => {
                 let itemName = '';
                 let unitPrice = 0;
 
                 if (item.case_id > 0) {
-                    // تبرع للحالة: يمكن أن يكون نقدي أو عيني
                     itemName = item.item_quantity > 0 
                         ? `تبرع عيني للحالة ${item.case_id} (${item.item_quantity} وحدة)`
                         : `تبرع نقدي للحالة ${item.case_id}`;
-
-                    // حساب سعر الوحدة (وإلا يكون السعر هو الإجمالي)
                     unitPrice = item.item_quantity > 0 
                         ? Number((item.line_total / item.item_quantity).toFixed(2)) 
                         : item.line_total;
 
                 } else if (item.need_id === 'operational-costs') {
-                    // رسوم تشغيلية (نقل أو مخصص)
                     if (item.line_total === 5) {
                         itemName = 'أجور النقل والتوصيل';
                     } else {
                         itemName = 'تبرع مخصص إضافي (ميزانية تشغيل)';
                     }
-                    unitPrice = item.line_total; // سعر الوحدة هو الإجمالي في هذه الحالة
+                    unitPrice = item.line_total;
                 } else {
                     itemName = 'بند تبرع غير محدد';
                     unitPrice = item.line_total;
@@ -81,7 +77,6 @@ const CheckoutPage = () => {
                     case_id: item.case_id,
                     line_total: item.line_total,
                     item_quantity: item.item_quantity,
-                    // 💡 التصحيح: ضمان أن القيمة هي string دائماً
                     acf_field_id: item.acf_field_id || '', 
                     need_id: item.need_id,
                     item_name: itemName,
@@ -95,21 +90,18 @@ const CheckoutPage = () => {
         }
     }
 
-// ... بقية الكود دون تغيير ...
-
-    // 3) استخلاص المجاميع من الحمولة الموحدة (للعرض)
+    // 3) استخلاص المجاميع
     let subtotal = 0; 
     let optionalShippingFees = 0; 
     let parsedCustomDonation = 0; 
     let finalTotal = 0;
 
-    apiPayload.forEach(item => { // نستخدم الحمولة الأصلية النظيفة للحسابات
+    apiPayload.forEach(item => {
         finalTotal += item.line_total || 0;
 
         if (item.case_id > 0) {
             subtotal += item.line_total || 0;
         } else if (item.need_id === 'operational-costs') {
-            // نفترض أن رسوم النقل هي $5
             if (item.line_total === 5 && optionalShippingFees === 0) {
                 optionalShippingFees = 5; 
             } else {
@@ -129,6 +121,10 @@ const CheckoutPage = () => {
             maximumFractionDigits: 2,
         });
 
+    // 🛑 المنطق لتحديد الاسم والإيميل النهائيين للدفع
+    const finalDonorName = isLoggedIn ? userName : guestName;
+    const finalDonorEmail = isLoggedIn ? userEmail : guestEmail;
+
 
     if (isLoading) {
         return (
@@ -140,7 +136,6 @@ const CheckoutPage = () => {
         );
     }
 
-    // التحقق من أن هناك مبلغاً للدفع
     if (finalTotal <= 0 || richDonatedItems.length === 0) {
         return (
             <main className={styles.checkoutPage} dir="rtl">
@@ -154,7 +149,6 @@ const CheckoutPage = () => {
         );
     }
 
-    // تحديد مُعرّف الحالة الأولى (للتتبع في بعض الأنظمة)
     const firstCaseItem = richDonatedItems.find(item => item.case_id > 0);
     const firstCaseId = firstCaseItem?.case_id ? String(firstCaseItem.case_id) : '';
 
@@ -165,28 +159,55 @@ const CheckoutPage = () => {
 
                 <div className={styles.checkoutLayout}>
                     <div className={styles.formContainer}>
-                        <div className={styles.formGroup}>
-                            <label htmlFor="guestName">الاسم الكامل (اختياري):</label>
-                            <input
-                                id="guestName"
-                                type="text"
-                                value={guestName}
-                                onChange={(e) => setGuestName(e.target.value)}
-                                className={styles.inputField}
-                                placeholder="الاسم"
-                            />
-                        </div>
-                        <div className={styles.formGroup}>
-                            <label htmlFor="guestEmail">البريد الإلكتروني (اختياري):</label>
-                            <input
-                                id="guestEmail"
-                                type="email"
-                                value={guestEmail}
-                                onChange={(e) => setGuestEmail(e.target.value)}
-                                className={styles.inputField}
-                                placeholder="البريد الإلكتروني"
-                            />
-                        </div>
+                        
+                        {/* 💡 يظهر هذا الجزء فقط إذا لم يكن المستخدم مسجلاً دخولًا */}
+                        {!isLoggedIn && (
+                            <>
+                                <h2 className={styles.sectionTitle} style={{marginBottom: '10px'}}>معلومات المتبرع (ضيف)</h2>
+                                <p style={{marginBottom: '20px', color: '#666', fontSize: '0.9em'}}>
+                                    أنت تتبرع كـ **ضيف**. يرجى إدخال بياناتك هنا لإتمام العملية.
+                                </p>
+                                <div className={styles.formGroup}>
+                                    <label htmlFor="guestName">الاسم الكامل (اختياري):</label>
+                                    <input
+                                        id="guestName"
+                                        type="text"
+                                        value={guestName}
+                                        onChange={(e) => setGuestName(e.target.value)}
+                                        className={styles.inputField}
+                                        placeholder="الاسم"
+                                    />
+                                </div>
+                                <div className={styles.formGroup}>
+                                    <label htmlFor="guestEmail">البريد الإلكتروني (اختياري):</label>
+                                    <input
+                                        id="guestEmail"
+                                        type="email"
+                                        value={guestEmail}
+                                        onChange={(e) => setGuestEmail(e.target.value)}
+                                        className={styles.inputField}
+                                        placeholder="البريد الإلكتروني"
+                                    />
+                                </div>
+                            </>
+                        )}
+
+                        {/* 💡 يظهر هذا الجزء إذا كان المستخدم مسجلاً دخولاً */}
+                        {isLoggedIn && (
+                             <div className={styles.loggedInInfo} style={{marginBottom: '20px', padding: '15px', border: '1px solid #ddd', borderRadius: '8px', backgroundColor: '#f9f9f9'}}>
+                                <h2 className={styles.sectionTitle} style={{marginTop: 0, marginBottom: '5px'}}>معلومات المتبرع المسجل</h2>
+                                <p style={{margin: '5px 0'}}>
+                                    <strong style={{minWidth: '100px', display: 'inline-block'}}>الاسم:</strong> {userName || 'لا يوجد اسم مسجل'}
+                                </p>
+                                <p style={{margin: '5px 0'}}>
+                                    <strong style={{minWidth: '100px', display: 'inline-block'}}>الإيميل:</strong> {userEmail || 'لا يوجد بريد مسجل'}
+                                </p>
+                                <p style={{fontSize: '0.9em', color: '#666', marginTop: '10px'}}>
+                                    سيتم إتمام التبرع باستخدام بيانات حسابك المسجل.
+                                </p>
+                            </div>
+                        )}
+                        
                         <Elements stripe={stripePromise}>
                             <CheckoutForm
                                 caseId={firstCaseId}
@@ -195,14 +216,16 @@ const CheckoutPage = () => {
                                 shippingFees={Number(optionalShippingFees.toFixed(2))}
                                 customDonation={Number(parsedCustomDonation.toFixed(2))}
                                 donatedItems={richDonatedItems}
-                                donorName={guestName}
-                                donorEmail={guestEmail}
+                                // 🛑 تمرير الاسم والإيميل النهائيين (الحقيقي للمسجل أو المدخل للضيف)
+                                donorName={finalDonorName} 
+                                donorEmail={finalDonorEmail}
                             />
                         </Elements>
                     </div>
 
                     <aside className={styles.orderSummary}>
                         <h2 className={styles.summaryTitle}>ملخص تبرعك</h2>
+                        {/* ... (باقي ملخص الطلب) ... */}
                         <div className={styles.summaryItems}>
                             {subtotal > 0 && (
                                 <div className={styles.summaryItem}>

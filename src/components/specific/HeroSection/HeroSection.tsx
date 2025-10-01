@@ -16,17 +16,18 @@ import 'swiper/css/effect-fade';
 import styles from './HeroSection.module.css';
 
 // استيراد الصور وتنظيمها في مصفوفة ليسهل استخدامها في السلايدر
+import hiteboard from './4.jpg';
 import b1 from './1.jpg';
 import skinChair from './2.jpg';
 import whiteboard from './3.jpg';
-import hiteboard from './4.jpg';
+
 
 // تحديد نوع مصفوفة الصور
 const sliderImages: { src: StaticImageData; alt: string }[] = [
+    { src: hiteboard, alt: 'فريق سند' },
     { src: b1, alt: 'مدرسة' },
     { src: skinChair, alt: 'كرسي' },
-    { src: whiteboard, alt: 'سبورة' },
-    { src: hiteboard, alt: 'سبورة' }
+    { src: whiteboard, alt: 'سبورة' }
 ];
 
 const HeroSection: React.FC = () => {

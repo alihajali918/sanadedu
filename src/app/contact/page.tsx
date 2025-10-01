@@ -145,11 +145,11 @@ const ContactPage = () => {
               <h2 className={styles.sectionTitle}>معلومات الاتصال</h2>
               <div className={styles.infoItem}>
                 <i className="fas fa-map-marker-alt"></i>
-                <p>العنوان: دمشق، سوريا</p>
+                <p>العنوان: مانشستر، بريطانيا</p>
               </div>
               <div className={styles.infoItem}>
                 <i className="fas fa-phone"></i>
-                <p>الهاتف: +963 9XXXXXXXX</p>
+                <p>الهاتف: 447340995735+ </p>
               </div>
               <div className={styles.infoItem}>
                 <i className="fas fa-envelope"></i>

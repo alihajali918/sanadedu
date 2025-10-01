@@ -1,14 +1,13 @@
 "use client";
 
 import { useState, useMemo, useCallback } from "react";
-// 💡 استيراد الخصائص الحقيقية من CartContext
 import { useCart, CartItem } from "../context/CartContext";
 import Image from "next/image";
 import Link from "next/link";
 import styles from "./DonationBasketPage.module.css";
 
 // -----------------------------------------------------------
-// 1. تعريف هيكل البيانات الذي يتوقعه ووردبريس
+// 1. تعريف هيكل البيانات الذي يتوقعه ووردبريس (بدون تغيير)
 // -----------------------------------------------------------
 interface DonationItemForWP {
   case_id: number;
@@ -19,18 +18,16 @@ interface DonationItemForWP {
 }
 
 // -----------------------------------------------------------
-// 2. دالة بناء الحمولة الموحدة (تم التأكيد على المنطق)
+// 2. دالة بناء الحمولة الموحدة (تم تعديل منطق دمج التبرع التشغيلي)
 // -----------------------------------------------------------
 const buildDonatedItemsPayload = (
   items: CartItem[],
-  shippingFees: number,
-  customDonation: number
+  totalOperationalDonation: number // المبلغ الإجمالي الموحد للتشغيل
 ): DonationItemForWP[] => {
   const payload: DonationItemForWP[] = [];
 
   // أ. إضافة عناصر السلة (الحالات المخصصة)
   items.forEach((item) => {
-    // التحقق من صلاحية البيانات قبل الإضافة
     if (item.totalPrice > 0 && item.quantity > 0) {
       payload.push({
         case_id: Number(item.institutionId),
@@ -42,23 +39,13 @@ const buildDonatedItemsPayload = (
     }
   });
 
-  // ب. إضافة أجور النقل (لميزانية التشغيل)
-  if (shippingFees > 0) {
+  // ب. إضافة التبرع التشغيلي الموحد (أجور النقل + الإضافي)
+  if (totalOperationalDonation > 0) {
     payload.push({
       case_id: 0, // تبرع عام
-      line_total: shippingFees,
+      line_total: totalOperationalDonation,
       item_quantity: 0,
-      need_id: "operational-costs-shipping", // مفتاح تفريغ واضح
-    });
-  }
-
-  // ج. إضافة التبرع المخصص (لميزانية التشغيل)
-  if (customDonation > 0) {
-    payload.push({
-      case_id: 0, // تبرع عام
-      line_total: customDonation,
-      item_quantity: 0,
-      need_id: "operational-costs-custom", // مفتاح تفريغ واضح
+      need_id: "operational-costs-combined", // مفتاح تفريغ موحد
     });
   }
 
@@ -66,26 +53,20 @@ const buildDonatedItemsPayload = (
 };
 
 // -----------------------------------------------------------
-// 3. مكون الصفحة (DonationBasketPage) - يستخدم البيانات الحية
+// 3. مكون الصفحة (DonationBasketPage)
 // -----------------------------------------------------------
 const DonationBasketPage = () => {
-  // 💡 استخدام الـ Context الحقيقي
-  const {
-    cartItems,
-    removeItem,
-    updateItemQuantity,
-    clearCart,
-    getTotalAmount,
-  } = useCart();
+  const { cartItems, removeItem, updateItemQuantity, clearCart, getTotalAmount } = useCart();
 
-  // 1. حالة إضافة أجور النقل (رسوم ثابتة 5$)
-  const [addShippingFees, setAddShippingFees] = useState(false);
-  // 2. حالة التحكم بظهور حقل التبرع المخصص
-  const [showCustomDonationInput, setShowCustomDonationInput] = useState(false);
-  // 3. حالة مبلغ التبرع الإضافي غير المحدد
-  const [customDonationAmount, setCustomDonationAmount] = useState<string>("");
+  // 1. الحالة الموحدة: للتحكم بظهور حقل التبرع التشغيلي المدمج
+  const [showOperationalFeesInput, setShowOperationalFeesInput] = useState(false);
+  // 2. حالة مبلغ التبرع التشغيلي (افتراضياً 5$)
+  const SHIPPING_DEFAULT_FEE = 5;
+  const [operationalDonationAmount, setOperationalDonationAmount] = useState<string>(
+    SHIPPING_DEFAULT_FEE.toString()
+  );
 
-  // دالة تنسيق العملة
+  // دالة تنسيق العملة (بدون تغيير)
   const formatCurrencyWestern = (amount: number, currency: string = "USD") => {
     return amount.toLocaleString("en-US", {
       style: "currency",
@@ -95,18 +76,13 @@ const DonationBasketPage = () => {
     });
   };
 
-  // دالة معالجة تغيير الكمية
+  // دالة معالجة تغيير الكمية (بدون تغيير)
   const handleQuantityChange = useCallback(
     (id: string, value: string) => {
       const newQuantity = parseInt(value, 10);
-
-      if (isNaN(newQuantity) || newQuantity < 0) {
-        // لا تفعل شيئًا إذا كان الإدخال غير صالح
-        return;
-      }
-
+      if (isNaN(newQuantity) || newQuantity < 0) return;
       if (newQuantity === 0) {
-        removeItem(id); // حذف العنصر إذا كانت الكمية صفر
+        removeItem(id);
       } else {
         updateItemQuantity(id, newQuantity);
       }
@@ -114,58 +90,37 @@ const DonationBasketPage = () => {
     [removeItem, updateItemQuantity]
   );
 
-  // 💡 الحسابات (مع useMemo لضمان الكفاءة)
-  const {
-    subtotal,
-    shippingFeeValue,
-    parsedCustomDonation,
-    optionalShippingFees,
-    finalTotal,
-    isCustomDonationValid,
-  } = useMemo(() => {
+  // 💡 الحسابات (مع useMemo) - تم تبسيطها
+  const { subtotal, parsedOperationalDonation, finalTotal, isOperationalDonationValid } = useMemo(() => {
     const currentSubtotal = getTotalAmount();
-    const currentShippingFeeValue = 5;
 
-    const currentParsedCustomDonation = showCustomDonationInput
-      ? parseFloat(customDonationAmount) || 0
+    // المبلغ التشغيلي المدخل
+    const currentParsedOperationalDonation = showOperationalFeesInput
+      ? parseFloat(operationalDonationAmount) || 0
       : 0;
 
-    // تحقق من صلاحية إدخال المبلغ المخصص
-    const currentIsCustomDonationValid =
-      currentParsedCustomDonation >= 0 &&
-      !isNaN(parseFloat(customDonationAmount) || 0);
+    // تحقق من صلاحية إدخال المبلغ (أكبر من صفر إذا تم تحديده، وألا يكون قيمة غير صالحة)
+    const currentIsOperationalDonationValid =
+      currentParsedOperationalDonation >= 0 &&
+      !isNaN(parseFloat(operationalDonationAmount) || 0);
 
-    const currentOptionalShippingFees = addShippingFees
-      ? currentShippingFeeValue
-      : 0;
-    const currentFinalTotal =
-      currentSubtotal +
-      currentOptionalShippingFees +
-      currentParsedCustomDonation;
+    const currentFinalTotal = currentSubtotal + currentParsedOperationalDonation;
 
     return {
       subtotal: currentSubtotal,
-      shippingFeeValue: currentShippingFeeValue,
-      parsedCustomDonation: currentParsedCustomDonation,
-      optionalShippingFees: currentOptionalShippingFees,
+      parsedOperationalDonation: currentParsedOperationalDonation,
       finalTotal: currentFinalTotal,
-      isCustomDonationValid: currentIsCustomDonationValid,
+      isOperationalDonationValid: currentIsOperationalDonationValid,
     };
-  }, [
-    getTotalAmount,
-    addShippingFees,
-    customDonationAmount,
-    showCustomDonationInput,
-  ]);
+  }, [getTotalAmount, operationalDonationAmount, showOperationalFeesInput]);
 
   // التحقق النهائي قبل الدفع
-  const canProceedToCheckout = finalTotal > 0 && isCustomDonationValid;
+  const canProceedToCheckout = finalTotal > 0 && isOperationalDonationValid;
 
   // 💡 بناء الحمولة الموحدة للإرسال
   const finalPayload = buildDonatedItemsPayload(
     cartItems,
-    optionalShippingFees,
-    parsedCustomDonation
+    parsedOperationalDonation // إرسال المبلغ التشغيلي الموحد
   );
 
   // 💡 تشفير الحمولة الموحدة لـ URL
@@ -173,12 +128,11 @@ const DonationBasketPage = () => {
 
   // ------------------- العرض -------------------
 
-  const isCartTotallyEmpty =
-    cartItems.length === 0 &&
-    optionalShippingFees === 0 &&
-    parsedCustomDonation === 0;
+  // التحقق من أن السلة ليست فارغة تماماً (لتفادي حقل الإدخال وحده)
+  const isCartTotallyEmpty = cartItems.length === 0 && parsedOperationalDonation === 0;
 
   if (isCartTotallyEmpty) {
+    // ... (جزء السلة الفارغة بدون تغيير)
     return (
       <div className={styles.basketContainer} dir="rtl">
         <h1 className={styles.pageTitle}>سلة التبرعات</h1>
@@ -197,7 +151,7 @@ const DonationBasketPage = () => {
       <h1 className={styles.pageTitle}>سلة التبرعات </h1>
 
       <div className={styles.cartLayout}>
-        {/* ------------------- A. قائمة العناصر المخصصة ------------------- */}
+        {/* ------------------- A. قائمة العناصر المخصصة (بدون تغيير) ------------------- */}
         <div className={styles.cartItemsList}>
           <div className={styles.cartHeader}>
             <h3>عناصر التبرع المخصصة ({cartItems.length})</h3>
@@ -212,10 +166,10 @@ const DonationBasketPage = () => {
 
           {cartItems.length === 0 ? (
             <p className={styles.noSpecificItems}>
-              لا يوجد عناصر محددة في السلة حاليًا. يمكنك إضافة تبرع تشغيلي من
-              الملخص.
+              لا يوجد عناصر محددة في السلة حاليًا. يمكنك إضافة تبرع تشغيلي من الملخص.
             </p>
           ) : (
+            // ... (عرض عناصر السلة بدون تغيير)
             cartItems.map((item) => (
               <div key={item.id} className={styles.cartItemCard}>
                 {/* الصورة */}
@@ -255,7 +209,7 @@ const DonationBasketPage = () => {
                       </button>
                       <input
                         type="number"
-                        min="1" // يجب أن تكون 1 على الأقل لكي لا يحذف
+                        min="1"
                         value={item.quantity}
                         onChange={(e) =>
                           handleQuantityChange(item.id, e.target.value)
@@ -307,82 +261,65 @@ const DonationBasketPage = () => {
           )}
         </div>
 
-        {/* ------------------- B. ملخص الدفع (Sticky) ------------------- */}
+        {/* ------------------- B. ملخص الدفع (المعدّل) ------------------- */}
         <div className={styles.cartSummary}>
           <div className={styles.summarySection}>
             <h3>ملخص الدفع والتشغيل</h3>
           </div>
 
-          {/* خيار رسوم النقل */}
+          {/* الخيار الموحد لرسوم التشغيل (رسوم النقل + الإضافي) */}
           <div className={styles.summarySection}>
             <div className={styles.feesOptIn}>
               <input
                 type="checkbox"
-                id="add-shipping-fees-checkbox"
-                checked={addShippingFees}
-                onChange={(e) => setAddShippingFees(e.target.checked)}
-                className={styles.feesCheckbox}
-              />
-              <label
-                htmlFor="add-shipping-fees-checkbox"
-                className={styles.feesLabel}
-              >
-                أجور النقل والتوصيل
-                <span className={styles.goldenText}>
-                  {" "}
-                  ({formatCurrencyWestern(shippingFeeValue)})
-                </span>
-              </label>
-            </div>
-          </div>
-
-          {/* خيار التبرع المخصص (لإظهار الحقل) */}
-          <div className={styles.summarySection}>
-            <div className={styles.feesOptIn}>
-              <input
-                type="checkbox"
-                id="toggle-custom-donation-input"
-                checked={showCustomDonationInput}
+                id="toggle-operational-donation-input"
+                checked={showOperationalFeesInput}
                 onChange={(e) => {
-                  setShowCustomDonationInput(e.target.checked);
-                  if (!e.target.checked) setCustomDonationAmount("");
+                  setShowOperationalFeesInput(e.target.checked);
+                  // عند إلغاء التحديد، نعيد حقل الإدخال إلى القيمة الافتراضية ($5)
+                  if (!e.target.checked) {
+                    setOperationalDonationAmount(SHIPPING_DEFAULT_FEE.toString());
+                  }
                 }}
                 className={styles.feesCheckbox}
               />
               <label
-                htmlFor="toggle-custom-donation-input"
+                htmlFor="toggle-operational-donation-input"
                 className={styles.feesLabel}
               >
-                تبرع إضافي لميزانية التشغيل
+                أجور النقل والتوصيل ($5.00)
               </label>
             </div>
           </div>
 
-          {/* حقل التبرع المخصص (يظهر فقط عند التحديد) */}
-          {showCustomDonationInput && (
+          {/* حقل التبرع التشغيلي الموحد (يظهر فقط عند التحديد) */}
+          {showOperationalFeesInput && (
             <div className={styles.summarySection}>
               <div className={styles.customDonationInputGroup}>
                 <input
                   type="number"
-                  id="custom-donation-input"
+                  id="operational-donation-input"
                   min="0"
                   step="1"
-                  placeholder="أدخل المبلغ..."
-                  value={customDonationAmount}
-                  onChange={(e) => setCustomDonationAmount(e.target.value)}
+                  placeholder={`القيمة الافتراضية ${SHIPPING_DEFAULT_FEE}$...`}
+                  value={operationalDonationAmount}
+                  onChange={(e) => setOperationalDonationAmount(e.target.value)}
                   className={`${styles.customDonationInput} ${
-                    !isCustomDonationValid && customDonationAmount !== ""
+                    !isOperationalDonationValid && operationalDonationAmount !== ""
                       ? styles.invalidInput
                       : ""
                   }`}
                 />
                 <span className={styles.currencySuffix}>USD</span>
               </div>
-              {!isCustomDonationValid && customDonationAmount !== "" && (
+              {!isOperationalDonationValid && operationalDonationAmount !== "" && (
                 <p className={styles.errorNote}>
                   الرجاء إدخال رقم صحيح غير سالب.
                 </p>
               )}
+              <p className={styles.operationalNote}>
+                هذا المبلغ يغطي رسوم النقل والتوصيل (افتراضياً $5) وأي تبرع إضافي تختاره لتغطية التكاليف التشغيلية.
+              </p>
             </div>
           )}
 
@@ -394,25 +331,17 @@ const DonationBasketPage = () => {
                 <span>{formatCurrencyWestern(subtotal)}</span>
               </div>
             )}
-            {optionalShippingFees > 0 && (
+            {parsedOperationalDonation > 0 && (
               <div className={styles.summaryRow}>
-                <span>أجور النقل:</span>
+                <span>تبرع تشغيلي موحد:</span>
                 <span className={styles.goldenText}>
-                  + {formatCurrencyWestern(optionalShippingFees)}
-                </span>
-              </div>
-            )}
-            {parsedCustomDonation > 0 && (
-              <div className={styles.summaryRow}>
-                <span>تبرع مخصص للتشغيل:</span>
-                <span className={styles.goldenText}>
-                  + {formatCurrencyWestern(parsedCustomDonation)}
+                  + {formatCurrencyWestern(parsedOperationalDonation)}
                 </span>
               </div>
             )}
           </div>
 
-          {/* الإجمالي الكلي للدفع وزر الدفع */}
+          {/* الإجمالي الكلي للدفع وزر الدفع (بدون تغيير في المنطق) */}
           <div className={styles.summarySection}>
             <div className={`${styles.summaryRow} ${styles.totalRow}`}>
               <span>الإجمالي الكلي للدفع:</span>
@@ -433,7 +362,7 @@ const DonationBasketPage = () => {
             </Link>
 
             <p className={styles.policyNote}>
-              مبلغ ($$ {formatCurrencyWestern(finalTotal)} $$) يذهب لدعم
+              مبلغ ({formatCurrencyWestern(finalTotal)}) يذهب لدعم
               مشاريعنا الإنسانية.
             </p>
           </div>

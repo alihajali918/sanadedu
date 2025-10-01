@@ -9,17 +9,21 @@ import React, {
   ReactNode,
 } from "react";
 
+// 🛑 الاستيراد الحاسم: لجلب حالة المستخدم من NextAuth
+import { useSession } from 'next-auth/react'; 
+
+
 export interface CartItem {
-  id: string; // مُعرّف السطر داخل السلة (فريد)
-  institutionId: string; // case_id (مدرسة/مسجد...)
-  institutionName: string; // اسم المؤسسة/الحالة (اختياري للعرض)
-  needId?: string; // مُعرّف الاحتياج إن وُجد
-  itemName: string; // اسم العنصر
-  itemImage?: string; // صورة للعرض
-  unitPrice: number; // سعر الوحدة (بالدولار)
-  quantity: number; // الكمية
-  totalPrice: number; // = unitPrice * quantity (بالدولار)
-  acfFieldId: string; // مفتاح ACF الذي سنزيد كميته
+  id: string;
+  institutionId: string;
+  institutionName: string;
+  needId?: string;
+  itemName: string;
+  itemImage?: string;
+  unitPrice: number;
+  quantity: number;
+  totalPrice: number;
+  acfFieldId: string;
 }
 
 interface CartContextType {
@@ -29,61 +33,81 @@ interface CartContextType {
   updateItemQuantity: (id: string, quantity: number) => void;
   clearCart: () => void;
   getTotalItems: () => number;
-  getTotalAmount: () => number; // بالدولار
+  getTotalAmount: () => number;
   isLoading: boolean;
-  // 💡 إضافة الخاصية 'isLoggedIn' لتصحيح خطأ 2339 في Checkout page
   isLoggedIn: boolean;
+  userName: string | null;
+  userEmail: string | null;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
+
 export const CartProvider = ({ children }: { children: ReactNode }) => {
+  
+  // -------------------------------------------------------------------
+  // 🛑 1. جلب حالة المستخدم من NextAuth
+  // -------------------------------------------------------------------
+  const { 
+      data: session, 
+      status: sessionStatus, 
+  } = useSession(); 
+
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  // 💡 إضافة حالة 'isLoggedIn' - يجب ربطها بمنطق تسجيل الدخول الفعلي في مشروعك لاحقاً
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoadingCart, setIsLoadingCart] = useState(true);
+
+  // -------------------------------------------------------------------
+  // 2. تحديد قيم Context السلة النهائية بناءً على الجلسة
+  // -------------------------------------------------------------------
+  const isAuthReady = sessionStatus !== 'loading';
+  
+  const isLoggedIn = isAuthReady && sessionStatus === 'authenticated';
+  
+  // نستخرج البيانات من كائن session.user الذي قمت بتشكيله في route.ts
+  const userName = isLoggedIn ? session?.user?.name || null : null;
+  const userEmail = isLoggedIn ? session?.user?.email || null : null;
+  
+  // حالة التحميل النهائية (ننتظر تحميل الجلسة والسلة)
+  const isLoading = sessionStatus === 'loading' || isLoadingCart;
 
   useEffect(() => {
-    const storedCart = localStorage.getItem("sanad_cart");
-    if (storedCart) {
-      try {
-        const parsedCart = JSON.parse(storedCart);
-        setCartItems(parsedCart);
-      } catch (error) {
-        console.error("Error parsing stored cart:", error);
-        setCartItems([]);
-      }
+    // 🛑 يتم تحميل السلة فقط بعد أن يصبح نظام المصادقة جاهزًا
+    if (isAuthReady) {
+        // تحميل بيانات السلة
+        const storedCart = localStorage.getItem("sanad_cart");
+        if (storedCart) {
+            try {
+                const parsedCart = JSON.parse(storedCart);
+                setCartItems(parsedCart);
+            } catch (error) {
+                console.error("Error parsing stored cart:", error);
+                setCartItems([]);
+            }
+        }
+        setIsLoadingCart(false);
     }
-    setIsLoading(false);
-  }, []);
-
-  useEffect(() => {
-    if (!isLoading) {
-      if (cartItems.length > 0) {
-        localStorage.setItem("sanad_cart", JSON.stringify(cartItems));
-      } else if (localStorage.getItem("sanad_cart")) {
-        localStorage.removeItem("sanad_cart");
-      }
-    }
-  }, [cartItems, isLoading]);
+  }, [isAuthReady]); 
+  
+  
+  // ... (باقي دوال إدارة السلة والتخزين تبقى كما هي) ...
 
   const addItem = (item: CartItem) => {
     setCartItems((prevItems) => {
-      const existingIndex = prevItems.findIndex((i) => i.id === item.id);
-      if (existingIndex > -1) {
-        const updated = [...prevItems];
-        const existing = updated[existingIndex];
-        const newQuantity = item.quantity;
-        updated[existingIndex] = {
-          ...existing,
-          quantity: newQuantity,
-          totalPrice: Number((newQuantity * existing.unitPrice).toFixed(2)),
-          acfFieldId: item.acfFieldId,
-        };
-        return updated;
-      } else {
-        return [...prevItems, item];
-      }
+        const existingIndex = prevItems.findIndex((i) => i.id === item.id);
+        if (existingIndex > -1) {
+            const updated = [...prevItems];
+            const existing = updated[existingIndex];
+            const newQuantity = item.quantity;
+            updated[existingIndex] = {
+                ...existing,
+                quantity: newQuantity,
+                totalPrice: Number((newQuantity * existing.unitPrice).toFixed(2)),
+                acfFieldId: item.acfFieldId,
+            };
+            return updated;
+        } else {
+            return [...prevItems, item];
+        }
     });
   };
 
@@ -93,17 +117,17 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 
   const updateItemQuantity = (id: string, quantity: number) => {
     setCartItems((prev) =>
-      prev
-        .map((item) =>
-          item.id === id
-            ? {
-                ...item,
-                quantity,
-                totalPrice: Number((quantity * item.unitPrice).toFixed(2)),
-              }
-            : item
-        )
-        .filter((item) => item.quantity > 0)
+        prev
+            .map((item) =>
+                item.id === id
+                    ? {
+                        ...item,
+                        quantity,
+                        totalPrice: Number((quantity * item.unitPrice).toFixed(2)),
+                      }
+                    : item
+            )
+            .filter((item) => item.quantity > 0)
     );
   };
 
@@ -115,22 +139,28 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   const getTotalAmount = () =>
     cartItems.reduce((total, item) => total + item.totalPrice, 0);
 
+  useEffect(() => {
+    if (!isLoadingCart) {
+      if (cartItems.length > 0) {
+        localStorage.setItem("sanad_cart", JSON.stringify(cartItems));
+      } else if (localStorage.getItem("sanad_cart")) {
+        localStorage.removeItem("sanad_cart");
+      }
+    }
+  }, [cartItems, isLoadingCart]);
+
+
   return (
     <CartContext.Provider
       value={{
-        cartItems,
-        addItem,
-        removeItem,
-        updateItemQuantity,
-        clearCart,
-        getTotalItems,
-        getTotalAmount,
-        isLoading,
-        // 💡 تمرير الخاصية الجديدة
-        isLoggedIn,
+        cartItems, addItem, removeItem, updateItemQuantity, clearCart,
+        getTotalItems, getTotalAmount, isLoading,
+        isLoggedIn, 
+        userName, 
+        userEmail,
       }}
     >
-    {children}{" "}
+      {children}
     </CartContext.Provider>
   );
 };

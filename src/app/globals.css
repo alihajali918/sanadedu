@@ -93,5 +93,5 @@ ul { list-style: none; }
 /* موبايل */
 @media (max-width: 768px) {
   /* لا نحتاج padding-top عام على body بالموبايل */
-  body { padding-top: 0; }
+  body { padding-top: 0px !important; }
 }

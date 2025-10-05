@@ -181,7 +181,7 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({
 
     // 2. تهيئة الدفع السريع (Apple Pay/Google Pay)
     const pr = stripe.paymentRequest({
-      country: 'SA', // رمز البلد المستهدف
+      country: 'US', // ⚠️ تم التغيير من 'SA' إلى 'US'. رمز البلد المستهدف لزر الدفع السريع (Stripe لا يدعم SA لهذا الزر).
       currency: CURRENCY,
       total: {
         label: "إجمالي التبرع",
@@ -192,6 +192,8 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({
     });
 
     pr.canMakePayment().then((result) => {
+      // 🛠️ DEBUG LOG: يساعد هذا على تحديد ما إذا كان Stripe يعتقد أن الجهاز مؤهل
+      console.log("[STRIPE DEBUG] canMakePayment result:", result); 
       if (result) {
         setPaymentRequest(pr);
       } else {

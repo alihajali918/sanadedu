@@ -165,7 +165,7 @@ const CheckoutPage = () => {
                             <>
                                 <h2 className={styles.sectionTitle} style={{marginBottom: '10px'}}>معلومات المتبرع (ضيف)</h2>
                                 <p style={{marginBottom: '20px', color: '#666', fontSize: '0.9em'}}>
-                                    أنت تتبرع كـ **ضيف**. يرجى إدخال بياناتك هنا لإتمام العملية.
+                                    بإدخال اسمك وإيميلك يصلك إشعار وصور التوثيق، وبدونها يبقى التبرع مجهول
                                 </p>
                                 <div className={styles.formGroup}>
                                     <label htmlFor="guestName">الاسم الكامل (اختياري):</label>

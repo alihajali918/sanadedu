@@ -53,6 +53,13 @@ body {
 /* لمنع التمرير عندما تكون قائمة الموبايل مفتوحة */
 body.no-scroll { overflow: hidden; }
 
+:global(body.menu-open) {
+  /* منع التمرير الرأسي والأفقي */
+  overflow: hidden !important;
+  /* تثبيت الموضع لضمان عدم حدوث اهتزاز عند التثبيت */
+  position: fixed;
+  width: 100%;
+}
 /* لو عندك صفحات قديمة تعتمد على offset عام، فعّل التالي مؤقتاً:
    body.has-fixed-header { padding-top: var(--header-h-desktop); } */
 

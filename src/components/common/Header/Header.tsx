@@ -1,38 +1,27 @@
 // ==========================================================
 // FILE: src/components/common/Header/Header.tsx
-// DESCRIPTION: Main Header for Sanad Website (Top Bar and Main Nav).
 // ==========================================================
 
-"use client"; // مهم جداً لأننا نستخدم React Hooks مثل useState و useContext
+"use client";
 
 import Link from "next/link";
 import Image from "next/image";
 import { useState, useEffect } from "react";
-// تأكد من صحة مسار استيراد CartContext الخاص بك
+import { usePathname } from "next/navigation";
 import { useCart } from "@/app/context/CartContext";
-import { useSession, signOut } from "next-auth/react"; // <--- تم التعديل: استخدام useSession و signOut من NextAuth
-import styles from "./Header.module.css"; // استيراد الستايلات ككائن 'styles'
+import { useSession, signOut } from "next-auth/react";
+import styles from "./Header.module.css";
 
-// هذا المكون يمثل الرأس الرئيسي للموقع (Header) الذي يضم شريطي Top Bar و Main Nav
 const Header = () => {
-  // حالة لتعقب ما إذا كانت قائمة الجوال مفتوحة أو مغلقة
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  // حالة لتعقب القائمة المنسدلة المفتوحة داخل قائمة الجوال (مثلاً "من نحن" أو "الحالات")
-  const [openMobileDropdown, setOpenMobileDropdown] = useState<number | null>(
-    null
-  );
+  const [openMobileDropdown, setOpenMobileDropdown] = useState<number | null>(null);
+  const pathname = usePathname();
 
-  // **********************************************
-  // استخدام هوك useSession لجلب حالة المصادقة ووظيفة تسجيل الخروج
-  const { data: session, status } = useSession(); // <--- تم التعديل: استخدام useSession
-  const isAuthenticated = status === "authenticated"; // تعريف isAuthenticated بناءً على status
-  const isLoadingAuth = status === "loading"; // تعريف isLoadingAuth بناءً على status
-  // **********************************************
 
-  // استخدام هوك سلة التبرعات لجلب عدد العناصر الإجمالي
+  const { data: session, status } = useSession();
+  const isAuthenticated = status === "authenticated";
   const { getTotalItems } = useCart();
 
-  // وظيفة لتبديل حالة قائمة الجوال (فتح/إغلاق)
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen((prev) => !prev);
     if (isMobileMenuOpen) {
@@ -40,81 +29,72 @@ const Header = () => {
     }
   };
 
-  // وظيفة لتبديل حالة القوائم المنسدلة داخل قائمة الجوال
   const toggleMobileDropdown = (index: number) => {
     setOpenMobileDropdown(openMobileDropdown === index ? null : index);
   };
 
-  // تأثير (Effect) لإدارة كلاس 'no-scroll' على وسم <body>
+  // 🚨 التعديل الحاسم لمنع التمرير في الخلفية: تطبيق الكلاس على HTML و BODY 🚨
   useEffect(() => {
     if (isMobileMenuOpen) {
-      document.body.classList.add("no-scroll");
+      document.body.classList.add("menu-open");
+      document.documentElement.classList.add("menu-open");
     } else {
-      document.body.classList.remove("no-scroll");
+      document.body.classList.remove("menu-open");
+      document.documentElement.classList.remove("menu-open");
     }
     return () => {
-      document.body.classList.remove("no-scroll");
+      document.body.classList.remove("menu-open");
+      document.documentElement.classList.remove("menu-open");
     };
   }, [isMobileMenuOpen]);
 
-  // **********************************************
-  // تم إزالة جزء المحاكاة المؤقت لأنه أصبح غير ضروري مع استخدام NextAuth.js
-  // **********************************************
+  const getLinkClassName = (href: string) => {
+    return pathname === href ? styles.activeLink : "";
+  };
 
-  // إذا كانت حالة المصادقة قيد التحميل، يمكن عرض أيقونة تحميل أو لا شيء
-  // لا نرجع null هنا بشكل صارم، لأننا نريد أن يتم تحديث الهيدر بمجرد أن تصبح
-  // حالة isAuthenticated صحيحة، حتى لو كانت isLoadingAuth لا تزال صحيحة للحظة.
-  if (isLoadingAuth) {
-    // يمكنك هنا إرجاع هيدر مبسط أو Placeholder إذا أردت، لكننا نفضل عرضه بمجرد جاهزيته
-    // For now, we'll let the rest of the component render if isAuthenticated becomes true.
-    // If we return null here always, then the header will not show until isLoadingAuth is false.
-    // However, if isAuthenticated is already true due to login, we want it to render.
-    // So, we'll remove the strict 'return null' and let the conditional rendering handle it.
-  }
+  const isParentActive = (paths: string[]) => {
+    return paths.some((path) => pathname.startsWith(path));
+  };
 
   return (
     <header className={styles.mainHeader}>
       {/* الشريط العلوي للمعلومات والروابط الثانوية */}
       <div className={styles.topBar}>
         <div className={styles.container}>
-          {/* الروابط على اليمين (في الاتجاه العربي) */}
           <div className={styles.topBarRight}>
             <Link
               href="/faq"
-              className={styles.topLink}
+              className={`${styles.topLink} ${getLinkClassName("/faq")}`}
               onClick={() => setIsMobileMenuOpen(false)}
             >
               الأسئلة الشائعة
             </Link>
             <Link
               href="/contact"
-              className={styles.topLink}
+              className={`${styles.topLink} ${getLinkClassName("/contact")}`}
               onClick={() => setIsMobileMenuOpen(false)}
             >
               تواصل معنا
             </Link>
+
           </div>
-          {/*<span className={styles.separator}>|</span> <a href="#" className={`${styles.lang} ${styles.topLink}`} onClick={(e) => e.preventDefault()}>عربي / إنجليزي</a>*/}
+          {/* الروابط على اليسار (في الاتجاه العربي) */}
           <div className={styles.topBarLeft}>
-            {/* ********************************************** */}
-            {/* المنطق الشرطي لعرض أزرار تسجيل الدخول/الحساب */}
             {isAuthenticated ? (
-              // إذا كان المستخدم مسجلاً للدخول
               <>
-                {/* عرض اسم المستخدم أو بريده الإلكتروني */}
+
                 <Link
                   href="/donor/dashboard"
-                  className={styles.topLink}
+                  className={`${styles.topLink} ${getLinkClassName("/donor/dashboard")}`}
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   <i className="fas fa-user"></i> &nbsp;{" "}
-                  {session?.user?.name || session?.user?.email}{" "}
-                  {/* <--- استخدام session.user */}
+                  {session?.user?.name || session?.user?.email}
                 </Link>
                 <button
                   onClick={() => {
-                    signOut({ callbackUrl: "/auth/login" }); // <--- استخدام signOut من NextAuth
-                    setIsMobileMenuOpen(false); // إغلاق قائمة الجوال عند تسجيل الخروج
+                    signOut({ callbackUrl: "/auth/login" });
+                    setIsMobileMenuOpen(false);
                   }}
                   className={`${styles.topLink} ${styles.logoutButton}`}
                 >
@@ -122,41 +102,30 @@ const Header = () => {
                 </button>
               </>
             ) : (
-              // إذا لم يكن المستخدم مسجلاً للدخول
               <Link
                 href="/auth/login"
-                className={styles.topLink}
+                className={`${styles.topLink} ${getLinkClassName("/auth/login")}`}
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 تسجيل دخول / تسجيل
               </Link>
             )}
-            {/* ********************************************** */}
-
-            {/* <div className={styles.langCurrencySwitcher}>
-              <a href="#" className={`${styles.currency} ${styles.topLink}`} onClick={(e) => e.preventDefault()}>
-                $ دولار
-              </a>
-            </div>*/}
             <Link
               href="/donation-basket"
               className={styles.cartIcon}
               aria-label="سلة التسوق"
               onClick={() => setIsMobileMenuOpen(false)}
             >
-              <i className="fas fa-shopping-cart"></i>
-              {getTotalItems() > 0 && (
-                <span className={styles.cartCount}>{getTotalItems()}</span>
-              )}
+              <i className="fas fa-shopping-cart"></i>{" "}
+              {getTotalItems() > 0 && <span className={styles.cartCount}>{getTotalItems()}</span>}
             </Link>
           </div>
         </div>
       </div>
-
       {/* شريط التنقل الرئيسي (Main Nav) */}
       <nav className={styles.mainNav}>
         <div className={styles.container}>
-          {/* شعار الموقع والرابط للصفحة الرئيسية */}
+          {/* Logo */}
           <Link
             href="/"
             className={styles.logoContainer}
@@ -170,21 +139,9 @@ const Header = () => {
               className={styles.sanadlogo}
               priority
             />
-          </Link>
 
-          {/* زر قائمة الهامبرغر - يفتح قائمة الجوال عند النقر عليه */}
-          <Link
-            href="/donation-basket"
-            className={styles.cartIconMobile}
-            aria-label="سلة التسوق"
-            onClick={() => setIsMobileMenuOpen(false)}
-          >
-            <i className="fas fa-shopping-cart"></i>
-            {getTotalItems() > 0 && (
-              <span className={styles.cartCount}>{getTotalItems()}</span>
-            )}
           </Link>
-          {/* إضافة أيقونة الدخول للموبايل تستخدم حالة المصادقة */}
+          {/* authIconMobile و hamburgerMenu */}
           {isAuthenticated ? (
             <Link
               href="/donor/dashboard"
@@ -212,235 +169,361 @@ const Header = () => {
           >
             <i className="fas fa-bars"></i>
           </button>
-
           {/* روابط التنقل الرئيسية (للدسك توب) */}
           <ul className={styles.navLinks}>
             <li>
-              <Link href="/">الصفحة الرئيسية</Link>
+
+              <Link href="/" className={getLinkClassName("/")}>
+                الصفحة الرئيسية
+              </Link>
             </li>
-            <li className={styles.hasDropdown}>
-              <Link href="/about" className={styles.navLink}>
+
+            <li // تفعيل الـ Active State للـ li الأب
+              className={`${styles.hasDropdown} ${isParentActive(["/about", "/about/"]) ? styles.activeLinkParent : ""
+                }`}
+            >
+
+              <Link href="/about" className={getLinkClassName("/about")}>
                 من نحن
               </Link>
+
               <ul className={styles.dropdownMenu}>
+
                 <li>
-                  <Link href="/about/vision">رؤيتنا</Link>
+                  <Link href="/about/vision" className={getLinkClassName("/about/vision")}>
+                    رؤيتنا
+                  </Link>
+
                 </li>
+
                 <li>
-                  <Link href="/about/founder">عن المؤسس</Link>
+                  <Link href="/about/founder" className={getLinkClassName("/about/founder")}>
+                    عن المؤسس
+                  </Link>
+
                 </li>
+
                 <li>
-                  <Link href="/about/team">فريقنا</Link>
+                  <Link href="/about/team" className={getLinkClassName("/about/team")}>
+                    فريقنا
+                  </Link>
+
                 </li>
+
               </ul>
             </li>
-            <li className={styles.hasDropdown}>
+            <li // تفعيل الـ Active State للـ li الأب
+              className={`${styles.hasDropdown} ${isParentActive(["/cases", "/cases/"]) ? styles.activeLinkParent : ""
+                }`}
+            >
+
               <Link
                 href="/cases"
-                className={`${styles.navLink} ${styles.btn} ${styles.btnCtaPrimary}`}
+                className={`${styles.navLink} ${styles.btn} ${styles.btnCtaPrimary
+                  } ${getLinkClassName("/cases")}`}
               >
                 الحالات
               </Link>
+
               <ul className={styles.dropdownMenu}>
+
                 <li>
-                  <Link href="/cases">تصفح كل الحالات</Link>
+                  <Link href="/cases" className={getLinkClassName("/cases")}>
+                    تصفح كل الحالات
+                  </Link>
+
                 </li>
+
                 <li>
-                  <Link href="/cases?type=schools">تصفح المدارس</Link>
+                  <Link
+                    href="/cases?type=schools"
+                    className={getLinkClassName("/cases?type=schools")}
+                  >
+                    تصفح المدارس
+                  </Link>
+
                 </li>
+
                 <li>
-                  <Link href="/cases?type=mosques">تصفح المساجد</Link>
+                  <Link
+                    href="/cases?type=mosques"
+                    className={getLinkClassName("/cases?type=mosques")}
+                  >
+                    تصفح المساجد
+                  </Link>
+
                 </li>
               </ul>
             </li>
             <li>
+
               <Link
                 href="/support-staff"
-                className={`${styles.navLink} ${styles.btn} ${styles.btnCtaPrimary}`}
+                className={`${styles.navLink} ${styles.btn} ${styles.btnCtaPrimary
+                  } ${getLinkClassName("/support-staff")}`}
               >
                 ادعم الكادر
               </Link>
             </li>
             <li>
-              <Link href="/request-documentation">طلب توثيق المؤسسة</Link>
+
+              <Link
+                href="/request-documentation"
+                className={getLinkClassName("/request-documentation")}
+              >
+                طلب توثيق المؤسسة
+              </Link>
             </li>
             <li>
-              <Link href="/latest-donors">آخر المتبرعين</Link>
+
+              <Link href="/latest-donors" className={getLinkClassName("/latest-donors")}>
+                آخر المتبرعين
+              </Link>
             </li>
           </ul>
         </div>
       </nav>
+      {/* القائمة الجانبية للموبايل */}
+      <div className={`${styles.mobileMenu} ${isMobileMenuOpen ? styles.active : ""}`}>
 
-      {/* القائمة الجانبية للموبايل (Mobile Menu) */}
-      <div
-        className={`${styles.mobileMenu} ${
-          isMobileMenuOpen ? styles.active : ""
-        }`}
-      >
         <button className={styles.closeMobileMenu} onClick={toggleMobileMenu}>
           &times;
         </button>
+
         <ul className={styles.mobileNavLinks}>
+
+          {/* 🟢 رابط الدخول/لوحة التحكم 🟢 */}
           {isAuthenticated ? (
-            <>
-              <li>
-                <Link href="/donor/dashboard" onClick={toggleMobileMenu}>
-                  حسابي
-                </Link>
-              </li>
-              <li>
-                <button
-                  onClick={() => {
-                    signOut({ callbackUrl: "/auth/login" }); // <--- استخدام signOut من NextAuth
-                    toggleMobileMenu();
-                  }}
-                  className={`${styles.topLink} ${styles.logoutButton}`}
-                  style={{
-                    background: "none",
-                    border: "none",
-                    cursor: "pointer",
-                    padding: "0",
-                    fontSize: "1em",
-                    width: "100%",
-                    textAlign: "right",
-                  }}
-                >
-                  تسجيل الخروج
-                </button>
-              </li>
-            </>
+            <li>
+              <Link
+                href="/donor/dashboard"
+                onClick={toggleMobileMenu}
+                className={`${styles.mobileAuthLink} ${getLinkClassName("/donor/dashboard")}`}
+              >
+                <i className="fas fa-user"></i> &nbsp; لوحة التحكم
+              </Link>
+            </li>
           ) : (
             <li>
-              <Link href="/auth/login" onClick={toggleMobileMenu}>
-                تسجيل دخول / تسجيل &nbsp;&nbsp;&nbsp;
-                <i className="fas fa-user"></i>
+              <Link
+                href="/auth/login"
+                onClick={toggleMobileMenu}
+                className={`${styles.mobileAuthLink} ${getLinkClassName("/auth/login")}`}
+              >
+                <i className="fas fa-sign-in-alt"></i> &nbsp; تسجيل دخول / تسجيل
               </Link>
             </li>
           )}
-
           <li>
-            <Link href="/" onClick={toggleMobileMenu}>
+            <Link href="/" onClick={toggleMobileMenu} className={getLinkClassName("/")}>
               الصفحة الرئيسية
             </Link>
+
           </li>
+
           <li
-            className={`${styles.hasDropdown} ${
-              openMobileDropdown === 0 ? styles.open : ""
-            }`}
+            className={`${styles.hasDropdown} ${openMobileDropdown === 0 ? styles.open : ""} ${isParentActive(["/about", "/about/"]) ? styles.activeLinkParent : ""
+              }`}
           >
             <Link
               href="/about"
+              className={`${styles.mobileNavLink} ${getLinkClassName("/about")}`}
               onClick={(e) => {
+                // يمنع التنقل إذا كانت القائمة مغلقة لفتح الدروب داون بدلاً من ذلك
                 if (openMobileDropdown !== 0) {
                   e.preventDefault();
                 }
                 toggleMobileDropdown(0);
               }}
-              className={styles.mobileNavLink}
             >
               من نحن
               <span
-                className={`${styles.dropdownArrow} ${
-                  openMobileDropdown === 0 ? styles.arrowRotate : ""
-                }`}
+                className={`${styles.dropdownArrow} ${openMobileDropdown === 0 ? styles.arrowRotate : ""
+                  }`}
               ></span>
             </Link>
             {openMobileDropdown === 0 && (
               <ul className={styles.mobileDropdownMenu}>
+
                 <li>
-                  <Link href="/about/vision" onClick={toggleMobileMenu}>
+                  <Link
+                    href="/about/vision"
+                    onClick={toggleMobileMenu}
+                    className={getLinkClassName("/about/vision")}
+                  >
                     رؤيتنا
                   </Link>
+
                 </li>
+
                 <li>
-                  <Link href="/about/founder" onClick={toggleMobileMenu}>
+                  <Link
+                    href="/about/founder"
+                    onClick={toggleMobileMenu}
+                    className={getLinkClassName("/about/founder")}
+                  >
                     عن المؤسس
                   </Link>
+
                 </li>
+
                 <li>
-                  <Link href="/about/team" onClick={toggleMobileMenu}>
+                  <Link
+                    href="/about/team"
+                    onClick={toggleMobileMenu}
+                    className={getLinkClassName("/about/team")}
+                  >
                     فريقنا
                   </Link>
+
                 </li>
+
               </ul>
             )}
+
           </li>
 
           <li
-            className={`${styles.hasDropdown} ${
-              openMobileDropdown === 1 ? styles.open : ""
-            }`}
+            className={`${styles.hasDropdown} ${openMobileDropdown === 1 ? styles.open : ""} ${isParentActive(["/cases", "/cases/"]) ? styles.activeLinkParent : ""
+              }`}
           >
             <Link
               href="/cases"
+              className={`${styles.mobileNavLink} ${styles.btn} ${styles.btnCtaPrimary
+                } ${getLinkClassName("/cases")}`}
               onClick={(e) => {
                 if (openMobileDropdown !== 1) {
                   e.preventDefault();
                 }
                 toggleMobileDropdown(1);
               }}
-              className={`${styles.navLink} ${styles.btn} ${styles.btnCtaPrimary}`}
             >
               الحالات
               <span
-                className={`${styles.dropdownArrow} ${
-                  openMobileDropdown === 1 ? styles.arrowRotate : ""
-                }`}
+                className={`${styles.dropdownArrow} ${openMobileDropdown === 1 ? styles.arrowRotate : ""
+                  }`}
               ></span>
             </Link>
             {openMobileDropdown === 1 && (
               <ul className={styles.mobileDropdownMenu}>
+
                 <li>
-                  <Link href="/cases">تصفح كل الحالات</Link>
+                  <Link
+                    href="/cases"
+                    onClick={toggleMobileMenu}
+                    className={getLinkClassName("/cases")}
+                  >
+                    تصفح كل الحالات
+                  </Link>
+
                 </li>
+
                 <li>
-                  <Link href="/cases?type=schools">تصفح المدارس</Link>
+                  <Link
+                    href="/cases?type=schools"
+                    onClick={toggleMobileMenu}
+                    className={getLinkClassName("/cases?type=schools")}
+                  >
+                    تصفح المدارس
+                  </Link>
+
                 </li>
+
                 <li>
-                  <Link href="/cases?type=mosques">تصفح المساجد</Link>
+                  <Link
+                    href="/cases?type=mosques"
+                    onClick={toggleMobileMenu}
+                    className={getLinkClassName("/cases?type=mosques")}
+                  >
+                    تصفح المساجد
+                  </Link>
+
                 </li>
+
               </ul>
             )}
+
           </li>
 
           <li>
             <Link
               href="/support-staff"
-              className={`${styles.btn} ${styles.btnCtaPrimary}`}
+              className={`${styles.btn} ${styles.btnCtaPrimary} ${getLinkClassName(
+                "/support-staff"
+              )}`}
               onClick={toggleMobileMenu}
             >
               ادعم الكادر
             </Link>
+
           </li>
           <li>
-            <Link href="/request-documentation" onClick={toggleMobileMenu}>
+            <Link
+              href="/request-documentation"
+              onClick={toggleMobileMenu}
+              className={getLinkClassName("/request-documentation")}
+            >
               طلب توثيق المؤسسة
             </Link>
           </li>
           <li>
-            <Link href="/latest-donors" onClick={toggleMobileMenu}>
+            <Link
+              href="/latest-donors"
+              onClick={toggleMobileMenu}
+              className={getLinkClassName("/latest-donors")}
+            >
               آخر المتبرعين
             </Link>
-          </li>
+          </li>{" "}
 
           <li>
-            <Link href="/contact" onClick={toggleMobileMenu}>
+            <Link
+              href="/contact"
+              onClick={toggleMobileMenu}
+              className={getLinkClassName("/contact")}
+            >
               تواصل معنا
             </Link>
           </li>
           <li>
-            <Link href="/faq" onClick={toggleMobileMenu}>
+            <Link href="/faq" onClick={toggleMobileMenu} className={getLinkClassName("/faq")}>
               الأسئلة الشائعة
             </Link>
           </li>
-          {/*  <li><a href="#" onClick={(e) => { e.preventDefault(); toggleMobileMenu(); }}>$ دولار</a></li>
-          <li><a href="#" onClick={(e) => { e.preventDefault(); toggleMobileMenu(); }}>عربي / إنجليزي</a></li>*/}
+
+          {/* 🟢 زر تسجيل الخروج في النهاية 🟢 */}
+          {isAuthenticated && (
+            <>
+              <li>
+                <button
+                  onClick={() => {
+                    signOut({ callbackUrl: "/auth/login" });
+                    toggleMobileMenu();
+                  }}
+                  className={`${styles.logoutButton} ${styles.mobileLogoutButton}`}
+                >
+                  تسجيل الخروج
+                </button>
+              </li>
+            </>
+          )}
+
         </ul>
       </div>
-      {/* Overlay لتغطية المحتوى عند فتح قائمة الهامبرغر */}
-      {isMobileMenuOpen && (
-        <div className={styles.overlay} onClick={toggleMobileMenu}></div>
-      )}
+      {/* زر السلة العائم للموبايل */}
+      <Link
+        href="/donation-basket"
+        className={styles.fixedMobileCart}
+        aria-label="سلة التسوق"
+        onClick={() => setIsMobileMenuOpen(false)}
+      >
+        <i className="fas fa-shopping-cart"></i>
+        {getTotalItems() > 0 && <span className={styles.cartCountFixed}>{getTotalItems()}</span>}
+      </Link>
+      <div
+        className={`${styles.overlay} ${isMobileMenuOpen ? styles.active : ""}`}
+        onClick={toggleMobileMenu}
+      ></div>
     </header>
   );
 };

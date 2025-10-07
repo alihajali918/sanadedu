@@ -718,7 +718,6 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({
                   </div>
                 </div>
               )}
-              
               {/* تم حذف محتوى تبويبة "inquiries" */}
             </div>
           )}

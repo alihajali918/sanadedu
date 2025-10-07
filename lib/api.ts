@@ -1,6 +1,67 @@
+// ================================================
+// File: src/lib/api.ts (الكود النهائي والمُعدَّل)
+// ================================================
+
 import { unstable_cache } from 'next/cache';
 import { z } from 'zod';
-import { CaseItem, Need } from './types';
+// 💡 نستخدم الأنواع كما هي معرفة في الكود السابق (يفترض استيرادها من ./types)
+// لتجنب التعارض، نفترض أنهم في ملف types.ts، ولكن ندرجهم هنا للتوثيق الكامل
+// (إذا كانت هذه الأنواع مستوردة، قم بإزالة تعريفاتها من هنا)
+export type Need = {
+    id: number;
+    item: string;
+    unitPrice: number;
+    quantity: number;
+    funded: number;
+    description: string;
+    image: string;
+    category: string;
+    icon: string;
+};
+
+export interface AttachmentObject {
+    ID?: number;
+    id?: number;
+    title?: string;
+    alt: string;
+    url: string; 
+    guid: string; 
+}
+
+export interface CaseItem {
+    id: number;
+    title: string;
+    description: string;
+    governorate: string;
+    city: string;
+    type: 'school' | 'mosque'; // تبسيط لـ 'school' | 'mosque' فقط هنا
+    needLevel: string;
+    isUrgent: boolean;
+    needs: Need[];
+    fundNeeded: number;
+    fundRaised: number;
+    progress: number;
+    images: string[];
+    gallery_images?: AttachmentObject[]; // 💡 [مُضاف]
+    educationLevel?: string;
+    numberOfStudents?: number;
+    numberOfClassrooms?: number;
+    directorName?: string;
+    phoneNumber?: string;
+    email?: string;
+    socialMediaLinks?: string; 
+    complexManagerName?: string;
+    complexPhone?: string;
+    complexEmail?: string;
+    numberOfStaff?: number; 
+    projectStatus?: string; 
+    locationMap?: { lat: number; lng: number; address: string; }; 
+    officialDocuments?: any; 
+    regularWorshippers?: number;
+    fridayWorshippers?: number;
+    mosqueArea?: number;
+}
+
 
 /**
  * جلب بيانات من WordPress REST API
@@ -30,13 +91,10 @@ export async function fetchWordPressData(
     const timeout = setTimeout(() => controller.abort(), 10_000);
 
     try {
-        // 💡 ملاحظة: revalidate هنا هي فقط لإعداد طلب fetch الأولي.
-        // يتم استخدام unstable_cache لاحقًا للتحكم في التخزين المؤقت الفعلي.
         const res = await fetch(finalUrlStr, { next: { revalidate: 3600 }, signal: controller.signal });
         clearTimeout(timeout);
 
         if (!res.ok) {
-            // إطلاق خطأ بدلاً من إرجاع null مباشرةً، ما عدا في حالة 404
             if (res.status === 404) return null;
             throw new Error(`[WP API ERROR] ${res.status} ${res.statusText} @ ${finalUrlStr}`);
         }
@@ -79,10 +137,7 @@ function extractLocationNames(terms: any[]) {
     let governorate = 'غير محدد';
     let city = 'غير محدد';
 
-    // البحث عن المحافظة: التصنيف الذي ليس له أب (parent) أو أبوه صفر
     const governorateTerm = locTerms.find((t: any) => !t?.parent || t.parent === 0);
-
-    // البحث عن المدينة: التصنيف الذي له أب (parent)
     const cityTerm = locTerms.find((t: any) => t?.parent && t.parent !== 0);
 
     if (governorateTerm) {
@@ -93,27 +148,20 @@ function extractLocationNames(terms: any[]) {
         city = cityTerm.name;
     }
 
-    // منطق احتياطي في حال وجود تصنيفين غير مرتبطين بعلاقة أب-ابن
     if (locTerms.length === 2 && governorate === 'غير محدد' && city === 'غير محدد') {
-        // إذا لم يتمكن من تحديد أي منهما، نعتبر الأول محافظة والثاني مدينة
         governorate = locTerms[0].name;
         city = locTerms[1].name;
     } else if (locTerms.length === 2 && governorate !== 'غير محدد' && city === 'غير محدد') {
-        // إذا وجد المحافظة فقط (التصنيف الآخر ليس له أب)
         const otherTerm = locTerms.find((t: any) => t?.id !== governorateTerm?.id);
         if (otherTerm) {
             city = otherTerm.name;
         }
     }
 
-    // تحقق نهائي: إذا كان التصنيف الذي تم تحديده كمدينة هو في الواقع المحافظة
-    // (من خلال معرفة أن اسم المحافظة هو تصنيف لا يتبع لشيء آخر)
-    // هذا الشرط يعالج مشكلة التبديل
     if (city !== 'غير محدد' && governorate !== 'غير محدد') {
         const governorateTest = locTerms.find((t: any) => t?.name === governorate);
         const cityTest = locTerms.find((t: any) => t?.name === city);
 
-        // إذا كانت المدينة هي التصنيف الذي ليس له أب، فهذا يعني أن الترتيب معكوس
         if (cityTest && (!cityTest.parent || cityTest.parent === 0) && governorateTest && governorateTest.parent !== 0) {
             const temp = governorate;
             governorate = city;
@@ -131,31 +179,25 @@ function dedupeImages(imgs: string[]) {
     return Array.from(new Set(imgs.filter(Boolean)));
 }
 
-// src/lib/api.ts
-
 function parseQuantitiesMap(text: string | undefined | null) {
     const map = new Map<string, number>();
     if (!text || typeof text !== 'string') return map;
 
-    // 1. محاولة التحليل كـ JSON أولاً (التنسيق الجديد والمستقر)
     try {
         const jsonObject = JSON.parse(text);
         if (typeof jsonObject === 'object' && jsonObject !== null) {
-            // تحويل كائن JSON إلى Map مع التحقق من النوع
             for (const key in jsonObject) {
                 const value = jsonObject[key];
                 if (typeof value === 'number' && !isNaN(value) && value >= 0) {
                     map.set(String(key), value);
                 }
             }
-            // إذا نجح التحليل كـ JSON وأنتج Map غير فارغة، نعتمد عليه
             if (map.size > 0) return map;
         }
     } catch (e) {
         // فشل التحليل كـ JSON. نستمر في المحاولة بالطريقة القديمة
     }
 
-    // 2. التحليل بالطريقة القديمة (ID=Quantity,ID=Quantity) للتوافق
     text
         .split(',')
         .map(p => p.trim())
@@ -168,12 +210,9 @@ function parseQuantitiesMap(text: string | undefined | null) {
     return map;
 }
 
-// دالة مساعدة لتحويل قيمة ACF إلى رقم صالح (بما في ذلك الصفر) أو undefined
 const safeParseNumber = (val: any): number | undefined => {
-    // نتأكد أن القيمة ليست null أو undefined، وأنها ليست سلسلة فارغة
     if (val == null || val === '') return undefined;
     const num = Number(val);
-    // نتحقق من أنها رقم صالح (بما في ذلك الصفر) وليست NaN أو Infinity
     return Number.isFinite(num) ? num : undefined;
 };
 
@@ -238,17 +277,36 @@ export const formatCaseData = async (
     const progress = totalNeeded > 0 ? Math.round((totalDonated / totalNeeded) * 100) : 0;
     const isUrgent = String(acf?.need_level || '').trim() === 'عالي';
 
-    let images: string[] = [];
+    let images: string[] = []; 
+    // ✅ [تعديل أساسي] لتخزين كائنات المرفقات الكاملة
+    let rawGalleryImages: AttachmentObject[] = []; 
+
     const featured = caseItem?._embedded?.['wp:featuredmedia']?.[0]?.source_url;
     if (featured) images.push(String(featured));
-    const gallery = acf?.gallery_images;
+    
+    // 💡 [التعديل الرئيسي] استخلاص صور المعرض (gallery_images - Post Object Array)
+    const gallery = acf?.gallery_images; 
+
     if (Array.isArray(gallery)) {
-        for (const img of gallery) if (img?.url) images.push(String(img.url));
-    } else if (gallery?.url) {
-        images.push(String(gallery.url));
+        // نحفظ المصفوفة الكاملة من كائنات المرفقات لتمريرها إلى الكومبوننت
+        // نستخدم assertion لتأكيد النوع لـ TypeScript
+        rawGalleryImages = gallery as AttachmentObject[]; 
+        
+        for (const img of rawGalleryImages) {
+            // نتحقق من url أو guid كبديل (لتغذية مصفوفة الصور الرئيسية)
+            const imageUrl = img?.url || img?.guid;
+            if (imageUrl) images.push(String(imageUrl)); 
+        }
+    } else if (gallery && typeof gallery === 'object' && (gallery.url || gallery.guid)) {
+        // في حال كان الحقل يرجع كائناً واحداً فقط (Post Object مفرد)
+        rawGalleryImages = [gallery as AttachmentObject];
+        images.push(String(gallery.url || gallery.guid));
     }
+    // -----------------------------------------------------
+
     if (images.length === 0) images.push('/images/default.jpg');
     images = dedupeImages(images);
+    // -----------------------------------------------------
 
     const quantitiesMap = parseQuantitiesMap(acf?.project_needs_quantities_text);
     const selectedNeedsRaw = Array.isArray(acf?.selected_project_needs) ? acf.selected_project_needs : [];
@@ -263,7 +321,6 @@ export const formatCaseData = async (
         const item =
             (typeof sel === 'object' && sel?.post_title) || base?.item || 'بدون عنوان';
 
-        // ✅ الاعتماد فقط على السعر من قائمة الاحتياجات الأساسية
         const unitPrice = base?.unitPrice ?? 0;
 
         const quantity = quantitiesMap.get(idStr) || 0;
@@ -288,47 +345,68 @@ export const formatCaseData = async (
         return { id: safeId, item, unitPrice, quantity, funded: 0, description, image, category, icon } as Need;
     });
 
-    // 💡 استخلاص الحقول الجديدة (المدارس والمساجد)
+    let locationMap: { lat: number, lng: number, address: string } | undefined;
+    let officialDocuments: any; 
+    
+    const locationRaw = acf?.location;
+    if (locationRaw && typeof locationRaw === 'object' && locationRaw.lat && locationRaw.lng) {
+        locationMap = {
+            lat: safeParseNumber(locationRaw.lat) ?? 0,
+            lng: safeParseNumber(locationRaw.lng) ?? 0,
+            address: String(locationRaw.address || ''),
+        };
+    }
+    
+    officialDocuments = acf?.documents;
+
+
     let numberOfStudents: number | undefined;
     let numberOfClassrooms: number | undefined;
     let educationLevel: string | undefined;
 
-    // 💡 تم حذف: let numberOfWorshippers: number | undefined;
+    let directorName: string | undefined;
+    let phoneNumber: string | undefined;
+    let email: string | undefined;
+    let socialMediaLinks: string | undefined;
+    let complexManagerName: string | undefined;
+    let complexPhone: string | undefined;
+    let complexEmail: string | undefined;
+    let numberOfStaff: number | undefined;
+    let projectStatus: string | undefined;
+
     let regularWorshippers: number | undefined;
     let fridayWorshippers: number | undefined;
     let mosqueArea: number | undefined;
 
     if (type === 'school') {
-        // عدد الطلاب
-        const studentsRaw = acf?.number_of_students;
-        numberOfStudents = studentsRaw != null && !isNaN(Number(studentsRaw)) ? Number(studentsRaw) : undefined;
+        numberOfStudents = safeParseNumber(acf?.number_of_students);
+        numberOfClassrooms = safeParseNumber(acf?.number_of_classrooms);
+        educationLevel = typeof acf?.education_level === 'string' ? acf.education_level : undefined;
         
-        // عدد الفصول
-        const classroomsRaw = acf?.number_of_classrooms;
-        numberOfClassrooms = classroomsRaw != null && !isNaN(Number(classroomsRaw)) ? Number(classroomsRaw) : undefined;
-
-        // المستوى التعليمي
-        const educationRaw = acf?.education_level;
-        educationLevel = typeof educationRaw === 'string' ? educationRaw : undefined;
+        directorName = typeof acf?.director_name === 'string' ? acf.director_name : undefined;
+        phoneNumber = typeof acf?.phone_number === 'string' ? acf.phone_number : undefined;
+        email = typeof acf?.email === 'string' ? acf.email : undefined;
+        socialMediaLinks = typeof acf?.social_media_links === 'string' ? acf.social_media_links : undefined;
+        
+        complexManagerName = typeof acf?.complex_manager_name === 'string' ? acf.complex_manager_name : undefined;
+        complexPhone = typeof acf?.complex_phone === 'string' ? acf.complex_phone : undefined;
+        complexEmail = typeof acf?.complex_email === 'string' ? acf.complex_email : undefined;
+        
+        numberOfStaff = safeParseNumber(acf?.number_of_staff);
+        
+        projectStatus = typeof acf?.project_status === 'string' ? acf.project_status : undefined;
     }
     
     if (type === 'mosque') {
-        // 💡 التعديل هنا: جلب البيانات من حقل المجموعة (Group Field)
         const worshippersGroup = acf?.number_of_worshippers; 
 
         if (worshippersGroup && typeof worshippersGroup === 'object') {
-            // عدد المصلين في الأيام العادية
             regularWorshippers = safeParseNumber(worshippersGroup?.regular_days);
-            
-            // عدد المصلين يوم الجمعة
             fridayWorshippers = safeParseNumber(worshippersGroup?.friday_prayer);
         }
         
-        // مساحة المسجد (جلبها كما كانت)
-        const areaRaw = acf?.mosque_area;
-        mosqueArea = areaRaw != null && !isNaN(Number(areaRaw)) ? Number(areaRaw) : undefined;
+        mosqueArea = safeParseNumber(acf?.mosque_area);
     }
-    // -----------------------------------------------------
 
     return {
         id: caseItem.id,
@@ -344,16 +422,29 @@ export const formatCaseData = async (
         fundRaised: totalDonated,
         progress,
         images,
-        // 💡 تضمين حقول المدرسة
+        
+        gallery_images: rawGalleryImages, // ✅ [مهم] تمرير الكائنات الخام إلى الواجهة الجديدة
+        
+        locationMap,
+        officialDocuments,
+        
         ...(type === 'school' && {
             numberOfStudents,
             numberOfClassrooms,
             educationLevel,
+            directorName,
+            phoneNumber,
+            email,
+            socialMediaLinks,
+            complexManagerName,
+            complexPhone,
+            complexEmail,
+            numberOfStaff,
+            projectStatus,
         }),
-        // 💡 تضمين حقول المسجد المعدّلة
         ...(type === 'mosque' && {
-            regularWorshippers, // الحقل الذي يطابق regular_days
-            fridayWorshippers,  // الحقل الذي يطابق friday_prayer
+            regularWorshippers, 
+            fridayWorshippers, 
             mosqueArea,
         }),
     };
@@ -379,26 +470,21 @@ async function getNeedsList(postType: 'school_needs' | 'mosque_needs') {
 export const getSchoolNeedsList = unstable_cache(
     () => getNeedsList('school_needs'),
     ['school-needs-list'],
-    // ✅ إضافة tags: ['needs-lists'] للتحديث الفوري بعد التبرع
     { revalidate: 3600, tags: ['needs-lists'] }
 );
 
 export const getMosqueNeedsList = unstable_cache(
     () => getNeedsList('mosque_needs'),
     ['mosque-needs-list'],
-    // ✅ إضافة tags: ['needs-lists'] للتحديث الفوري بعد التبرع
     { revalidate: 3600, tags: ['needs-lists'] }
 );
 
 /* ============ Case APIs ============ */
 
 export async function getCaseById(id: number): Promise<CaseItem | null> {
-    // ملاحظة: getCaseById غير مخزنة مؤقتًا (غير ملفوفة بـ unstable_cache)
-    // لذلك يتم تحديثها في كل طلب (إذا لم تكن البيانات الداخلية مخزنة)
     const [schoolNeedsList, mosqueNeedsList] = await Promise.all([getSchoolNeedsList(), getMosqueNeedsList()]);
     const allNeedsMap = new Map([...schoolNeedsList, ...mosqueNeedsList].map(n => [String(n.id), n]));
 
-    // ✅ تم تصحيح خطأ الصياغة هنا
     const [schoolsRes, mosquesRes] = await Promise.allSettled([
         fetchWordPressData(`schools/${id}`, new URLSearchParams('_embed')),
         fetchWordPressData(`mosques/${id}`, new URLSearchParams('_embed')),
@@ -467,8 +553,6 @@ export async function getCases(params: URLSearchParams = new URLSearchParams()):
             }
             return allCases;
         },
-        // 🚨 التعديل لضمان التحديث على Vercel
-        // نستخدم مفتاح فريد لجميع البارامترات، ونعتمد على التاج 'cases' للمسح الشامل.
         ['cases-fetch', typeKey, pageKey, searchKey, perPageKey], 
         { revalidate: 3600, tags: ['cases'] }
     );
@@ -490,8 +574,6 @@ export interface Donation {
 export const getDonations = unstable_cache(
     async (userId: string): Promise<Donation[]> => {
         try {
-            // 💡 ملاحظة: يجب تعديل هذا الجزء ليتوافق مع نقطة النهاية المخصصة (sanad/v1)
-            // إذا لم يتمكن fetchWordPressData من التعامل مع المسارات المخصصة
             const endpoint = `/my-donations?userId=${userId}`;
             const res = await fetchWordPressData(endpoint, undefined);
             const data = res?.data;
@@ -508,6 +590,5 @@ export const getDonations = unstable_cache(
         }
     },
     ['user-donations'],
-    // 💡 لا تحتاج لإضافة Tag هنا لأن هذه بيانات شخصية (للمستخدم المسجل دخول)
     { revalidate: 3600 }
 );

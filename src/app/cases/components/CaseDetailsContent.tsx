@@ -1,6 +1,6 @@
 // ================================================
 // File: /app/cases/[id]/CaseDetailsContent.tsx
-// (الكود المحدث: تم إصلاح منطق عرض بيانات المسجد)
+// (الكود المُحدث: سلايدر مع بلور وكروب)
 // ================================================
 "use client";
 
@@ -9,7 +9,16 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
+// --- إضافة استيرادات React Slick ---
+import Slider from "react-slick";
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
+// ------------------------------------
+
 import styles from "@/app/cases/[id]/page.module.css";
+// تأكد من استيراد ملف CSS العام الخاص بك لتخصيص الـ Slick
+import "@/app/globals.css"; 
+
 import { useCart, CartItem } from "@/app/context/CartContext";
 import { Need, CaseItem } from "lib/types";
 import { typeTranslations } from "@/utils/translations";
@@ -18,11 +27,50 @@ interface CaseDetailsContentProps {
   caseItem: CaseItem | null;
 }
 
+// ==========================================================
+// 💡 مكون السهم التالي المخصص (Next Arrow Component)
+// ==========================================================
+const NextArrow = (props: any) => {
+  const { className, style, onClick } = props;
+  return (
+    <div
+      className={`${className} custom-slick-arrow next-arrow`}
+      style={{ ...style, display: "block" }}
+      onClick={onClick}
+      aria-label="التالي"
+      role="button"
+    >
+      <i className="fas fa-chevron-right" />
+    </div>
+  );
+};
+
+// ==========================================================
+// 💡 مكون السهم السابق المخصص (Prev Arrow Component)
+// ==========================================================
+const PrevArrow = (props: any) => {
+  const { className, style, onClick } = props;
+  return (
+    <div
+      className={`${className} custom-slick-arrow prev-arrow`}
+      style={{ ...style, display: "block" }}
+      onClick={onClick}
+      aria-label="السابق"
+      role="button"
+    >
+      <i className="fas fa-chevron-left" />
+    </div>
+  );
+};
+
 const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({
   caseItem,
 }) => {
   const router = useRouter();
   const { addItem } = useCart();
+
+  // (بقية الـ Hooks والمنطق... لم يتم تغييرها)
+  // ... (Code from [A] to [L] unchanged) ...
 
   // ===== [A] تحقق وجود احتياجات =====
   const hasNeeds = !!(
@@ -82,7 +130,6 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({
   const [mainContentTab, setMainContentTab] = useState<
     "products" | "about" | "documentation"
   >("products");
-  // تمت إزالة "inquiries" من أنواع التبويبات المُحتملة.
 
   // ===== [F] كميات التبرع الافتراضية (للسياق) =====
   const [donationQuantities, setDonationQuantities] = useState<
@@ -165,8 +212,7 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({
       };
       addItem(item);
       setMessage(
-        `تم إضافة ${formatNumberWestern(q)} × "${
-          item.itemName
+        `تم إضافة ${formatNumberWestern(q)} × "${item.itemName
         }" إلى سلة التبرعات.`
       );
     },
@@ -219,6 +265,59 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({
     router,
   ]);
 
+  // ==========================================================
+  // 💡 [M] إعدادات السلايدر (Slider Settings) - تم التحديث لاستخدام الأسهم المخصصة
+  // ==========================================================
+  const sliderSettings = {
+    dots: true,
+    infinite: true,
+    speed: 500,
+    slidesToShow: 3, // عرض 3 صور في نفس الوقت
+    slidesToScroll: 1,
+    autoplay: true,
+    autoplaySpeed: 4000,
+    centerMode: true, // مهم جداً: لجعل الصورة المركزية واضحة والبقية على الأطراف
+    centerPadding: "0px", // لعدم وجود مسافات داخلية
+    nextArrow: <NextArrow />,
+    prevArrow: <PrevArrow />,
+    // استجابة السلايدر لأحجام الشاشات المختلفة
+    responsive: [
+      {
+        breakpoint: 1024,
+        settings: {
+          slidesToShow: 3,
+          slidesToScroll: 1,
+        },
+      },
+      {
+        breakpoint: 768,
+        settings: {
+          slidesToShow: 1, // على شاشات التابلت والجوال، صورة واحدة فقط في الوسط
+          slidesToScroll: 1,
+          centerMode: true,
+          centerPadding: "20%", // يمكن تعديل هذه القيمة لضبط حجم الصور الجانبية
+        },
+      },
+    ],
+    // هذا الكلاس ضروري لتطبيق الـ blur
+    // سيتم استخدامه لتحديد الشريحة غير النشطة وتطبيق الـ blur عليها في CSS
+    customPaging: function(i: number) {
+      return (
+        <button>
+          <Image
+            src={caseItem!.images[i]}
+            alt={`Thumbnail ${i + 1}`}
+            width={50}
+            height={30}
+            style={{ objectFit: "cover", borderRadius: "5px" }}
+          />
+        </button>
+      );
+    }
+  };
+  // ==========================================================
+
+
   // ===== [L] حالة عدم وجود احتياجات (للسياق) =====
   if (!hasNeeds) {
     return (
@@ -242,97 +341,96 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({
 
     // دالة مساعدة للتحقق من وجود قيمة (أي قيمة رقمية، أو رقم أكبر من صفر، أو نص غير فارغ)
     const hasValue = (val: any) => {
-      // نقبل 0 كرقم صحيح، لذا نستخدم != null للتحقق من وجوده (باستثناء null و undefined)
-      if (typeof val === 'number') return val != null; 
+      if (typeof val === 'number') return val != null;
       if (typeof val === 'string') return val.trim().length > 0;
       return val != null;
     };
-    
+
     // منطق عرض تفاصيل المدرسة
     const showSchoolDetails = isSchool && (
-        hasValue(item.numberOfStudents) || 
-        hasValue(item.numberOfClassrooms) || 
-        hasValue(item.educationLevel)
+      hasValue(item.numberOfStudents) ||
+      hasValue(item.numberOfClassrooms) ||
+      hasValue(item.educationLevel)
     );
-    
+
     // منطق عرض تفاصيل المسجد - 💡 تم إصلاح استخدام الحقول الجديدة
     const showMosqueDetails = isMosque && (
-        hasValue(item.regularWorshippers) || // الحقل الجديد 1
-        hasValue(item.fridayWorshippers) ||  // الحقل الجديد 2
-        hasValue(item.mosqueArea)
+      hasValue(item.regularWorshippers) ||
+      hasValue(item.fridayWorshippers) ||
+      hasValue(item.mosqueArea)
     );
-    
+
     return (
       <>
         <div className={`${styles.caseDescriptionBlock} mb-40`}>
-            <h3>معلومات عامة</h3>
-            <p>
-              <strong>المحافظة:</strong> {item.governorate}،{" "}
-              <strong>المدينة:</strong> {item.city}
-            </p>
-            <p>
-              <strong>نوع المؤسسة:</strong>{" "}
-              {typeTranslations[item.type] || item.type}
-            </p>
-            <p>
-              <strong>درجة الاحتياج:</strong> {item.needLevel}
-            </p>
+          <h3>معلومات عامة</h3>
+          <p>
+            <strong>المحافظة:</strong> {item.governorate}،{" "}
+            <strong>المدينة:</strong> {item.city}
+          </p>
+          <p>
+            <strong>نوع المؤسسة:</strong>{" "}
+            {typeTranslations[item.type] || item.type}
+          </p>
+          <p>
+            <strong>درجة الاحتياج:</strong> {item.needLevel}
+          </p>
         </div>
 
         {/* تفاصيل المدرسة */}
         {showSchoolDetails && (
-            <div className={`${styles.caseDescriptionBlock} mb-40`}>
-                <h3>تفاصيل المدرسة</h3>
-                {item.numberOfStudents != null && (
-                    <p>
-                        <strong>عدد الطلاب:</strong> {formatNumberWestern(item.numberOfStudents)} طالب
-                    </p>
-                )}
-                {item.numberOfClassrooms != null && (
-                    <p>
-                        <strong>عدد الفصول:</strong> {formatNumberWestern(item.numberOfClassrooms)} فصل
-                    </p>
-                )}
-                {hasValue(item.educationLevel) && (
-                    <p>
-                        <strong>المستوى التعليمي:</strong> {item.educationLevel}
-                    </p>
-                )}
-            </div>
+          <div className={`${styles.caseDescriptionBlock} mb-40`}>
+            <h3>تفاصيل المدرسة</h3>
+            {item.numberOfStudents != null && (
+              <p>
+                <strong>عدد الطلاب:</strong> {formatNumberWestern(item.numberOfStudents)} طالب
+              </p>
+            )}
+            {item.numberOfClassrooms != null && (
+              <p>
+                <strong>عدد الفصول:</strong> {formatNumberWestern(item.numberOfClassrooms)} فصل
+              </p>
+            )}
+            {hasValue(item.educationLevel) && (
+              <p>
+                <strong>المستوى التعليمي:</strong> {item.educationLevel}
+              </p>
+            )}
+          </div>
         )}
 
         {/* تفاصيل المسجد - المُحدَّثة 💡 تم استخدام الحقول الجديدة */}
         {showMosqueDetails && (
-            <div className={`${styles.caseDescriptionBlock} mb-40`}>
-                <h3>تفاصيل المسجد</h3>
-                
-                {/* 💡 عرض المصلين في الأيام العادية */}
-                {item.regularWorshippers != null && (
-                    <p>
-                        <strong>عدد المصلين (أيام عادية):</strong> {formatNumberWestern(item.regularWorshippers)} مصلٍ/مصلية
-                    </p>
-                )}
-                
-                {/* 💡 عرض المصلين يوم الجمعة */}
-                {item.fridayWorshippers != null && (
-                    <p>
-                        <strong>عدد المصلين (يوم الجمعة):</strong> {formatNumberWestern(item.fridayWorshippers)} مصلٍ/مصلية
-                    </p>
-                )}
-                
-                {item.mosqueArea != null && (
-                    <p>
-                        <strong>مساحة المسجد (م²):</strong> {formatNumberWestern(item.mosqueArea)} م²
-                    </p>
-                )}
-            </div>
+          <div className={`${styles.caseDescriptionBlock} mb-40`}>
+            <h3>تفاصيل المسجد</h3>
+
+            {/* 💡 عرض المصلين في الأيام العادية */}
+            {item.regularWorshippers != null && (
+              <p>
+                <strong>عدد المصلين (أيام عادية):</strong> {formatNumberWestern(item.regularWorshippers)} مصلٍ/مصلية
+              </p>
+            )}
+
+            {/* 💡 عرض المصلين يوم الجمعة */}
+            {item.fridayWorshippers != null && (
+              <p>
+                <strong>عدد المصلين (يوم الجمعة):</strong> {formatNumberWestern(item.fridayWorshippers)} مصلٍ/مصلية
+              </p>
+            )}
+
+            {item.mosqueArea != null && (
+              <p>
+                <strong>مساحة المسجد (م²):</strong> {formatNumberWestern(item.mosqueArea)} م²
+              </p>
+            )}
+          </div>
         )}
       </>
     );
   };
   // ===============================================
 
-  // ===== [M] العرض (المُعدّل) =====
+  // ===== [N] العرض (المُعدّل) =====
   return (
     <main className={styles.caseDetailsPageContent}>
       <div className="container">
@@ -453,9 +551,8 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({
               aria-label="التنقل داخل تفاصيل الحالة"
             >
               <button
-                className={`${styles.navItem} ${
-                  mainContentTab === "products" ? styles.active : ""
-                }`}
+                className={`${styles.navItem} ${mainContentTab === "products" ? styles.active : ""
+                  }`}
                 onClick={() => setMainContentTab("products")}
                 role="tab"
                 aria-selected={mainContentTab === "products"}
@@ -464,9 +561,8 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({
                 صفحة المنتجات
               </button>
               <button
-                className={`${styles.navItem} ${
-                  mainContentTab === "about" ? styles.active : ""
-                }`}
+                className={`${styles.navItem} ${mainContentTab === "about" ? styles.active : ""
+                  }`}
                 onClick={() => setMainContentTab("about")}
                 role="tab"
                 aria-selected={mainContentTab === "about"}
@@ -475,9 +571,8 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({
                 عن المؤسسة
               </button>
               <button
-                className={`${styles.navItem} ${
-                  mainContentTab === "documentation" ? styles.active : ""
-                }`}
+                className={`${styles.navItem} ${mainContentTab === "documentation" ? styles.active : ""
+                  }`}
                 onClick={() => setMainContentTab("documentation")}
                 role="tab"
                 aria-selected={mainContentTab === "documentation"}
@@ -485,7 +580,6 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({
               >
                 توثيق وصور
               </button>
-              {/* تم حذف زر "أسئلة واستفسارات" */}
             </div>
           </div>
 
@@ -523,11 +617,10 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({
                           return (
                             <button
                               key={categoryName}
-                              className={`${styles.categoryTabItem} ${
-                                selectedCategory === categoryName
+                              className={`${styles.categoryTabItem} ${selectedCategory === categoryName
                                   ? styles.activeTab
                                   : ""
-                              }`}
+                                }`}
                               onClick={() => setSelectedCategory(categoryName)}
                               aria-pressed={selectedCategory === categoryName}
                               type="button"
@@ -576,7 +669,6 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({
                                 {need.item}
                               </h5>
 
-                              {/* NEW: عرض المتبقي */}
                               <div className={styles.remainingInfoTop}>
                                 <span>المتبقي:</span>
                                 <strong>
@@ -591,7 +683,6 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({
                               </div>
 
                               <div className={styles.controlsRow}>
-                                {/* NEW: عداد الكمية (على اليمين) */}
                                 <div className={styles.quantityControlNew}>
                                   <button
                                     className={styles.quantityBtn}
@@ -641,7 +732,6 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({
                                   </button>
                                 </div>
 
-                                {/* NEW: زر التبرع (يملأ المساحة) */}
                                 <button
                                   className={styles.btnDonateNew}
                                   onClick={() => addNeedToCart(need)}
@@ -661,14 +751,6 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({
                                     تبرع
                                   </span>
                                 </button>
-
-                                {/* OLD: تم إخفاء هذا العنصر في الـ CSS */}
-                                {/* <span className={styles.remainingBadge}>
-                                  <span>متبقي</span>
-                                  <strong>
-                                    {formatNumberWestern(remainingQty)}
-                                  </strong>
-                                </span> */}
                               </div>
                             </div>
                           );
@@ -678,47 +760,49 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({
                   </div>
                 )}
 
-              {/* === تبويبة: عن المؤسسة (المُحدثة) === */}
+              {/* === تبويبة: عن المؤسسة === */}
               {mainContentTab === "about" && caseItem && (
                 <div
                   className={`${styles.aboutSchoolTabContent} ${styles.tabPane} py-40`}
                 >
                   <h2 className="section-title text-center">عن المؤسسة</h2>
-                  {/* استدعاء المكون الفرعي الجديد هنا */}
                   <InstitutionDetails item={caseItem} />
                 </div>
               )}
 
-              {/* === تبويبة: توثيق وصور === */}
-              {mainContentTab === "documentation" && (
+              {/* === تبويبة: توثيق وصور (المُعدّلة لتشغيل السلايدر) === */}
+              {mainContentTab === "documentation" && caseItem && caseItem.images && caseItem.images.length > 0 && (
                 <div
                   className={`${styles.inquiriesTabContent} ${styles.tabPane} py-40`}
                 >
                   <h2 className="section-title text-center">توثيق وصور</h2>
                   <div className={`${styles.inquiriesBlock} mb-40`}>
                     <p>هنا يمكنك إضافة محتوى توثيق الحالة والصور الخاصة بها.</p>
-                    {/* إضافة عرض بسيط للصور */}
-                    <div className={styles.galleryGrid}>
-                        {caseItem?.images.map((imgUrl, index) => (
-                            <div key={index} className={styles.galleryImageWrapper}>
-                                <Image
-                                    src={imgUrl}
-                                    alt={`صورة توثيقية رقم ${index + 1}`}
-                                    width={300}
-                                    height={200}
-                                    style={{
-                                        objectFit: "cover",
-                                        width: "100%",
-                                        height: "100%",
-                                    }}
-                                />
-                            </div>
+                    {/* استخدام السلايدر */}
+                    <div className={`${styles.sliderContainer} documentation-slider-container`}>
+                      <Slider {...sliderSettings}>
+                        {caseItem.images.map((imgUrl, index) => (
+                          <div key={index} className={`slick-slide-item`}>
+                            <Image
+                              src={imgUrl}
+                              alt={`صورة توثيقية رقم ${index + 1}`}
+                              // أبعاد موحدة لضمان "الكروما" نفسه
+                              width={700}
+                              height={450}
+                              style={{
+                                objectFit: "cover", // مهم جداً: يحافظ على نسبة الأبعاد ويملأ المساحة
+                                width: "100%",
+                                height: "100%",
+                                borderRadius: "10px", // زوايا دائرية
+                              }}
+                            />
+                          </div>
                         ))}
+                      </Slider>
                     </div>
                   </div>
                 </div>
               )}
-              {/* تم حذف محتوى تبويبة "inquiries" */}
             </div>
           )}
         </div>

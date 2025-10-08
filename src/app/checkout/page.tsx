@@ -159,12 +159,9 @@ const CheckoutPage = () => {
 
                 <div className={styles.checkoutLayout}>
                     <div className={styles.formContainer}>
-                        
                         {/* 💡 يظهر هذا الجزء فقط إذا لم يكن المستخدم مسجلاً دخولًا */}
                         {!isLoggedIn && (
-                            <>
-                                <h2 className={styles.sectionTitle} style={{marginBottom: '10px'}}>معلومات المتبرع (ضيف)</h2>
-                                <p style={{marginBottom: '20px', color: '#666', fontSize: '0.9em'}}>
+                            <><p style={{marginBottom: '20px', color: '#666', fontSize: '0.9em'}}>
                                     بإدخال اسمك وإيميلك يصلك إشعار وصور التوثيق، وبدونها يبقى التبرع مجهول
                                 </p>
                                 <div className={styles.formGroup}>

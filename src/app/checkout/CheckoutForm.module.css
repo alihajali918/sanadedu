@@ -18,13 +18,82 @@
     margin-bottom: 25px;
 }
 
+/* ❌ إخفاء الحاوية القديمة (CardElement) */
 .cardElementContainer {
-    padding: 15px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    margin-bottom: 20px;
-    background-color: #fdfdfd;
+    display: none; 
 }
+
+/* 🚀 تنسيقات الحقول المنفصلة وحقول الضيف الجديدة */
+
+.cardInputGroup {
+    margin-bottom: 20px;
+}
+
+.formGroup { 
+    margin-bottom: 25px;
+    text-align: right; 
+}
+
+.cardLabel,
+.formGroup label {
+    display: block;
+    font-size: 1.1em;
+    color: var(--text-dark, #333);
+    margin-bottom: 8px;
+    font-weight: 600;
+    text-align: right;
+}
+
+/* 🚀 تنسيق حقول الاسم والبريد الإلكتروني (لتطابق inputField) */
+.inputField {
+    width: 100%;
+    padding: 12px 15px;
+    border-bottom: 2px solid var(--highlight-gold, #ffc107) !important;
+    border: 1px solid #ccc; 
+    border-radius: 8px;
+    font-size: 1em;
+    color: var(--text-black, #333);
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+
+/* تنسيق حاوية حقول البطاقة (التي تحتوي على Stripe Iframes) */
+.cardInputFieldContainer {
+    /* تطبيق تنسيق مشابه لـ inputField */
+    width: 100%;
+    border-bottom: 2px solid var(--highlight-gold, #ffc107) !important;
+    border: 1px solid #ccc; 
+    border-radius: 8px;
+    background-color: #fdfdfd;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    
+    /* 🟢 التعديلات الحاسمة لحل مشكلة الكتابة: */
+    line-height: 1; 
+    padding: 1px 1px; /* مساحة بسيطة حول الـ iframe */
+    /* تم إزالة height: 48px; */
+    /* تم إزالة display: flex; و align-items: center; */
+}
+
+/* تنسيق للتحكم في عرض حقل التاريخ و CVC */
+.cardSplitRow {
+    display: flex;
+    gap: 20px; 
+}
+
+.cardSplitRow .formGroup {
+    flex: 1; 
+    margin-bottom: 25px; 
+}
+
+.guestDetailsTitle {
+    font-size: 1.2rem;
+    color: var(--text-dark, #555);
+    margin-top: 10px;
+    margin-bottom: 15px;
+    padding-top: 15px;
+    border-top: 1px dashed #ddd;
+}
+
 
 .submitButton {
     width: 100%;
@@ -65,4 +134,56 @@
     margin-bottom: 20px;
     text-align: center;
     font-weight: bold;
+}
+
+.loadingMessage {
+    text-align: center;
+    color: #555;
+    padding: 15px;
+    background-color: #f0f0f0;
+    border-radius: 5px;
+    margin-bottom: 20px;
+}
+
+.expressCheckoutSection {
+    margin-bottom: 20px;
+}
+
+.expressTitle {
+    text-align: center;
+    margin-bottom: 15px;
+    font-weight: 500;
+    color: #555;
+}
+
+.divider {
+    text-align: center;
+    margin: 20px 0;
+    line-height: 1;
+    position: relative;
+    color: #aaa;
+}
+
+.divider span {
+    background: #fff;
+    padding: 0 10px;
+    position: relative;
+    z-index: 1;
+}
+
+.divider::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    border-top: 1px dashed #ddd;
+    z-index: 0;
+}
+
+.secureNote {
+    text-align: center;
+    margin-top: 15px;
+    font-size: 0.9em;
+    color: #888;
 }

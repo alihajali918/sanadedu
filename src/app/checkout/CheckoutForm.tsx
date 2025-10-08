@@ -2,11 +2,13 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import {
-  CardElement,
+  CardNumberElement,
+  CardExpiryElement,
+  CardCvcElement,
   useStripe,
   useElements,
-  PaymentRequestButtonElement, // 🚀 عنصر زر الدفع السريع
-  // تمت إزالة StripePaymentRequest لأنه ليس عضواً مصدراً من هذه الوحدة
+  PaymentRequestButtonElement,
+  CardElement, // ترك CardElement هنا مؤقتاً للتوافق مع استدعاء getElement() (شرح في الأسفل)
 } from "@stripe/react-stripe-js";
 import { useSession } from "next-auth/react";
 import { useCart } from "../context/CartContext";
@@ -14,7 +16,7 @@ import styles from "./CheckoutForm.module.css";
 import { useRouter } from "next/navigation";
 
 // ------------------------------------------------------------------
-// تعريف الواجهات (Interfaces)
+// تعريف الواجهات (Interfaces) - (بدون تغيير)
 // ------------------------------------------------------------------
 interface DonatedItem {
   case_id: number;
@@ -23,25 +25,27 @@ interface DonatedItem {
   acf_field_id: string;
   item_name: string;
   item_quantity: number;
-  unit_price: number; // بالدولار
-  line_total: number; // بالدولار
+  unit_price: number;
+  line_total: number;
 }
 
 interface CheckoutFormProps {
-  caseId: string; // اختياري للتوافق الخلفي
-  totalPaidAmount: number; // بالدولار
-  subtotalAmount: number; // بالدولار
-  shippingFees: number; // بالدولار
-  customDonation: number; // بالدولار
+  caseId: string;
+  totalPaidAmount: number;
+  subtotalAmount: number;
+  shippingFees: number;
+  customDonation: number;
   donatedItems: DonatedItem[];
-  donorName?: string; // من حقول الضيف
-  donorEmail?: string; // من حقول الضيف
+  donorName?: string;
+  donorEmail?: string;
 }
 
-const CURRENCY = "usd"; // ثابت للعملة
+const CURRENCY = "usd";
+
+// 🚨 دالة مساعدة لإضافة تأخير (مهمة لمنع مشاكل سرعة التحميل)
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 const CheckoutForm: React.FC<CheckoutFormProps> = ({
-  caseId,
   totalPaidAmount,
   subtotalAmount,
   shippingFees,
@@ -59,39 +63,32 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [processing, setProcessing] = useState(false);
   const [succeeded, setSucceeded] = useState(false);
-  const [clientSecret, setClientSecret] = useState<string>(""); // 🚀 حالة لزر الدفع السريع (Apple Pay/Google Pay) - تم تغيير النوع إلى 'any' لتفادي خطأ Typescript
-  const [paymentRequest, setPaymentRequest] = useState<any | null>(null); // تحديد بيانات المتبرع النهائية
+  const [clientSecret, setClientSecret] = useState<string>("");
+  const [paymentRequest, setPaymentRequest] = useState<any | null>(null);
 
-  const effectiveDonorName =
-    (session?.user?.name && session.user.name.trim()) ||
-    (donorName && donorName.trim()) ||
-    "فاعل خير";
+  const effectiveDonorName = (session?.user?.name && session.user.name.trim()) || (donorName && donorName.trim()) || "فاعل خير";
+  const effectiveDonorEmail = (session?.user?.email && session.user.email.trim()) || (donorEmail && donorEmail.trim()) || "";
+  const effectiveUserId = Number((session as any)?.user?.wordpressUserId || 0) || 0;
 
-  const effectiveDonorEmail =
-    (session?.user?.email && session.user.email.trim()) ||
-    (donorEmail && donorEmail.trim()) ||
-    ""; // استخراج User ID من ووردبريس
+  const totalAmountInCents = Math.round(totalPaidAmount * 100);
 
-  const effectiveUserId =
-    Number((session as any)?.user?.wordpressUserId || 0) || 0; // تحويل المبلغ الإجمالي إلى سنتات
-
-  const totalAmountInCents = Math.round(totalPaidAmount * 100); // ------------------------------------------------------------------ // 1. دالة تسجيل التبرع في ووردبريس بعد نجاح الدفع // ------------------------------------------------------------------
-
-  const submitDonationToWP = async (paymentIntentId: string) => {
+  // ------------------------------------------------------------------ 
+  // 1. دالة تسجيل التبرع في ووردبريس (مُغلفة بـ useCallback)
+  // ------------------------------------------------------------------
+  const submitDonationToWP = useCallback(async (paymentIntentId: string) => {
     try {
+      // ... (منطق إنشاء payload يبقى كما هو)
       const payload = {
-        amount: totalAmountInCents, // سنت
-        subtotal_amount: Math.round(subtotalAmount * 100), // سنت
-        shipping_fees: Math.round(shippingFees * 100), // سنت
-        custom_donation: Math.round(customDonation * 100), // سنت
-
+        amount: totalAmountInCents,
+        subtotal_amount: Math.round(subtotalAmount * 100),
+        shipping_fees: Math.round(shippingFees * 100),
+        custom_donation: Math.round(customDonation * 100),
         case_ids: [
           ...new Set(
             donatedItems.map((i) => Number(i.case_id)).filter(Boolean)
           ),
         ],
         donated_items: donatedItems,
-
         transaction_id: paymentIntentId,
         userId: effectiveUserId,
         user_id: effectiveUserId,
@@ -101,8 +98,6 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({
         donor_email: effectiveDonorEmail,
       };
 
-      console.log("[DONATE] submitting payload =>", payload);
-
       const response = await fetch("/api/donations", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -111,15 +106,8 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({
 
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        const extra =
-          data?.details || data?.got
-            ? ` | details=${JSON.stringify(
-              data.details
-            )} | got=${JSON.stringify(data.got)}`
-            : "";
-        throw new Error(
-          `${data?.error || "Failed to submit donation"}${extra}`
-        );
+        const extra = data?.details || data?.got ? ` | details=${JSON.stringify(data.details)} | got=${JSON.stringify(data.got)}` : "";
+        throw new Error(`${data?.error || "Failed to submit donation"}${extra}`);
       }
 
       setSucceeded(true);
@@ -132,30 +120,34 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({
       );
       setProcessing(false);
     }
-  }; // ------------------------------------------------------------------ // 2. تهيئة الدفع (Card + Express) عند تحميل المكون // ------------------------------------------------------------------
+  }, [
+    totalAmountInCents, subtotalAmount, shippingFees, customDonation,
+    donatedItems, effectiveUserId, effectiveDonorName, effectiveDonorEmail,
+    clearCart, router,
+  ]);
 
-  const fetchPaymentIntentAndSetupExpress = useCallback(async () => {
-    // التحقق من الشروط الأساسية
+  // ------------------------------------------------------------------ 
+  // 2. تهيئة الدفع (Card + Express)
+  // ------------------------------------------------------------------
+
+  const fetchPaymentIntentAndSetupExpress = useCallback(async (): Promise<(() => void) | undefined> => {
+
     if (totalAmountInCents <= 0 || !stripe) {
       setClientSecret("");
       setPaymentRequest(null);
       return;
     }
 
-    setError(null); // 1. جلب clientSecret
-
+    setError(null);
     let secret = "";
     try {
+      // ... (منطق جلب clientSecret يبقى كما هو)
       const body = {
         amount: totalAmountInCents,
         subtotal_amount: Math.round(subtotalAmount * 100),
         shipping_fees: Math.round(shippingFees * 100),
         custom_donation: Math.round(customDonation * 100),
-        case_ids: [
-          ...new Set(
-            donatedItems.map((i) => Number(i.case_id)).filter(Boolean)
-          ),
-        ],
+        case_ids: [...new Set(donatedItems.map((i) => Number(i.case_id)).filter(Boolean))],
         donated_items: JSON.stringify(donatedItems),
         donor_name: effectiveDonorName,
         donor_email: effectiveDonorEmail,
@@ -178,41 +170,39 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({
     } catch (err) {
       setError("حدث خطأ أثناء تهيئة عملية الدفع. يرجى المحاولة مرة أخرى.");
       return;
-    } // 2. تهيئة الدفع السريع (Apple Pay/Google Pay)
+    }
 
+    // 2. تهيئة الدفع السريع (Apple Pay/Google Pay) - (بدون تغيير)
     const pr = stripe.paymentRequest({
-      country: "US", // ⚠️ تم التغيير من 'SA' إلى 'US'. رمز البلد المستهدف لزر الدفع السريع (Stripe لا يدعم SA لهذا الزر).
+      country: "US",
       currency: CURRENCY,
       total: {
         label: "إجمالي التبرع",
-        amount: totalAmountInCents, // المبلغ بالـ سنت
+        amount: totalAmountInCents,
       },
       requestPayerName: true,
       requestPayerEmail: true,
     });
 
     pr.canMakePayment().then((result) => {
-      // 🛠️ DEBUG LOG: يساعد هذا على تحديد ما إذا كان Stripe يعتقد أن الجهاز مؤهل
-      console.log("[STRIPE DEBUG] canMakePayment result:", result);
       if (result) {
         setPaymentRequest(pr);
       } else {
         setPaymentRequest(null);
       }
-    }); // 3. معالج الدفع السريع (عندما يتم اختيار وسيلة الدفع من المحفظة)
+    });
 
+    // 3. معالج الدفع السريع (عندما يتم اختيار وسيلة الدفع من المحفظة) - (بدون تغيير)
     const handlePaymentMethod = async (event: any) => {
       if (processing) return;
 
       setProcessing(true);
-      setError(null); // استخدام clientSecret الذي تم جلبه مسبقاً
+      setError(null);
 
       const { error: confirmError, paymentIntent } =
         await stripe!.confirmCardPayment(
           secret,
-          {
-            payment_method: event.paymentMethod.id,
-          },
+          { payment_method: event.paymentMethod.id },
           { handleActions: false }
         );
 
@@ -221,106 +211,140 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({
         setError(confirmError.message || "حدث خطأ في تأكيد الدفع السريع.");
         setProcessing(false);
       } else if (paymentIntent && paymentIntent.status === "succeeded") {
-        event.complete("success"); // تسجيل التبرع بعد نجاح الدفع السريع
+        event.complete("success");
         await submitDonationToWP(paymentIntent.id);
       } else {
         event.complete("fail");
         setError("تعذّر إكمال الدفع السريع.");
         setProcessing(false);
       }
-    }; // ربط الـ listener بطلب الدفع
+    };
 
-    pr.on("paymentmethod", handlePaymentMethod); // تنظيف الـ listener عند إزالة المكون
+    pr.on("paymentmethod", handlePaymentMethod);
     return () => {
       pr.off("paymentmethod", handlePaymentMethod);
     };
   }, [
-    totalAmountInCents,
-    stripe,
-    subtotalAmount,
-    shippingFees,
-    customDonation,
-    donatedItems,
-    effectiveDonorName,
-    effectiveDonorEmail,
-    effectiveUserId,
-    processing,
+    totalAmountInCents, stripe, subtotalAmount, shippingFees, customDonation,
+    donatedItems, effectiveDonorName, effectiveDonorEmail, effectiveUserId,
+    processing, submitDonationToWP,
   ]);
 
+  // ------------------------------------------------------------------ 
+  // 3. معالج useEffect للتنظيف 
+  // ------------------------------------------------------------------
   useEffect(() => {
-    // تشغيل دالة التهيئة عند تحميل المكون أو تغير البيانات الأساسية
-    fetchPaymentIntentAndSetupExpress();
-  }, [fetchPaymentIntentAndSetupExpress]); // ------------------------------------------------------------------ // 3. معالج إرسال الدفع بالبطاقة التقليدية (CardElement) // ------------------------------------------------------------------
+    let cleanupFunction: (() => void) | undefined;
+
+    fetchPaymentIntentAndSetupExpress().then(cleanup => {
+      cleanupFunction = cleanup;
+    }).catch(err => {
+      console.error("Payment setup failed:", err);
+    });
+
+    return () => {
+      if (cleanupFunction) {
+        cleanupFunction();
+      }
+    };
+  }, [fetchPaymentIntentAndSetupExpress]);
+
+  // ------------------------------------------------------------------ 
+  // 4. معالج إرسال الدفع بالبطاقة التقليدية (العناصر المنفصلة) 
+  // ------------------------------------------------------------------
 
   const handleSubmit = async (event: React.FormEvent) => {
-    event.preventDefault(); // تحقق من الضروريات قبل البدء
-    if (
-      !stripe ||
-      !elements ||
-      !clientSecret ||
-      processing ||
-      succeeded ||
-      totalAmountInCents <= 0
-    )
+    event.preventDefault();
+
+    console.log("1. بدء عملية الدفع.");
+
+    // 🚨 يجب أن يتأكد أن جميع العناصر الضرورية جاهزة 
+    if (!stripe || !elements || !clientSecret || processing || succeeded || totalAmountInCents <= 0) {
+      console.warn("2. الزر معطل بسبب أحد الشروط:", {
+        stripe: !!stripe, elements: !!elements, clientSecret: !!clientSecret, processing, succeeded, amount: totalAmountInCents,
+      });
       return;
+    }
 
     setProcessing(true);
     setError(null);
 
-    const cardElement = elements.getElement(CardElement);
-    if (!cardElement) {
-      setError("عنصر البطاقة غير موجود.");
+    // 🚨 أهم تغيير: نستخدم CardNumberElement للحصول على مرجع العنصر
+    const cardNumberElement = elements.getElement(CardNumberElement);
+
+    // 🚨 تأخير بسيط بعد التحقق لمنع مشكلة توقيت التحميل (مهم جداً)
+    await sleep(50);
+
+    if (!cardNumberElement) {
+      console.error("3. فشل: عنصر رقم البطاقة (CardNumberElement) غير موجود في Elements!");
+      setError("عنصر رقم البطاقة غير موجود. يرجى تحديث الصفحة والمحاولة.");
       setProcessing(false);
       return;
-    } // تأكيد الدفع
+    }
+
+    console.log("3. عنصر رقم البطاقة موجود. محاولة تأكيد الدفع.");
 
     const { error: confirmError, paymentIntent } =
       await stripe!.confirmCardPayment(clientSecret, {
-        payment_method: { card: cardElement },
+        payment_method: { card: cardNumberElement },
       });
 
     if (confirmError) {
+      console.error("4. فشل: خطأ في تأكيد الدفع:", confirmError.message);
       setError(confirmError.message || "حدث خطأ غير متوقع.");
       setProcessing(false);
       return;
     }
 
     if (!paymentIntent || paymentIntent.status !== "succeeded") {
+      console.error("5. فشل: حالة الدفع غير ناجحة:", paymentIntent?.status);
       setError("تعذّر إكمال الدفع.");
       setProcessing(false);
       return;
-    } // تسجيل التبرع بعد نجاح الدفع بالبطاقة
+    }
 
+    console.log("6. نجاح الدفع. جاري التسجيل في ووردبريس.");
     await submitDonationToWP(paymentIntent.id);
-  }; // ------------------------------------------------------------------ // 4. العرض (Render) // ------------------------------------------------------------------
+  };
+
+  // ------------------------------------------------------------------ 
+  // 5. العرض (Render)
+  // ------------------------------------------------------------------
+
+  const elementOptions = {
+    style: {
+      base: {
+        fontSize: "16px",
+        color: "#424770",
+        "::placeholder": { color: "#aab7c4" },
+      },
+      invalid: { color: "#9e2146" },
+    },
+    hidePostalCode: true,
+  };
 
   return (
     <form onSubmit={handleSubmit} className={styles.checkoutForm} dir="rtl">
-      <h2 className={styles.formTitle}>تفاصيل الدفع الآمن</h2>     {" "}
-      {error && <div className={styles.errorMessage}>{error}</div>}     {" "}
+      <h2 className={styles.formTitle}>تفاصيل الدفع الآمن</h2>
+
+      {error && <div className={styles.errorMessage}>{error}</div>}
       {!clientSecret && !error && !succeeded && totalPaidAmount > 0 && (
         <div className={styles.loadingMessage}>جاري إعداد الدفع...</div>
       )}
       {totalPaidAmount <= 0 && (
-        <div className={styles.errorMessage}>
-          لا يمكن المتابعة، المبلغ الإجمالي صفر.
-        </div>
+        <div className={styles.errorMessage}>لا يمكن المتابعة، المبلغ الإجمالي صفر.</div>
       )}
+
       {clientSecret && totalPaidAmount > 0 && (
         <>
+          {/* 1. زر الدفع السريع */}
           {paymentRequest && (
             <div className={styles.expressCheckoutSection}>
               <p className={styles.expressTitle}>الدفع السريع:</p>
               <PaymentRequestButtonElement
                 options={{
                   paymentRequest: paymentRequest,
-                  style: {
-                    paymentRequestButton: {
-                      type: "donate", // يظهر زر "تبرع" بدلاً من "دفع"
-                      theme: "dark",
-                      height: "56px",
-                    },
-                  },
+                  style: { paymentRequestButton: { type: "donate", theme: "dark", height: "56px" } },
                 }}
               />
               <div className={styles.divider}>
@@ -328,47 +352,52 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({
               </div>
             </div>
           )}
-          <div className={styles.cardElementContainer}>
-            <CardElement
-              options={{
-                style: {
-                  base: {
-                    fontSize: "16px",
-                    color: "#424770",
-                    "::placeholder": { color: "#aab7c4" },
-                  },
-                  invalid: { color: "#9e2146" },
-                },
-                hidePostalCode: true,
-              }}
-            />
+
+          {/* 2. حقول البطاقة المنفصلة (المرنة) */}
+          <div className={styles.cardInputGroup}>
+            {/* حقل رقم البطاقة */}
+            <div className={styles.formGroup}>
+              <label className={styles.cardLabel}>رقم البطاقة</label>
+              <div className={styles.cardInputFieldContainer}>
+                <CardNumberElement options={elementOptions} />
+              </div>
+            </div>
+
+            {/* حقل الانتهاء و CVC في صف واحد */}
+            <div className={styles.cardSplitRow}>
+              <div className={styles.formGroup}>
+                <label className={styles.cardLabel}>تاريخ الانتهاء</label>
+                <div className={styles.cardInputFieldContainer}>
+                  <CardExpiryElement options={elementOptions} />
+                </div>
+              </div>
+              <div className={styles.formGroup}>
+                <label className={styles.cardLabel}>رمز CVC</label>
+                <div className={styles.cardInputFieldContainer}>
+                  <CardCvcElement options={elementOptions} />
+                </div>
+              </div>
+            </div>
           </div>
         </>
       )}
+
       {succeeded && (
         <div className={styles.successMessage}>
           <p>شكراً لك! تم استلام تبرعك بنجاح.</p>
         </div>
       )}
+
       <button
         type="submit"
         disabled={
-          processing ||
-          succeeded ||
-          !stripe ||
-          !clientSecret ||
-          !!error ||
-          totalPaidAmount <= 0
+          processing || succeeded || !stripe || !clientSecret || !!error || totalAmountInCents <= 0
         }
         className={styles.submitButton}
       >
-        {processing
-          ? "جاري المعالجة..."
-          : `تبرع الآن (${totalPaidAmount.toFixed(2)}$)`}
+        {processing ? "جاري المعالجة..." : `تبرع الآن (${totalPaidAmount.toFixed(2)}$)`}
       </button>
-      <p className={styles.secureNote}>
-        عملية دفع آمنة ومشفرة بواسطة Stripe.
-      </p>
+      <p className={styles.secureNote}>عملية دفع آمنة ومشفرة بواسطة Stripe.</p>
     </form>
   );
 };

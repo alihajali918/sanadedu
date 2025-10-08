@@ -712,3 +712,161 @@
 .backLink:hover {
   background: var(--light-grey);
 }
+/* ========================================================== */
+/* تخصيص مظهر React Slick Arrows and Dots */
+/* ========================================================== */
+
+/* -------------------------------------- */
+/* تخصيص السلايدر العام */
+/* -------------------------------------- */
+.documentation-slider-container {
+  max-width: 900px; /* يمكن تعديل هذا العرض الأقصى حسب التصميم */
+  margin: 0 auto;
+  position: relative;
+  padding: 0 60px; /* مسافة للأسهم لتكون خارج الصورة */
+}
+
+/* -------------------------------------- */
+/* تخصيص النقاط (Dots) */
+/* -------------------------------------- */
+.slick-dots {
+  bottom: -45px !important;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  text-align: center;
+}
+
+.slick-dots li {
+  margin: 0 5px;
+  display: inline-block;
+}
+
+.slick-dots li button {
+  font-size: 0;
+  line-height: 0;
+  display: block;
+  width: 10px;
+  height: 10px;
+  cursor: pointer;
+  color: transparent;
+  border: 1px solid #ccc;
+  border-radius: 50%;
+  background: transparent;
+  transition: all 0.3s ease;
+  padding: 0;
+}
+
+.slick-dots li.slick-active button {
+  background: #C49B5A; /* اللون الذهبي الخاص بك */
+  border-color: #C49B5A;
+  width: 12px;
+  height: 12px;
+}
+
+/* -------------------------------------- */
+/* تخصيص الأسهم المخصصة (Custom Arrows) */
+/* -------------------------------------- */
+.custom-slick-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+  width: 40px;
+  height: 40px;
+  display: flex !important; /* مهم جداً لجعلها تظهر */
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background-color: rgba(0, 0, 0, 0.5);
+  color: #fff;
+  cursor: pointer;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  font-size: 0; /* لإخفاء أي نص افتراضي */
+}
+
+.custom-slick-arrow:hover {
+  background-color: #C49B5A;
+  color: #fff;
+}
+
+.custom-slick-arrow.prev-arrow {
+  left: 0px; /* لتكون داخل حاوية السلايدر */
+}
+
+.custom-slick-arrow.next-arrow {
+  right: 0px; /* لتكون داخل حاوية السلايدر */
+}
+
+.custom-slick-arrow i {
+    font-size: 18px;
+    color: #fff;
+}
+
+/* -------------------------------------- */
+/* 💡 السحر هنا: البلور والصور الجانبية */
+/* -------------------------------------- */
+
+/* الصورة المعروضة (المركزية) */
+/* .slick-center هو الكلاس الذي يضيفه react-slick للشريحة المركزية */
+.slick-slide.slick-center img {
+  transform: scale(1);
+  opacity: 1;
+  filter: blur(0px); /* الصورة المركزية واضحة جداً */
+  transition: all 0.5s ease-in-out;
+}
+
+/* الصور غير المعروضة (الجانبية) */
+.slick-slide:not(.slick-center) img {
+  transform: scale(0.9); /* تصغير بسيط للصورة الجانبية */
+  opacity: 0.6; /* جعلها أقل وضوحاً */
+  filter: blur(3px); /* تطبيق البلور */
+  transition: all 0.5s ease-in-out;
+}
+
+/* تحديد ارتفاع ثابت لكل شريحة لضمان نفس "الكروما" */
+.slick-list .slick-track .slick-slide > div {
+  height: 450px; /* نفس الارتفاع الذي حددته في Image component */
+  display: flex; /* لضمان توسيط الصورة داخل div الشريحة */
+  align-items: center;
+  justify-content: center;
+}
+
+.slick-list .slick-track .slick-slide img {
+    /* هذه الخصائص مهمة لتطبيق الكروما بشكل موحد */
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* يضمن ملء الصورة للمساحة مع الحفاظ على الأبعاد */
+    border-radius: 10px; /* زوايا دائرية لكل الصور */
+}
+
+
+/* -------------------------------------- */
+/* تعديل الموضع لشاشات الجوال */
+/* -------------------------------------- */
+@media (max-width: 768px) {
+  .documentation-slider-container {
+    padding: 0 10px; /* مسافة أقل على الجوال */
+  }
+
+  .custom-slick-arrow.prev-arrow {
+    left: -5px;
+  }
+  .custom-slick-arrow.next-arrow {
+    right: -5px;
+  }
+
+  .slick-dots {
+    bottom: -35px !important;
+  }
+
+  /* على الجوال، قد تحتاج لضبط حجم الصور الجانبية أيضاً */
+  .slick-list .slick-track .slick-slide > div {
+    height: 300px; /* ارتفاع أقل للصور على الجوال */
+  }
+}
+
+/* لإلغاء أي تأثيرات افتراضية غير مرغوبة من slick-theme.css */
+.slick-prev:before, .slick-next:before {
+    display: none !important;
+}

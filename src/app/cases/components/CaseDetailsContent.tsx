@@ -1,6 +1,6 @@
 // ================================================
 // File: /app/cases/[id]/CaseDetailsContent.tsx
-// (الكود المُحدث: سلايدر مع بلور وكروب)
+// (الإصدار الكامل مع استثناء الصورة الأساسية من السلايدر)
 // ================================================
 "use client";
 
@@ -9,15 +9,13 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
-// --- إضافة استيرادات React Slick ---
+import type { Settings } from "react-slick";
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
-// ------------------------------------
 
 import styles from "@/app/cases/[id]/page.module.css";
-// تأكد من استيراد ملف CSS العام الخاص بك لتخصيص الـ Slick
-import "@/app/globals.css"; 
+import "@/app/globals.css";
 
 import { useCart, CartItem } from "@/app/context/CartContext";
 import { Need, CaseItem } from "lib/types";
@@ -27,9 +25,12 @@ interface CaseDetailsContentProps {
   caseItem: CaseItem | null;
 }
 
-// ==========================================================
-// 💡 مكون السهم التالي المخصص (Next Arrow Component)
-// ==========================================================
+interface MessageState {
+  text: string;
+  type: "success" | "warning";
+}
+
+// أسهم السلايدر المخصصة
 const NextArrow = (props: any) => {
   const { className, style, onClick } = props;
   return (
@@ -45,9 +46,6 @@ const NextArrow = (props: any) => {
   );
 };
 
-// ==========================================================
-// 💡 مكون السهم السابق المخصص (Prev Arrow Component)
-// ==========================================================
 const PrevArrow = (props: any) => {
   const { className, style, onClick } = props;
   return (
@@ -63,14 +61,9 @@ const PrevArrow = (props: any) => {
   );
 };
 
-const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({
-  caseItem,
-}) => {
+const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({ caseItem }) => {
   const router = useRouter();
   const { addItem } = useCart();
-
-  // (بقية الـ Hooks والمنطق... لم يتم تغييرها)
-  // ... (Code from [A] to [L] unchanged) ...
 
   // ===== [A] تحقق وجود احتياجات =====
   const hasNeeds = !!(
@@ -95,8 +88,11 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({
     [currencyFormatter]
   );
 
-  // ===== [C] نوع المؤسسة (للسياق) - تم تعديل الشرط قليلاً للتأكد من الحالة المنظفة
-  const normalizedType = useMemo(() => String(caseItem?.type ?? "").trim().toLowerCase(), [caseItem?.type]);
+  // ===== [C] نوع المؤسسة =====
+  const normalizedType = useMemo(
+    () => String(caseItem?.type ?? "").trim().toLowerCase(),
+    [caseItem?.type]
+  );
   const isSchool = useMemo(() => normalizedType === "school", [normalizedType]);
   const isMosque = useMemo(() => normalizedType === "mosque", [normalizedType]);
 
@@ -112,12 +108,9 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({
       return acc;
     }, {} as Record<string, Need[]>);
   }, [needs]);
-  const categories = useMemo(
-    () => Object.keys(needsByCategory),
-    [needsByCategory]
-  );
+  const categories = useMemo(() => Object.keys(needsByCategory), [needsByCategory]);
 
-  // ===== [E] الفئة المختارة + تبويب الصفحة (المُعدّل) =====
+  // ===== [E] الفئة المختارة + تبويب الصفحة =====
   const [selectedCategory, setSelectedCategory] = useState<string | null>(
     categories[0] || null
   );
@@ -131,7 +124,7 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({
     "products" | "about" | "documentation"
   >("products");
 
-  // ===== [F] كميات التبرع الافتراضية (للسياق) =====
+  // ===== [F] كميات التبرع الافتراضية =====
   const [donationQuantities, setDonationQuantities] = useState<
     Record<string, number>
   >(() =>
@@ -149,10 +142,16 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({
     );
   }, [needs]);
 
-  // ===== [G] رسائل عامة (للسياق) =====
-  const [message, setMessage] = useState<string | null>(null);
+  // ===== [G] رسائل عامة + إخفاء تلقائي =====
+  const [message, setMessage] = useState<MessageState | null>(null);
+  useEffect(() => {
+    if (message) {
+      const timer = setTimeout(() => setMessage(null), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [message]);
 
-  // ===== [H] المتبقي/التمويل (للسياق) =====
+  // ===== [H] المتبقي/التمويل =====
   const remainingFunds = useMemo(() => {
     const needed = caseItem?.fundNeeded || 0;
     const raised = caseItem?.fundRaised || 0;
@@ -163,7 +162,7 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({
     [remainingFunds, caseItem?.fundNeeded]
   );
 
-  // ===== [I] عدّاد الكمية (للسياق) =====
+  // ===== [I] عدّاد الكمية =====
   const handleQuantityChange = useCallback(
     (needId: string, value: string) => {
       let num = Number.isFinite(Number(value)) ? parseInt(value, 10) : 0;
@@ -180,21 +179,28 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({
     [needs]
   );
 
-  // ===== [J] إضافة للسلة (للسياق) =====
+  // ===== [J] إضافة للسلة =====
   const addNeedToCart = useCallback(
     (need: Need) => {
       if (!caseItem) return;
       const q = donationQuantities[String(need.id)] || 0;
-      const remainingQty = Math.max(
-        0,
-        (need.quantity || 0) - (need.funded || 0)
-      );
+      const remainingQty = Math.max(0, (need.quantity || 0) - (need.funded || 0));
 
-      if (q <= 0) return setMessage("الرجاء تحديد كمية أكبر من الصفر.");
+      if (q <= 0)
+        return setMessage({
+          text: "⚠️ الرجاء تحديد كمية أكبر من الصفر.",
+          type: "warning",
+        });
       if (q > remainingQty)
-        return setMessage("الكمية المطلوبة تتجاوز المتبقي.");
+        return setMessage({
+          text: "⚠️ الكمية المطلوبة تتجاوز المتبقي.",
+          type: "warning",
+        });
       if (!need.unitPrice || need.unitPrice <= 0)
-        return setMessage("لا يمكن إضافة منتج بدون سعر وحدة صحيح.");
+        return setMessage({
+          text: "⚠️ لا يمكن إضافة منتج بدون سعر وحدة صحيح.",
+          type: "warning",
+        });
 
       const item: CartItem = {
         id: `${caseItem.id}-${need.id}`,
@@ -210,16 +216,72 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({
           (need as any).acfFieldId ?? (need as any).acf?.field_id ?? ""
         ),
       };
+
+      setMessage(null);
       addItem(item);
-      setMessage(
-        `تم إضافة ${formatNumberWestern(q)} × "${item.itemName
-        }" إلى سلة التبرعات.`
-      );
+      setMessage({
+        text: `✅ تم إضافة ${formatNumberWestern(q)} × "${item.itemName}" إلى سلة التبرعات.`,
+        type: "success",
+      });
     },
     [addItem, caseItem, donationQuantities, formatNumberWestern]
   );
 
-  // ===== [K] تبنّي كل المتبقي (للسياق) =====
+  // ===== [X1-X3] التبرع المخصص =====
+  const [customDonationAmount, setCustomDonationAmount] = useState<number>(10);
+
+  const handleCustomDonationChange = useCallback(
+    (value: string | number) => {
+      let num = Number.isFinite(Number(value)) ? Number(value) : 0;
+      if (isNaN(num) || num < 0) num = 0;
+      const maxAmount = remainingFunds;
+      if (num > maxAmount && maxAmount > 0) num = maxAmount;
+      if (num > 999999) num = 999999;
+      setCustomDonationAmount(Math.round(num * 100) / 100);
+    },
+    [remainingFunds]
+  );
+
+  const addCustomDonationToCart = useCallback(() => {
+    if (!caseItem) return;
+    const amount = customDonationAmount;
+
+    if (amount <= 0)
+      return setMessage({
+        text: "⚠️ الرجاء تحديد مبلغ تبرع أكبر من الصفر.",
+        type: "warning",
+      });
+    if (amount > remainingFunds)
+      return setMessage({
+        text: "⚠️ مبلغ التبرع يتجاوز المبلغ المتبقي لتمويل هذه الحالة.",
+        type: "warning",
+      });
+
+    const item: CartItem = {
+      id: `${caseItem.id}-custom-${Date.now()}`,
+      institutionId: String(caseItem.id),
+      institutionName: caseItem.title,
+      needId: "CUSTOM_DONATION",
+      itemName: `تبرع مخصص للحالة ${caseItem.title}`,
+      itemImage: caseItem.images?.[0] || "",
+      unitPrice: amount,
+      quantity: 1,
+      totalPrice: amount,
+      acfFieldId: "",
+    };
+
+    setMessage(null);
+    addItem(item);
+    setMessage({
+      text: `✅ تم إضافة تبرع مخصص بقيمة ${formatCurrencyWestern(
+        amount
+      )} إلى سلة التبرعات.`,
+      type: "success",
+    });
+    setCustomDonationAmount(10);
+  }, [addItem, caseItem, customDonationAmount, remainingFunds, formatCurrencyWestern]);
+
+  // ===== [K] تبنّي كل المتبقي =====
   const handleDonateAllRemainingNeeds = useCallback(() => {
     if (!caseItem) return;
     let count = 0,
@@ -247,78 +309,76 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({
       }
     });
     if (count > 0) {
-      setMessage(
-        `تم إضافة ${formatNumberWestern(
+      setMessage({
+        text: `✅ تم إضافة ${formatNumberWestern(
           count
-        )} منتجًا (بإجمالي ${formatCurrencyWestern(total)}) إلى السلة.`
-      );
+        )} منتجًا (بإجمالي ${formatCurrencyWestern(total)}) إلى السلة.`,
+        type: "success",
+      });
       router.push("/donation-basket");
     } else {
-      setMessage("تم تمويل جميع الوحدات في هذه الحالة.");
+      setMessage({
+        text: "تم تمويل جميع الوحدات في هذه الحالة بالفعل.",
+        type: "warning",
+      });
     }
-  }, [
-    addItem,
-    caseItem,
-    needs,
-    formatCurrencyWestern,
-    formatNumberWestern,
-    router,
-  ]);
+  }, [addItem, caseItem, needs, formatCurrencyWestern, formatNumberWestern, router]);
 
   // ==========================================================
-  // 💡 [M] إعدادات السلايدر (Slider Settings) - تم التحديث لاستخدام الأسهم المخصصة
+  // [M0] تحديد الصورة الأساسية + قائمة الصور المصفاة للسلايدر (مهم: قبل sliderSettings)
   // ==========================================================
-  const sliderSettings = {
-    dots: true,
-    infinite: true,
+  const primaryImageUrl = useMemo(() => {
+    return (
+      (caseItem as any)?.featuredImage ||
+      (caseItem as any)?.mainImage ||
+      (caseItem as any)?.coverImage ||
+      (caseItem as any)?.image ||
+      null
+    );
+  }, [caseItem]);
+
+  const galleryImages: string[] = useMemo(() => {
+    const raw = (caseItem?.images ?? []).filter(Boolean) as string[];
+    const withoutPrimary = primaryImageUrl
+      ? raw.filter((u) => u !== primaryImageUrl)
+      : raw;
+    return Array.from(new Set(withoutPrimary));
+  }, [caseItem?.images, primaryImageUrl]);
+
+  // لو تحب تعتمد أن الأولى دائمًا الأساسية، يمكنك بدل الأعلى:
+  // const galleryImages = useMemo(() => (caseItem?.images || []).slice(1), [caseItem?.images]);
+
+  // سنستخدم اسم وسيط لتسهيل القراءة
+  const sliderImages = galleryImages;
+
+  // ==========================================================
+  // [M] إعدادات السلايدر (Slider Settings)
+  // ==========================================================
+  const sliderSettings: Settings = {
+    dots: false,
+    infinite: sliderImages.length > 1,
     speed: 500,
-    slidesToShow: 3, // عرض 3 صور في نفس الوقت
+    slidesToShow: 1,
     slidesToScroll: 1,
-    autoplay: true,
+    centerMode: true,
+    centerPadding: "10%",
+    autoplay: sliderImages.length > 1,
     autoplaySpeed: 4000,
-    centerMode: true, // مهم جداً: لجعل الصورة المركزية واضحة والبقية على الأطراف
-    centerPadding: "0px", // لعدم وجود مسافات داخلية
     nextArrow: <NextArrow />,
     prevArrow: <PrevArrow />,
-    // استجابة السلايدر لأحجام الشاشات المختلفة
     responsive: [
       {
         breakpoint: 1024,
-        settings: {
-          slidesToShow: 3,
-          slidesToScroll: 1,
-        },
+        settings: { slidesToShow: 1, centerMode: true, centerPadding: "10%" },
       },
       {
         breakpoint: 768,
-        settings: {
-          slidesToShow: 1, // على شاشات التابلت والجوال، صورة واحدة فقط في الوسط
-          slidesToScroll: 1,
-          centerMode: true,
-          centerPadding: "20%", // يمكن تعديل هذه القيمة لضبط حجم الصور الجانبية
-        },
+        settings: { slidesToShow: 1, centerMode: true, centerPadding: "0px" },
       },
     ],
-    // هذا الكلاس ضروري لتطبيق الـ blur
-    // سيتم استخدامه لتحديد الشريحة غير النشطة وتطبيق الـ blur عليها في CSS
-    customPaging: function(i: number) {
-      return (
-        <button>
-          <Image
-            src={caseItem!.images[i]}
-            alt={`Thumbnail ${i + 1}`}
-            width={50}
-            height={30}
-            style={{ objectFit: "cover", borderRadius: "5px" }}
-          />
-        </button>
-      );
-    }
   };
-  // ==========================================================
 
-
-  // ===== [L] حالة عدم وجود احتياجات (للسياق) =====
+  // ===== [L] حالة عدم وجود احتياجات =====
   if (!hasNeeds) {
     return (
       <div className={`container ${styles.caseDetailsPageContent}`}>
@@ -334,31 +394,25 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({
     );
   }
 
-  // ===============================================
-  // 💡 المكون الفرعي لعرض تفاصيل المدرسة/المسجد
-  // ===============================================
+  // ===== المكون الفرعي: InstitutionDetails =====
   const InstitutionDetails: React.FC<{ item: CaseItem }> = ({ item }) => {
-
-    // دالة مساعدة للتحقق من وجود قيمة (أي قيمة رقمية، أو رقم أكبر من صفر، أو نص غير فارغ)
     const hasValue = (val: any) => {
-      if (typeof val === 'number') return val != null;
-      if (typeof val === 'string') return val.trim().length > 0;
+      if (typeof val === "number") return val != null;
+      if (typeof val === "string") return val.trim().length > 0;
       return val != null;
     };
 
-    // منطق عرض تفاصيل المدرسة
-    const showSchoolDetails = isSchool && (
-      hasValue(item.numberOfStudents) ||
-      hasValue(item.numberOfClassrooms) ||
-      hasValue(item.educationLevel)
-    );
+    const showSchoolDetails =
+      isSchool &&
+      (hasValue(item.numberOfStudents) ||
+        hasValue(item.numberOfClassrooms) ||
+        hasValue(item.educationLevel));
 
-    // منطق عرض تفاصيل المسجد - 💡 تم إصلاح استخدام الحقول الجديدة
-    const showMosqueDetails = isMosque && (
-      hasValue(item.regularWorshippers) ||
-      hasValue(item.fridayWorshippers) ||
-      hasValue(item.mosqueArea)
-    );
+    const showMosqueDetails =
+      isMosque &&
+      (hasValue(item.regularWorshippers) ||
+        hasValue(item.fridayWorshippers) ||
+        hasValue(item.mosqueArea));
 
     return (
       <>
@@ -377,18 +431,19 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({
           </p>
         </div>
 
-        {/* تفاصيل المدرسة */}
         {showSchoolDetails && (
           <div className={`${styles.caseDescriptionBlock} mb-40`}>
             <h3>تفاصيل المدرسة</h3>
             {item.numberOfStudents != null && (
               <p>
-                <strong>عدد الطلاب:</strong> {formatNumberWestern(item.numberOfStudents)} طالب
+                <strong>عدد الطلاب:</strong>{" "}
+                {formatNumberWestern(item.numberOfStudents)} طالب
               </p>
             )}
             {item.numberOfClassrooms != null && (
               <p>
-                <strong>عدد الفصول:</strong> {formatNumberWestern(item.numberOfClassrooms)} فصل
+                <strong>عدد الفصول:</strong>{" "}
+                {formatNumberWestern(item.numberOfClassrooms)} فصل
               </p>
             )}
             {hasValue(item.educationLevel) && (
@@ -399,28 +454,25 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({
           </div>
         )}
 
-        {/* تفاصيل المسجد - المُحدَّثة 💡 تم استخدام الحقول الجديدة */}
         {showMosqueDetails && (
           <div className={`${styles.caseDescriptionBlock} mb-40`}>
             <h3>تفاصيل المسجد</h3>
-
-            {/* 💡 عرض المصلين في الأيام العادية */}
             {item.regularWorshippers != null && (
               <p>
-                <strong>عدد المصلين (أيام عادية):</strong> {formatNumberWestern(item.regularWorshippers)} مصلٍ/مصلية
+                <strong>عدد المصلين (أيام عادية):</strong>{" "}
+                {formatNumberWestern(item.regularWorshippers)} مصلٍ/مصلية
               </p>
             )}
-
-            {/* 💡 عرض المصلين يوم الجمعة */}
             {item.fridayWorshippers != null && (
               <p>
-                <strong>عدد المصلين (يوم الجمعة):</strong> {formatNumberWestern(item.fridayWorshippers)} مصلٍ/مصلية
+                <strong>عدد المصلين (يوم الجمعة):</strong>{" "}
+                {formatNumberWestern(item.fridayWorshippers)} مصلٍ/مصلية
               </p>
             )}
-
             {item.mosqueArea != null && (
               <p>
-                <strong>مساحة المسجد (م²):</strong> {formatNumberWestern(item.mosqueArea)} م²
+                <strong>مساحة المسجد (م²):</strong>{" "}
+                {formatNumberWestern(item.mosqueArea)} م²
               </p>
             )}
           </div>
@@ -428,14 +480,70 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({
       </>
     );
   };
-  // ===============================================
 
-  // ===== [N] العرض (المُعدّل) =====
+  // ===== [O] مكوّن التبرع المخصص =====
+  const CustomDonationInput: React.FC<{ isMobile: boolean }> = ({ isMobile }) => {
+    return (
+      <div
+        className={
+          isMobile ? styles.mobileCustomDonation : styles.desktopCustomDonation
+        }
+      >
+        <div className={styles.quantityControlNew}>
+          <button
+            className={styles.quantityBtn}
+            onClick={() => handleCustomDonationChange(customDonationAmount - 1)}
+            disabled={customDonationAmount <= 0}
+            aria-label="إنقاص مبلغ التبرع"
+            type="button"
+          >
+            -
+          </button>
+
+          <input
+            type="number"
+            className={styles.quantityInputNew}
+            value={String(customDonationAmount)}
+            onChange={(e) => handleCustomDonationChange(e.target.value)}
+            onBlur={(e) => handleCustomDonationChange(e.target.value)}
+            min={1}
+            max={remainingFunds > 0 ? remainingFunds : undefined}
+            step={1}
+            inputMode="numeric"
+            aria-label="مبلغ التبرع المخصص"
+          />
+
+          <button
+            className={styles.quantityBtn}
+            onClick={() => handleCustomDonationChange(customDonationAmount + 1)}
+            disabled={customDonationAmount >= remainingFunds && remainingFunds > 0}
+            aria-label="زيادة مبلغ التبرع"
+            type="button"
+          >
+            +
+          </button>
+        </div>
+
+        <button
+          onClick={addCustomDonationToCart}
+          className={`${styles.goldenFillBtn} ${styles.fixedSizeButton} ${
+            isMobile ? styles.mobileActionBtn : ""
+          }`}
+          type="button"
+          disabled={customDonationAmount <= 0 || isFullyFunded}
+        >
+          تبرع مخصص ({formatCurrencyWestern(customDonationAmount)})
+        </button>
+      </div>
+    );
+  };
+
+  // ===== [N] العرض =====
   return (
     <main className={styles.caseDetailsPageContent}>
       <div className="container">
         <div className={styles.mainContentArea}>
-          {/* ========== شريط الجوال المبسط (الأزرار موحدة الحجم وواضحة) ========== */}
+          {/* شريط الجوال */}
           <div className={styles.mobileHeaderBar}>
             <div className={styles.mobileHeaderRow}>
               <h2 className={styles.mobileTitle} title={caseItem!.title}>
@@ -443,7 +551,6 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({
               </h2>
 
               <div className={styles.mobileActions}>
-                {/* زر تبني المؤسسة (موحد الحجم) */}
                 <button
                   onClick={handleDonateAllRemainingNeeds}
                   className={`${styles.goldenFillBtn} ${styles.fixedSizeButton} ${styles.mobileActionBtn}`}
@@ -452,27 +559,17 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({
                   تبني المؤسسة
                 </button>
 
-                {/* زر تفصيل الاحتياج (موحد الحجم) */}
-                <Link href={`/cases/request-need/${caseItem!.id}`} passHref>
-                  <button
-                    className={`${styles.goldenStrokeBtn} ${styles.fixedSizeButton} ${styles.mobileActionBtn}`}
-                    type="button"
-                  >
-                    تفصيل الاحتياج
-                  </button>
-                </Link>
+                <CustomDonationInput isMobile={true} />
               </div>
             </div>
           </div>
 
-          {/* ========== شريط المعلومات للدسكتوب (التصميم الجديد) ========== */}
+          {/* شريط المعلومات للدسكتوب */}
           <div className={styles.caseTopInfoBarInsideContainer}>
-            {/* القسم الأيسر: الاسم والزرين */}
             <div className={styles.leftSection}>
               <h2 className={styles.schoolName}>{caseItem!.title}</h2>
 
               <div className={styles.desktopButtons}>
-                {/* الزر الثاني: تبني المؤسسة */}
                 <button
                   onClick={handleDonateAllRemainingNeeds}
                   className={`${styles.goldenFillBtn} ${styles.fixedSizeButton}`}
@@ -480,19 +577,11 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({
                 >
                   تبني المؤسسة <i className="fas fa-heart" />
                 </button>
-                {/* الزر الأول: تفصيل الاحتياج */}
-                <Link href={`/cases/request-need/${caseItem!.id}`} passHref>
-                  <button
-                    className={`${styles.goldenStrokeBtn} ${styles.fixedSizeButton}`}
-                    type="button"
-                  >
-                    تفصيل الاحتياج <i className="fas fa-list-alt" />
-                  </button>
-                </Link>
+
+                <CustomDonationInput isMobile={false} />
               </div>
             </div>
 
-            {/* القسم الأيمن: المتبقي (الشكل البصري الجديد) */}
             <div className={styles.rightSection}>
               <div className={styles.remainingFundsDisplay}>
                 {(() => {
@@ -541,7 +630,7 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({
             </div>
           </div>
 
-          {/* ========== تبويبات الصفحة (Sticky Header) - المُعدّلة ========== */}
+          {/* تبويبات الصفحة */}
           <div
             className={`${styles.caseSubNavSectionTabs} ${styles.stickyTabGroup}`}
           >
@@ -551,18 +640,20 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({
               aria-label="التنقل داخل تفاصيل الحالة"
             >
               <button
-                className={`${styles.navItem} ${mainContentTab === "products" ? styles.active : ""
-                  }`}
+                className={`${styles.navItem} ${
+                  mainContentTab === "products" ? styles.active : ""
+                }`}
                 onClick={() => setMainContentTab("products")}
                 role="tab"
                 aria-selected={mainContentTab === "products"}
                 type="button"
               >
-                صفحة المنتجات
+               المنتجات
               </button>
               <button
-                className={`${styles.navItem} ${mainContentTab === "about" ? styles.active : ""
-                  }`}
+                className={`${styles.navItem} ${
+                  mainContentTab === "about" ? styles.active : ""
+                }`}
                 onClick={() => setMainContentTab("about")}
                 role="tab"
                 aria-selected={mainContentTab === "about"}
@@ -571,8 +662,9 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({
                 عن المؤسسة
               </button>
               <button
-                className={`${styles.navItem} ${mainContentTab === "documentation" ? styles.active : ""
-                  }`}
+                className={`${styles.navItem} ${
+                  mainContentTab === "documentation" ? styles.active : ""
+                }`}
                 onClick={() => setMainContentTab("documentation")}
                 role="tab"
                 aria-selected={mainContentTab === "documentation"}
@@ -583,12 +675,18 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({
             </div>
           </div>
 
-          {/* === رسائل الحالة === */}
+          {/* إشعار عام */}
           {message && (
-            <div className={styles.infoMessage} role="status">
-              {message}
+            <div
+              className={`${styles.infoMessage} ${
+                message.type === "warning" ? styles.warningMessage : ""
+              }`}
+              role="status"
+            >
+              {message.text}
             </div>
           )}
+
           {isFullyFunded ? (
             <div
               className={`${styles.infoMessage} ${styles.fullyFundedMessage}`}
@@ -603,7 +701,7 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({
                 selectedCategory &&
                 needsByCategory[selectedCategory]?.length > 0 && (
                   <div className={styles.productsNeedsGridTab}>
-                    {/* ========== التصنيفات (Sticky Categories) - لم تتغير ========== */}
+                    {/* تصنيفات */}
                     <div
                       className={`${styles.categoryTabsSticky} ${styles.stickyTabGroup}`}
                     >
@@ -617,10 +715,11 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({
                           return (
                             <button
                               key={categoryName}
-                              className={`${styles.categoryTabItem} ${selectedCategory === categoryName
+                              className={`${styles.categoryTabItem} ${
+                                selectedCategory === categoryName
                                   ? styles.activeTab
                                   : ""
-                                }`}
+                              }`}
                               onClick={() => setSelectedCategory(categoryName)}
                               aria-pressed={selectedCategory === categoryName}
                               type="button"
@@ -634,7 +733,7 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({
                       </div>
                     </div>
 
-                    {/* ========== شبكة المنتجات (المُعدّلة) ========== */}
+                    {/* شبكة المنتجات */}
                     <div className={`${styles.productsListSection} mt-40`}>
                       <div className={styles.productsNeedsGrid}>
                         {needsByCategory[selectedCategory].map((need) => {
@@ -743,13 +842,8 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({
                                   }
                                   type="button"
                                 >
-                                  <i
-                                    className="fas fa-heart"
-                                    aria-hidden="true"
-                                  />
-                                  <span className={styles.donateText}>
-                                    تبرع
-                                  </span>
+                                  <i className="fas fa-heart" aria-hidden="true" />
+                                  <span className={styles.donateText}>تبرع</span>
                                 </button>
                               </div>
                             </div>
@@ -760,7 +854,7 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({
                   </div>
                 )}
 
-              {/* === تبويبة: عن المؤسسة === */}
+              {/* تبويب: عن المؤسسة */}
               {mainContentTab === "about" && caseItem && (
                 <div
                   className={`${styles.aboutSchoolTabContent} ${styles.tabPane} py-40`}
@@ -770,37 +864,41 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({
                 </div>
               )}
 
-              {/* === تبويبة: توثيق وصور (المُعدّلة لتشغيل السلايدر) === */}
-              {mainContentTab === "documentation" && caseItem && caseItem.images && caseItem.images.length > 0 && (
+              {/* تبويب: توثيق وصور */}
+              {mainContentTab === "documentation" && caseItem && (
                 <div
                   className={`${styles.inquiriesTabContent} ${styles.tabPane} py-40`}
                 >
                   <h2 className="section-title text-center">توثيق وصور</h2>
-                  <div className={`${styles.inquiriesBlock} mb-40`}>
-                    <p>هنا يمكنك إضافة محتوى توثيق الحالة والصور الخاصة بها.</p>
-                    {/* استخدام السلايدر */}
-                    <div className={`${styles.sliderContainer} documentation-slider-container`}>
+
+                  {sliderImages.length === 0 ? (
+                    <div className={styles.infoMessage}>
+                      لا توجد صور توثيقية متاحة غير الصورة الأساسية.
+                    </div>
+                  ) : (
+                    <div
+                      className={`${styles.inquiriesBlock} mb-40 ${styles.sliderContainer} documentation-slider-container`}
+                    >
                       <Slider {...sliderSettings}>
-                        {caseItem.images.map((imgUrl, index) => (
-                          <div key={index} className={`slick-slide-item`}>
+                        {sliderImages.map((imgUrl, index) => (
+                          <div key={index} className="slick-slide-item">
                             <Image
                               src={imgUrl}
                               alt={`صورة توثيقية رقم ${index + 1}`}
-                              // أبعاد موحدة لضمان "الكروما" نفسه
                               width={700}
                               height={450}
                               style={{
-                                objectFit: "cover", // مهم جداً: يحافظ على نسبة الأبعاد ويملأ المساحة
+                                objectFit: "cover",
                                 width: "100%",
                                 height: "100%",
-                                borderRadius: "10px", // زوايا دائرية
+                                borderRadius: "10px",
                               }}
                             />
                           </div>
                         ))}
                       </Slider>
                     </div>
-                  </div>
+                  )}
                 </div>
               )}
             </div>

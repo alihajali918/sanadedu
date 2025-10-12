@@ -36,16 +36,17 @@ const CasesPage = async ({ searchParams }: { searchParams: SearchParams }) => {
   // نجلب الحالات حسب الفلاتر
   const allCases: CaseItem[] = await getCases(params);
 
+  // 🛑 [التصحيح 1]: إعادة تعريف title و emptyMessage في النطاق الصحيح
   // عنوان الصفحة والرسالة الفارغة حسب النوع
   const title =
     type === 'mosques' ? 'المساجد'
-    : type === 'schools' ? 'المدارس'
-    : 'كل الحالات';
+      : type === 'schools' ? 'المدارس'
+        : 'كل الحالات';
 
   const emptyMessage =
     type === 'mosques' ? 'لا توجد مساجد حالياً.'
-    : type === 'schools' ? 'لا توجد مدارس حالياً.'
-    : 'لا توجد حالات حالياً.';
+      : type === 'schools' ? 'لا توجد مدارس حالياً.'
+        : 'لا توجد حالات حالياً.';
 
   // مهيئ أرقام/عملة بسيط
   const fmtNum = new Intl.NumberFormat('en-US');
@@ -69,9 +70,16 @@ const CasesPage = async ({ searchParams }: { searchParams: SearchParams }) => {
                 const needed = caseItem.fundNeeded || 0;
                 const remaining = Math.max(0, needed - raised);
 
+                // 🛑 [التصحيح 2]: تطبيق منطق التبديل هنا مباشرة
+                // نستخدم String().trim() والتحقق من الصيغتين (قريباً/قريبا) لضمان المقاومة ضد الأخطاء
+                const needLevelClean = String(caseItem.needLevel || '').trim();
+                const isComingSoon = needLevelClean === 'قريباً' || needLevelClean === 'قريبا';
+                // -----------------------------------------------------------------
+
                 return (
                   <div
                     key={caseItem.id}
+                    // يمكنك استخدام isUrgent أو needLevel='عالي' لتمييز الحالة العاجلة
                     className={`${styles.caseCard} ${caseItem.needLevel === 'عالي' ? styles.urgentCase : ''}`.trim()}
                   >
                     <div className={styles.caseImageWrapper}>
@@ -107,12 +115,18 @@ const CasesPage = async ({ searchParams }: { searchParams: SearchParams }) => {
                         <span>% {fmtNum.format(progress)}</span>
                       </div>
 
-                      <Link
-                        href={`/cases/${caseItem.id}`}
-                        className={`${styles.btn} ${styles.btnCtaPrimary} ${styles.caseCardBtn}`}
-                      >
-                        ادعم الآن
-                      </Link>
+                      {isComingSoon ? (
+                        <span className={`${styles.btn} ${styles.btnComingSoon} ${styles.caseCardBtn}`}>
+                          قريباً ...
+                        </span>
+                      ) : (
+                        <Link
+                          href={`/cases/${caseItem.id}`}
+                          className={`${styles.btn} ${styles.btnCtaPrimary} ${styles.caseCardBtn}`}
+                        >
+                          ادعم الآن
+                        </Link>
+                      )}
                     </div>
                   </div>
                 );

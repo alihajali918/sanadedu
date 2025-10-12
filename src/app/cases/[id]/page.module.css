@@ -28,7 +28,7 @@
 .caseDetailsPageContent {
   background-color: var(--light-grey);
   padding: 0;
-  padding-top: 100px;
+  padding-top: 50px;
   padding-bottom: 40px;
   direction: rtl;
   min-height: 100vh;
@@ -38,7 +38,7 @@
 
 @media (max-width:768px) {
   .caseDetailsPageContent {
-    padding-top: 50px;
+    padding-top: 60px;
   }
 }
 
@@ -150,7 +150,7 @@
   display: flex;
   gap: 12px;
   width: 100%;
-  max-width: 400px;
+  max-width: 600px;
 }
 
 /* ------------------------------------------------ */
@@ -378,7 +378,6 @@
   top: calc(var(--header-h-desktop) + var(--tabs-h) + 8px);
   z-index: 95;
   /* تحت التبويبات الرئيسية بقليل */
-  background: var(--background-white);
   padding: 8px 0;
   margin-bottom: 20px;
   border-radius: 16px;
@@ -598,6 +597,8 @@
 
 .btnDonateNew:hover {
   filter: brightness(.95);
+  cursor: pointer;
+  background-color: var(--primary-green);
 }
 
 /* إخفاء الشارة القديمة للمتبقي */
@@ -869,4 +870,143 @@
 /* لإلغاء أي تأثيرات افتراضية غير مرغوبة من slick-theme.css */
 .slick-prev:before, .slick-next:before {
     display: none !important;
+}
+.infoMessage {
+    /* يجعل الإشعار يظهر فوق كل العناصر الأخرى */
+    position: fixed; 
+    top: calc(var(--header-h-desktop) + 50%); /* يبعد عن الهيدر و مسافة 20px */
+    left: 50%; 
+    transform: translateX(-50%); /* يتوسط الشاشة أفقياً */
+    
+    /* تنسيق بصري واضح للنجاح */
+    background-color: var(--primary-green); /* استخدام الأخضر الزيتي */
+    color: var(--text-white); /* نص أبيض */
+    
+    /* تنسيقات المظهر */
+    padding: 15px 30px; 
+    border-radius: 8px; 
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+    font-size: 1.1rem;
+    font-weight: bold;
+    text-align: center;
+    max-width: 90%; 
+    z-index: 10000; /* قيمة عالية جداً لضمان الظهور فوق الـ sticky tabs */
+    transition: opacity 0.3s ease-in-out, visibility 0.3s;
+    pointer-events: auto; /* يسمح بالتفاعل إذا كان هناك زر إغلاق (غير موجود هنا) */
+}
+
+/* تنسيق خاص برسالة الاكتمال/تحذير (مثل رسائل الخطأ) */
+.fullyFundedMessage {
+    background-color: var(--highlight-gold); /* يمكن استخدام الذهبي أو لون تحذيري آخر */
+    color: var(--text-black); /* نص أسود لتباين أفضل على الذهبي */
+}
+
+/* في حالة الشاشات الصغيرة (الجوال) */
+@media (max-width: 768px) {
+    .infoMessage {
+        /* يتم تثبيته في الأسفل على الجوال لعدم حجب الشاشة */
+        top: auto;
+        bottom: 20px;
+        width: 90%;
+        max-width: none;
+        /* يتم حساب الموضع بالنسبة لارتفاع الهيدر في الأسفل إذا كان هناك شريط سفلي */
+        /* top: calc(var(--header-h-mobile) + 10px); */ 
+    }
+}
+.customDonationGroup {
+    display: flex;
+    align-items: stretch; /* لضمان تساوي الارتفاع */
+    gap: 10px; /* المسافة بين العداد والزر */
+    flex-grow: 1;
+}
+
+/* 1. ستايل الديسكتوب: يتم عرضه كجزء من أزرار الشريط العلوي */
+.desktopCustomDonation {
+    /* يضمن أن يكون العداد والزر على صف واحد ومتوسطين */
+    display: flex;
+    align-items: center;
+    justify-content: flex-end; /* يبدأ من اليسار (في الاتجاه RTL) */
+    flex-grow: 1;
+    max-width: 450px; /* تحديد عرض معقول ليظهر بجانب زر التبني */
+}
+
+/* توسيع العداد ليأخذ مساحة أكبر قليلاً في وضع التخصيص */
+.desktopCustomDonation .quantityControlNew {
+    flex-grow: 0.5; 
+    max-width: 150px; 
+}
+
+/* زر التبرع المخصص في الديسكتوب - لضمان حجم موحد وشكل موحد */
+.desktopCustomDonation .customDonateAllBtn {
+    flex-grow: 1; /* ليكبر الزر ليملأ الفراغ */
+    min-width: 200px; /* حجم معقول للزر */
+    padding: 10px 15px;
+    height: 44px; /* نفس ارتفاع العداد */
+    font-weight: bold;
+    border-radius: 8px;
+}
+
+/* 2. ستايل الجوال: يتم وضعه أسفل زر "تبني المؤسسة" */
+.mobileCustomDonation {
+    /* يأخذ عرض الشاشة بالكامل داخل الحاوية */
+    width: 100%; 
+    margin-top: 10px; /* مسافة من زر التبني */
+}
+
+/* في الجوال، اجعل العداد يملأ نصف المساحة تقريباً والزر النصف الآخر */
+.mobileCustomDonation .customDonationGroup {
+    width: 100%;
+    flex-wrap: nowrap; /* إبقاء العناصر في صف واحد */
+}
+
+.mobileCustomDonation .quantityControlNew {
+    flex-grow: 1;
+    max-width: 150px; /* حجم ثابت للعداد */
+}
+
+.mobileCustomDonation .customDonateAllBtn {
+    flex-grow: 1;
+    min-width: 100px;
+}
+
+/* تحسين حقل الإدخال للرؤية */
+.customDonationInputDesktop {
+    font-size: 16px;
+    font-weight: bold;
+    color: var(--primary-color, #1a1a1a); 
+    padding: 0 5px; /* مساحة داخلية */
+}
+
+/* تعديل ستايل الأزرار لتكون موحدة في الارتفاع */
+.fixedSizeButton {
+    height: 44px;
+    line-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 20px;
+}
+
+/* تأكيد ستايل الـ mobile actions لضمان ترتيب العناصر */
+@media (max-width: 767px) {
+    .mobileActions {
+        display: flex;
+        flex-direction: column; /* الأزرار والعداد تكون فوق بعض */
+        width: 100%;
+        gap: 10px; /* مسافة بين العناصر */
+    }
+    
+    .mobileActionBtn {
+        width: 100%; /* اجعل زر "تبني المؤسسة" يملأ العرض */
+    }
+
+    /* لضمان أن العداد والزر المخصص لا يتجاوزان العرض */
+    .mobileCustomDonation {
+        width: 100%;
+    }
+    .mobileCustomDonation .customDonationGroup {
+        width: 100%;
+        /* هنا يمكنك تحديد طريقة توزيع العناصر في الجوال */
+        justify-content: space-between; 
+    }
 }

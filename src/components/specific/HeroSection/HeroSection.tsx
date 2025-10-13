@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import React from 'react';
+import React from 'react'; // ✅ صحيح
 import { StaticImageData } from 'next/image';
 
 // استيراد مكونات ووحدات Swiper
@@ -32,9 +32,20 @@ const HeroSection: React.FC = () => {
             <div className={styles.gridContainer}>
                 {/* المحتوى النصي */}
                 <div className={styles.heroTextContent}>
-                    <h1 className={styles.heroTitle}>
-                        سند لدعم التعليم
-                    </h1>
+                    {/* 👇 تم التعديل هنا: إضافة زر تشغيل فيديو مع الأيقونة والربط */}
+                    <Link 
+                        href="https://www.youtube.com/watch?v=YOUR_VIDEO_ID" // قم بتغيير هذا الرابط إلى رابط الفيديو الخاص بك
+                        target="_blank" // لفتح الفيديو في نافذة جديدة
+                        rel="noopener noreferrer" 
+                        className={styles.heroTitleLink} // كلاس جديد للتنسيق
+                    >
+                        {/* أيقونة الفيديو (يمكنك استبدالها بأيقونة SVG أو React Icon) */}
+                        <span className={styles.videoIcon}>▶️</span>
+                        <h1 className={styles.heroTitle}>
+                            سند لدعم التعليم
+                        </h1>
+                    </Link>
+                    {/* 👆 نهاية التعديل */}
                     <p className={styles.heroDescription}>
                         نـمـنـح أطـفـالنا فرصة جـديـدة للـتـعـلـم
                         ونحوّل التبرع إلى مستقبل حيّ بالأمل

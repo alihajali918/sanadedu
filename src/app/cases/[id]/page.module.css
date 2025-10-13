@@ -93,11 +93,25 @@
   text-align: center;
 }
 
-.mobileActions {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
+/* ⬅️ تم تعديل هذا القسم ليتناسب مع الترتيب الجديد في الجوال */
+@media (max-width: 767px) {
+  .mobileActions {
+    display: flex;
+    flex-direction: row;
+    /* الأزرار والحقل بجانب بعض في الجوال */
+    width: 100%;
+    gap: 10px;
+    /* المسافة بين العناصر */
+  }
+
+  .mobileActionBtn {
+    flex: 1;
+    /* اجعل زر "تبني المؤسسة" يملأ نصف العرض */
+    width: auto;
+  }
 }
+
+/* نهاية تعديل الجوال */
 
 /* ------------------------------------------------ */
 /* -------- [3] Desktop top info -------- */
@@ -146,12 +160,20 @@
   margin-right: 12px;
 }
 
+/* ⬅️ تم تعديل هذا القسم ليجعل الأزرار بنفس القياس */
 .desktopButtons {
   display: flex;
   gap: 12px;
   width: 100%;
   max-width: 600px;
 }
+
+.desktopButtons>button {
+  flex: 1;
+  /* زر تبني المؤسسة يأخذ مساحة متساوية */
+}
+
+/* نهاية تعديل الديسكتوب */
 
 /* ------------------------------------------------ */
 /* -------- [4] Buttons (equal width) -------- */
@@ -713,6 +735,7 @@
 .backLink:hover {
   background: var(--light-grey);
 }
+
 /* ========================================================== */
 /* تخصيص مظهر React Slick Arrows and Dots */
 /* ========================================================== */
@@ -721,10 +744,12 @@
 /* تخصيص السلايدر العام */
 /* -------------------------------------- */
 .documentation-slider-container {
-  max-width: 900px; /* يمكن تعديل هذا العرض الأقصى حسب التصميم */
+  max-width: 900px;
+  /* يمكن تعديل هذا العرض الأقصى حسب التصميم */
   margin: 0 auto;
   position: relative;
-  padding: 0 60px; /* مسافة للأسهم لتكون خارج الصورة */
+  padding: 0 60px;
+  /* مسافة للأسهم لتكون خارج الصورة */
 }
 
 /* -------------------------------------- */
@@ -759,7 +784,8 @@
 }
 
 .slick-dots li.slick-active button {
-  background: #C49B5A; /* اللون الذهبي الخاص بك */
+  background: #C49B5A;
+  /* اللون الذهبي الخاص بك */
   border-color: #C49B5A;
   width: 12px;
   height: 12px;
@@ -775,7 +801,8 @@
   z-index: 10;
   width: 40px;
   height: 40px;
-  display: flex !important; /* مهم جداً لجعلها تظهر */
+  display: flex !important;
+  /* مهم جداً لجعلها تظهر */
   align-items: center;
   justify-content: center;
   border-radius: 50%;
@@ -783,7 +810,8 @@
   color: #fff;
   cursor: pointer;
   transition: background-color 0.3s ease, color 0.3s ease;
-  font-size: 0; /* لإخفاء أي نص افتراضي */
+  font-size: 0;
+  /* لإخفاء أي نص افتراضي */
 }
 
 .custom-slick-arrow:hover {
@@ -792,16 +820,18 @@
 }
 
 .custom-slick-arrow.prev-arrow {
-  left: 0px; /* لتكون داخل حاوية السلايدر */
+  left: 0px;
+  /* لتكون داخل حاوية السلايدر */
 }
 
 .custom-slick-arrow.next-arrow {
-  right: 0px; /* لتكون داخل حاوية السلايدر */
+  right: 0px;
+  /* لتكون داخل حاوية السلايدر */
 }
 
 .custom-slick-arrow i {
-    font-size: 18px;
-    color: #fff;
+  font-size: 18px;
+  color: #fff;
 }
 
 /* -------------------------------------- */
@@ -813,32 +843,40 @@
 .slick-slide.slick-center img {
   transform: scale(1);
   opacity: 1;
-  filter: blur(0px); /* الصورة المركزية واضحة جداً */
+  filter: blur(0px);
+  /* الصورة المركزية واضحة جداً */
   transition: all 0.5s ease-in-out;
 }
 
 /* الصور غير المعروضة (الجانبية) */
 .slick-slide:not(.slick-center) img {
-  transform: scale(0.9); /* تصغير بسيط للصورة الجانبية */
-  opacity: 0.6; /* جعلها أقل وضوحاً */
-  filter: blur(3px); /* تطبيق البلور */
+  transform: scale(0.9);
+  /* تصغير بسيط للصورة الجانبية */
+  opacity: 0.6;
+  /* جعلها أقل وضوحاً */
+  filter: blur(3px);
+  /* تطبيق البلور */
   transition: all 0.5s ease-in-out;
 }
 
 /* تحديد ارتفاع ثابت لكل شريحة لضمان نفس "الكروما" */
-.slick-list .slick-track .slick-slide > div {
-  height: 450px; /* نفس الارتفاع الذي حددته في Image component */
-  display: flex; /* لضمان توسيط الصورة داخل div الشريحة */
+.slick-list .slick-track .slick-slide>div {
+  height: 450px;
+  /* نفس الارتفاع الذي حددته في Image component */
+  display: flex;
+  /* لضمان توسيط الصورة داخل div الشريحة */
   align-items: center;
   justify-content: center;
 }
 
 .slick-list .slick-track .slick-slide img {
-    /* هذه الخصائص مهمة لتطبيق الكروما بشكل موحد */
-    width: 100%;
-    height: 100%;
-    object-fit: cover; /* يضمن ملء الصورة للمساحة مع الحفاظ على الأبعاد */
-    border-radius: 10px; /* زوايا دائرية لكل الصور */
+  /* هذه الخصائص مهمة لتطبيق الكروما بشكل موحد */
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /* يضمن ملء الصورة للمساحة مع الحفاظ على الأبعاد */
+  border-radius: 10px;
+  /* زوايا دائرية لكل الصور */
 }
 
 
@@ -847,12 +885,14 @@
 /* -------------------------------------- */
 @media (max-width: 768px) {
   .documentation-slider-container {
-    padding: 0 10px; /* مسافة أقل على الجوال */
+    padding: 0 10px;
+    /* مسافة أقل على الجوال */
   }
 
   .custom-slick-arrow.prev-arrow {
     left: -5px;
   }
+
   .custom-slick-arrow.next-arrow {
     right: -5px;
   }
@@ -862,151 +902,191 @@
   }
 
   /* على الجوال، قد تحتاج لضبط حجم الصور الجانبية أيضاً */
-  .slick-list .slick-track .slick-slide > div {
-    height: 300px; /* ارتفاع أقل للصور على الجوال */
+  .slick-list .slick-track .slick-slide>div {
+    height: 300px;
+    /* ارتفاع أقل للصور على الجوال */
   }
 }
 
 /* لإلغاء أي تأثيرات افتراضية غير مرغوبة من slick-theme.css */
-.slick-prev:before, .slick-next:before {
-    display: none !important;
+.slick-prev:before,
+.slick-next:before {
+  display: none !important;
 }
+
 .infoMessage {
-    /* يجعل الإشعار يظهر فوق كل العناصر الأخرى */
-    position: fixed; 
-    top: calc(var(--header-h-desktop) + 50%); /* يبعد عن الهيدر و مسافة 20px */
-    left: 50%; 
-    transform: translateX(-50%); /* يتوسط الشاشة أفقياً */
-    
-    /* تنسيق بصري واضح للنجاح */
-    background-color: var(--primary-green); /* استخدام الأخضر الزيتي */
-    color: var(--text-white); /* نص أبيض */
-    
-    /* تنسيقات المظهر */
-    padding: 15px 30px; 
-    border-radius: 8px; 
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
-    font-size: 1.1rem;
-    font-weight: bold;
-    text-align: center;
-    max-width: 90%; 
-    z-index: 10000; /* قيمة عالية جداً لضمان الظهور فوق الـ sticky tabs */
-    transition: opacity 0.3s ease-in-out, visibility 0.3s;
-    pointer-events: auto; /* يسمح بالتفاعل إذا كان هناك زر إغلاق (غير موجود هنا) */
+  /* يجعل الإشعار يظهر فوق كل العناصر الأخرى */
+  position: fixed;
+  top: calc(var(--header-h-desktop) + 50%);
+  /* يبعد عن الهيدر و مسافة 20px */
+  left: 50%;
+  transform: translateX(-50%);
+  /* يتوسط الشاشة أفقياً */
+
+  /* تنسيق بصري واضح للنجاح */
+  background-color: var(--primary-green);
+  /* استخدام الأخضر الزيتي */
+  color: var(--text-white);
+  /* نص أبيض */
+
+  /* تنسيقات المظهر */
+  padding: 15px 30px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  font-size: 1.1rem;
+  font-weight: bold;
+  text-align: center;
+  max-width: 90%;
+  z-index: 10000;
+  /* قيمة عالية جداً لضمان الظهور فوق الـ sticky tabs */
+  transition: opacity 0.3s ease-in-out, visibility 0.3s;
+  pointer-events: auto;
+  /* يسمح بالتفاعل إذا كان هناك زر إغلاق (غير موجود هنا) */
 }
 
 /* تنسيق خاص برسالة الاكتمال/تحذير (مثل رسائل الخطأ) */
 .fullyFundedMessage {
-    background-color: var(--highlight-gold); /* يمكن استخدام الذهبي أو لون تحذيري آخر */
-    color: var(--text-black); /* نص أسود لتباين أفضل على الذهبي */
+  background-color: var(--highlight-gold);
+  /* يمكن استخدام الذهبي أو لون تحذيري آخر */
+  color: var(--text-black);
+  /* نص أسود لتباين أفضل على الذهبي */
 }
 
 /* في حالة الشاشات الصغيرة (الجوال) */
 @media (max-width: 768px) {
-    .infoMessage {
-        /* يتم تثبيته في الأسفل على الجوال لعدم حجب الشاشة */
-        top: auto;
-        bottom: 20px;
-        width: 90%;
-        max-width: none;
-        /* يتم حساب الموضع بالنسبة لارتفاع الهيدر في الأسفل إذا كان هناك شريط سفلي */
-        /* top: calc(var(--header-h-mobile) + 10px); */ 
-    }
+  .infoMessage {
+    /* يتم تثبيته في الأسفل على الجوال لعدم حجب الشاشة */
+    top: auto;
+    bottom: 20px;
+    width: 90%;
+    max-width: none;
+    /* يتم حساب الموضع بالنسبة لارتفاع الهيدر في الأسفل إذا كان هناك شريط سفلي */
+    /* top: calc(var(--header-h-mobile) + 10px); */
+  }
 }
+
+/* ⬅️ =======================================================
+                          تعديلات التبرع المخصص الجديدة 
+        ======================================================= */
+
+/* إزالة الحاجة لهذا الكلاس، ولكن تم الاحتفاظ به كحاوية لسهولة التمييز */
 .customDonationGroup {
-    display: flex;
-    align-items: stretch; /* لضمان تساوي الارتفاع */
-    gap: 10px; /* المسافة بين العداد والزر */
-    flex-grow: 1;
+  display: flex;
+  align-items: stretch;
+  /* لضمان تساوي الارتفاع */
+  gap: 10px;
+  /* المسافة بين الحقل والزر */
+  flex-grow: 1;
 }
 
-/* 1. ستايل الديسكتوب: يتم عرضه كجزء من أزرار الشريط العلوي */
+/* 1. ستايل الديسكتوب: بنفس القياس بجانب زر تبني المؤسسة */
 .desktopCustomDonation {
-    /* يضمن أن يكون العداد والزر على صف واحد ومتوسطين */
-    display: flex;
-    align-items: center;
-    justify-content: flex-end; /* يبدأ من اليسار (في الاتجاه RTL) */
-    flex-grow: 1;
-    max-width: 450px; /* تحديد عرض معقول ليظهر بجانب زر التبني */
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  /* المسافة بين الحقل وزر "تبرع مخصص" */
+  flex: 1;
+  /* **لجعلها بنفس عرض زر تبني المؤسسة** */
+  width: 100%;
+  max-width: none;
+  /* إزالة الحد الأقصى للعرض */
 }
 
-/* توسيع العداد ليأخذ مساحة أكبر قليلاً في وضع التخصيص */
-.desktopCustomDonation .quantityControlNew {
-    flex-grow: 0.5; 
-    max-width: 150px; 
+/* حاوية حقل الإدخال الجديد */
+.customInputWrapper {
+  flex: 1;
+  /* يجعل حقل الإدخال يملأ المساحة المتبقية داخل حاوية التبرع */
+  display: flex;
+  align-items: center;
+  height: 48px;
+  /* توحيد ارتفاعه مع ارتفاع الأزرار (48px) */
+  border: 2px solid var(--highlight-gold);
+  /* حدود مشابهة للأزرار */
+  border-radius: 12px;
+  padding: 0 10px;
+  background: var(--background-white);
 }
 
-/* زر التبرع المخصص في الديسكتوب - لضمان حجم موحد وشكل موحد */
-.desktopCustomDonation .customDonateAllBtn {
-    flex-grow: 1; /* ليكبر الزر ليملأ الفراغ */
-    min-width: 200px; /* حجم معقول للزر */
-    padding: 10px 15px;
-    height: 44px; /* نفس ارتفاع العداد */
-    font-weight: bold;
-    border-radius: 8px;
+.customInputWrapper .inputLabel {
+  font-size: 1.2em;
+  color: var(--highlight-gold);
+  padding-right: 5px;
+  font-weight: 800;
 }
 
-/* 2. ستايل الجوال: يتم وضعه أسفل زر "تبني المؤسسة" */
+/* حقل الإدخال نفسه (للمبلغ) */
+.customDonationInput {
+  /* تجاوز أي أنماط سابقة لـ styles.quantityInputNew */
+  border: none !important;
+  text-align: right !important;
+  padding: 0 !important;
+  font-size: 16px !important;
+  font-weight: 900;
+  height: 100% !important;
+  width: 100%;
+  flex: 1;
+  outline: none;
+}
+
+
+/* زر التبرع المخصص في الديسكتوب (لإضافة المبلغ للسلة) */
+.desktopCustomDonation .goldenFillBtn {
+  /* هنا يجب أن يتمدد زر "تبرع مخصص" داخل حاوية التبرع ليتناسب مع قياسه الفعلي */
+  /* ملاحظة: سيتم معالجة التوزيع الداخلي في كود JSX عن طريق زر الإضافة للسلة */
+  flex-grow: 0;
+  /* لا يتمدد في هذا الكلاس ليتم تنسيقه بواسطة الكلاس الداخلي */
+  width: auto;
+  /* يعتمد على محتوى النص */
+  min-width: 150px;
+  height: 48px;
+  /* نفس ارتفاع حقل الإدخال والأزرار الأخرى */
+  padding: 10px 15px;
+}
+
+/* 2. ستايل الجوال: بنفس القياس بجانب زر تبني المؤسسة */
 .mobileCustomDonation {
-    /* يأخذ عرض الشاشة بالكامل داخل الحاوية */
-    width: 100%; 
-    margin-top: 10px; /* مسافة من زر التبني */
+  flex: 1;
+  /* **لجعلها بنفس عرض زر تبني المؤسسة** */
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 0;
+  /* إلغاء أي مسافة علوية سابقة */
 }
 
-/* في الجوال، اجعل العداد يملأ نصف المساحة تقريباً والزر النصف الآخر */
-.mobileCustomDonation .customDonationGroup {
-    width: 100%;
-    flex-wrap: nowrap; /* إبقاء العناصر في صف واحد */
+/* تطبيق نفس تنسيق حقل الإدخال على الجوال */
+.mobileCustomDonation .customInputWrapper {
+  height: 48px;
+  flex: 1;
 }
 
-.mobileCustomDonation .quantityControlNew {
-    flex-grow: 1;
-    max-width: 150px; /* حجم ثابت للعداد */
+/* تطبيق نفس تنسيق زر الإضافة على الجوال */
+.mobileCustomDonation .goldenFillBtn {
+  min-width: 100px;
+  /* حجم أصغر قليلاً للجوال */
+  height: 48px;
+  padding: 8px 10px;
+  font-size: 13px;
 }
 
-.mobileCustomDonation .customDonateAllBtn {
-    flex-grow: 1;
-    min-width: 100px;
-}
-
-/* تحسين حقل الإدخال للرؤية */
+/* إزالة الستايلات القديمة التي تتعارض */
+.desktopCustomDonation .quantityControlNew,
+.mobileCustomDonation .quantityControlNew,
 .customDonationInputDesktop {
-    font-size: 16px;
-    font-weight: bold;
-    color: var(--primary-color, #1a1a1a); 
-    padding: 0 5px; /* مساحة داخلية */
+  display: none !important;
+  /* إخفاء العداد القديم بالكامل */
 }
 
 /* تعديل ستايل الأزرار لتكون موحدة في الارتفاع */
 .fixedSizeButton {
-    height: 44px;
-    line-height: 44px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0 20px;
+  height: 48px;
+  /* تم توحيد الارتفاع إلى 48px */
+  line-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 20px;
 }
 
-/* تأكيد ستايل الـ mobile actions لضمان ترتيب العناصر */
-@media (max-width: 767px) {
-    .mobileActions {
-        display: flex;
-        flex-direction: column; /* الأزرار والعداد تكون فوق بعض */
-        width: 100%;
-        gap: 10px; /* مسافة بين العناصر */
-    }
-    
-    .mobileActionBtn {
-        width: 100%; /* اجعل زر "تبني المؤسسة" يملأ العرض */
-    }
-
-    /* لضمان أن العداد والزر المخصص لا يتجاوزان العرض */
-    .mobileCustomDonation {
-        width: 100%;
-    }
-    .mobileCustomDonation .customDonationGroup {
-        width: 100%;
-        /* هنا يمكنك تحديد طريقة توزيع العناصر في الجوال */
-        justify-content: space-between; 
-    }
-}
+/* نهاية تعديلات التبرع المخصص الجديدة */

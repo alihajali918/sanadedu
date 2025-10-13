@@ -1,6 +1,6 @@
 // ================================================
 // File: /app/cases/[id]/CaseDetailsContent.tsx
-// (الإصدار الكامل مع استثناء الصورة الأساسية من السلايدر)
+// (إظهار حقل إدخال + زر "تبرع" عند الضغط على "تبرع مخصص")
 // ================================================
 "use client";
 
@@ -30,7 +30,7 @@ interface MessageState {
   type: "success" | "warning";
 }
 
-// أسهم السلايدر المخصصة
+// أسهم السلايدر
 const NextArrow = (props: any) => {
   const { className, style, onClick } = props;
   return (
@@ -72,7 +72,7 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({ caseItem }) => 
     caseItem.needs.length > 0
   );
 
-  // ===== [B] فورماتر الأرقام والعملات =====
+  // ===== [B] تنسيقات الأرقام =====
   const currency = "USD";
   const numberFormatter = useMemo(() => new Intl.NumberFormat("en-US"), []);
   const currencyFormatter = useMemo(
@@ -162,7 +162,7 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({ caseItem }) => 
     [remainingFunds, caseItem?.fundNeeded]
   );
 
-  // ===== [I] عدّاد الكمية =====
+  // ===== [I] عدّاد الكمية للمنتجات =====
   const handleQuantityChange = useCallback(
     (needId: string, value: string) => {
       let num = Number.isFinite(Number(value)) ? parseInt(value, 10) : 0;
@@ -179,7 +179,7 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({ caseItem }) => 
     [needs]
   );
 
-  // ===== [J] إضافة للسلة =====
+  // ===== [J] إضافة للسلة (المنتجات) =====
   const addNeedToCart = useCallback(
     (need: Need) => {
       if (!caseItem) return;
@@ -227,16 +227,31 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({ caseItem }) => 
     [addItem, caseItem, donationQuantities, formatNumberWestern]
   );
 
-  // ===== [X1-X3] التبرع المخصص =====
-  const [customDonationAmount, setCustomDonationAmount] = useState<number>(10);
+  // ===============================================
+  // 🟡 التبرع المخصص: إظهار الإدخال عند الضغط على "تبرع مخصص"
+  // ===============================================
+  const [showCustomInput, setShowCustomInput] = useState(false);
+  const [customDonationAmount, setCustomDonationAmount] = useState<number>(5);
 
+  const handleCustomDonationClick = () => {
+    setShowCustomInput(true);
+    setCustomDonationAmount(5);
+  };
+
+  // يسمح بأي قيمة عشرية، ويطبّق حدود منطقية عند التغيير
   const handleCustomDonationChange = useCallback(
     (value: string | number) => {
-      let num = Number.isFinite(Number(value)) ? Number(value) : 0;
-      if (isNaN(num) || num < 0) num = 0;
+      let num = Number(value);
+      if (!Number.isFinite(num)) num = 0;
+      if (num < 0) num = 0;
+
       const maxAmount = remainingFunds;
-      if (num > maxAmount && maxAmount > 0) num = maxAmount;
-      if (num > 999999) num = 999999;
+      const maxLimit = 999999;
+
+      if (maxAmount > 0) num = Math.min(num, maxAmount);
+      num = Math.min(num, maxLimit);
+
+      // لا نفرض حدًا أدنى في الحقل نفسه؛ التحقق النهائي يتم عند الإضافة
       setCustomDonationAmount(Math.round(num * 100) / 100);
     },
     [remainingFunds]
@@ -244,21 +259,23 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({ caseItem }) => 
 
   const addCustomDonationToCart = useCallback(() => {
     if (!caseItem) return;
-    const amount = customDonationAmount;
+    const amount = Number(customDonationAmount);
 
-    if (amount <= 0)
+    if (!Number.isFinite(amount) || amount <= 0) {
       return setMessage({
-        text: "⚠️ الرجاء تحديد مبلغ تبرع أكبر من الصفر.",
+        text: "⚠️ الرجاء إدخال مبلغ صالح أكبر من صفر.",
         type: "warning",
       });
-    if (amount > remainingFunds)
+    }
+    if (remainingFunds > 0 && amount > remainingFunds) {
       return setMessage({
         text: "⚠️ مبلغ التبرع يتجاوز المبلغ المتبقي لتمويل هذه الحالة.",
         type: "warning",
       });
+    }
 
     const item: CartItem = {
-      id: `${caseItem.id}-custom-${Date.now()}`,
+      id: `${caseItem.id}-custom-donation-${amount}-${Date.now()}`,
       institutionId: String(caseItem.id),
       institutionName: caseItem.title,
       needId: "CUSTOM_DONATION",
@@ -270,18 +287,18 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({ caseItem }) => 
       acfFieldId: "",
     };
 
-    setMessage(null);
     addItem(item);
     setMessage({
-      text: `✅ تم إضافة تبرع مخصص بقيمة ${formatCurrencyWestern(
-        amount
-      )} إلى سلة التبرعات.`,
+      text: `✅ تم إضافة تبرع مخصص بقيمة ${formatCurrencyWestern(amount)} إلى سلة التبرعات.`,
       type: "success",
     });
-    setCustomDonationAmount(10);
+
+    // رجّع العرض إلى زر "تبرع مخصص"
+    setShowCustomInput(false);
+    setCustomDonationAmount(5);
   }, [addItem, caseItem, customDonationAmount, remainingFunds, formatCurrencyWestern]);
 
-  // ===== [K] تبنّي كل المتبقي =====
+  // ===== [K] تبني كل المتبقي =====
   const handleDonateAllRemainingNeeds = useCallback(() => {
     if (!caseItem) return;
     let count = 0,
@@ -325,7 +342,7 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({ caseItem }) => 
   }, [addItem, caseItem, needs, formatCurrencyWestern, formatNumberWestern, router]);
 
   // ==========================================================
-  // [M0] تحديد الصورة الأساسية + قائمة الصور المصفاة للسلايدر (مهم: قبل sliderSettings)
+  // [M0] الصور
   // ==========================================================
   const primaryImageUrl = useMemo(() => {
     return (
@@ -345,14 +362,10 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({ caseItem }) => 
     return Array.from(new Set(withoutPrimary));
   }, [caseItem?.images, primaryImageUrl]);
 
-  // لو تحب تعتمد أن الأولى دائمًا الأساسية، يمكنك بدل الأعلى:
-  // const galleryImages = useMemo(() => (caseItem?.images || []).slice(1), [caseItem?.images]);
-
-  // سنستخدم اسم وسيط لتسهيل القراءة
   const sliderImages = galleryImages;
 
   // ==========================================================
-  // [M] إعدادات السلايدر (Slider Settings)
+  // [M] إعدادات السلايدر
   // ==========================================================
   const sliderSettings: Settings = {
     dots: false,
@@ -367,14 +380,8 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({ caseItem }) => 
     nextArrow: <NextArrow />,
     prevArrow: <PrevArrow />,
     responsive: [
-      {
-        breakpoint: 1024,
-        settings: { slidesToShow: 1, centerMode: true, centerPadding: "10%" },
-      },
-      {
-        breakpoint: 768,
-        settings: { slidesToShow: 1, centerMode: true, centerPadding: "0px" },
-      },
+      { breakpoint: 1024, settings: { slidesToShow: 1, centerMode: true, centerPadding: "10%" } },
+      { breakpoint: 768, settings: { slidesToShow: 1, centerMode: true, centerPadding: "0px" } },
     ],
   };
 
@@ -382,13 +389,9 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({ caseItem }) => 
   if (!hasNeeds) {
     return (
       <div className={`container ${styles.caseDetailsPageContent}`}>
-        <p className={styles.noDataMessage}>
-          عذرًا، لا توجد تفاصيل أو احتياجات متوفرة لهذه الحالة.
-        </p>
+        <p className={styles.noDataMessage}>عذرًا، لا توجد تفاصيل أو احتياجات متوفرة لهذه الحالة.</p>
         <div className={styles.backLinkWrapper}>
-          <Link href="/cases" className={styles.backLink}>
-            العودة إلى الحالات
-          </Link>
+          <Link href="/cases" className={styles.backLink}>العودة إلى الحالات</Link>
         </div>
       </div>
     );
@@ -419,12 +422,10 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({ caseItem }) => 
         <div className={`${styles.caseDescriptionBlock} mb-40`}>
           <h3>معلومات عامة</h3>
           <p>
-            <strong>المحافظة:</strong> {item.governorate}،{" "}
-            <strong>المدينة:</strong> {item.city}
+            <strong>المحافظة:</strong> {item.governorate}، <strong>المدينة:</strong> {item.city}
           </p>
           <p>
-            <strong>نوع المؤسسة:</strong>{" "}
-            {typeTranslations[item.type] || item.type}
+            <strong>نوع المؤسسة:</strong> {typeTranslations[item.type] || item.type}
           </p>
           <p>
             <strong>درجة الاحتياج:</strong> {item.needLevel}
@@ -435,21 +436,13 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({ caseItem }) => 
           <div className={`${styles.caseDescriptionBlock} mb-40`}>
             <h3>تفاصيل المدرسة</h3>
             {item.numberOfStudents != null && (
-              <p>
-                <strong>عدد الطلاب:</strong>{" "}
-                {formatNumberWestern(item.numberOfStudents)} طالب
-              </p>
+              <p><strong>عدد الطلاب:</strong> {formatNumberWestern(item.numberOfStudents)} طالب</p>
             )}
             {item.numberOfClassrooms != null && (
-              <p>
-                <strong>عدد الفصول:</strong>{" "}
-                {formatNumberWestern(item.numberOfClassrooms)} فصل
-              </p>
+              <p><strong>عدد الفصول:</strong> {formatNumberWestern(item.numberOfClassrooms)} فصل</p>
             )}
             {hasValue(item.educationLevel) && (
-              <p>
-                <strong>المستوى التعليمي:</strong> {item.educationLevel}
-              </p>
+              <p><strong>المستوى التعليمي:</strong> {item.educationLevel}</p>
             )}
           </div>
         )}
@@ -458,22 +451,13 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({ caseItem }) => 
           <div className={`${styles.caseDescriptionBlock} mb-40`}>
             <h3>تفاصيل المسجد</h3>
             {item.regularWorshippers != null && (
-              <p>
-                <strong>عدد المصلين (أيام عادية):</strong>{" "}
-                {formatNumberWestern(item.regularWorshippers)} مصلٍ/مصلية
-              </p>
+              <p><strong>عدد المصلين (أيام عادية):</strong> {formatNumberWestern(item.regularWorshippers)} مصلٍ/مصلية</p>
             )}
             {item.fridayWorshippers != null && (
-              <p>
-                <strong>عدد المصلين (يوم الجمعة):</strong>{" "}
-                {formatNumberWestern(item.fridayWorshippers)} مصلٍ/مصلية
-              </p>
+              <p><strong>عدد المصلين (يوم الجمعة):</strong> {formatNumberWestern(item.fridayWorshippers)} مصلٍ/مصلية</p>
             )}
             {item.mosqueArea != null && (
-              <p>
-                <strong>مساحة المسجد (م²):</strong>{" "}
-                {formatNumberWestern(item.mosqueArea)} م²
-              </p>
+              <p><strong>مساحة المسجد (م²):</strong> {formatNumberWestern(item.mosqueArea)} م²</p>
             )}
           </div>
         )}
@@ -481,58 +465,41 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({ caseItem }) => 
     );
   };
 
-  // ===== [O] مكوّن التبرع المخصص =====
+  // ===== [O] مكوّن التبرع المخصص — يظهر فقط عند الضغط =====
   const CustomDonationInput: React.FC<{ isMobile: boolean }> = ({ isMobile }) => {
     return (
       <div
-        className={
-          isMobile ? styles.mobileCustomDonation : styles.desktopCustomDonation
-        }
+        className={isMobile ? styles.mobileCustomDonation : styles.desktopCustomDonation}
+        style={{ display: "flex", gap: "8px", alignItems: "center" }}
       >
-        <div className={styles.quantityControlNew}>
-          <button
-            className={styles.quantityBtn}
-            onClick={() => handleCustomDonationChange(customDonationAmount - 1)}
-            disabled={customDonationAmount <= 0}
-            aria-label="إنقاص مبلغ التبرع"
-            type="button"
-          >
-            -
-          </button>
-
-          <input
-            type="number"
-            className={styles.quantityInputNew}
-            value={String(customDonationAmount)}
-            onChange={(e) => handleCustomDonationChange(e.target.value)}
-            onBlur={(e) => handleCustomDonationChange(e.target.value)}
-            min={1}
-            max={remainingFunds > 0 ? remainingFunds : undefined}
-            step={1}
-            inputMode="numeric"
-            aria-label="مبلغ التبرع المخصص"
-          />
-
-          <button
-            className={styles.quantityBtn}
-            onClick={() => handleCustomDonationChange(customDonationAmount + 1)}
-            disabled={customDonationAmount >= remainingFunds && remainingFunds > 0}
-            aria-label="زيادة مبلغ التبرع"
-            type="button"
-          >
-            +
-          </button>
-        </div>
+        <input
+          type="number"
+          step="any"
+          min={0}
+          className={styles.quantityInputNew}
+          value={String(customDonationAmount)}
+          onChange={(e) => handleCustomDonationChange(e.target.value)}
+          placeholder="أدخل المبلغ"
+          inputMode="decimal"
+          autoFocus
+          aria-label="مبلغ التبرع المخصص"
+          style={{
+            width: isMobile ? "120px" : "140px",
+            height: "40px",
+            border: "1px solid #ccc",
+            borderRadius: "6px",
+            padding: "0 8px",
+            fontSize: "16px",
+          }}
+        />
 
         <button
           onClick={addCustomDonationToCart}
-          className={`${styles.goldenFillBtn} ${styles.fixedSizeButton} ${
-            isMobile ? styles.mobileActionBtn : ""
-          }`}
+          className={`${styles.goldenFillBtn} ${styles.fixedSizeButton} ${isMobile ? styles.mobileActionBtn : ""}`}
           type="button"
-          disabled={customDonationAmount <= 0 || isFullyFunded}
+          disabled={isFullyFunded}
         >
-          تبرع مخصص ({formatCurrencyWestern(customDonationAmount)})
+          تبرع
         </button>
       </div>
     );
@@ -555,30 +522,56 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({ caseItem }) => 
                   onClick={handleDonateAllRemainingNeeds}
                   className={`${styles.goldenFillBtn} ${styles.fixedSizeButton} ${styles.mobileActionBtn}`}
                   type="button"
+                  disabled={isFullyFunded}
                 >
                   تبني المؤسسة
                 </button>
 
-                <CustomDonationInput isMobile={true} />
+                {/* إذا ضغطت تبرع مخصص -> يظهر الحقل + زر تبرع */}
+                {showCustomInput ? (
+                  <CustomDonationInput isMobile={true} />
+                ) : (
+                  <button
+                    onClick={handleCustomDonationClick}
+                    className={`${styles.goldenStrokeBtn} ${styles.fixedSizeButton} ${styles.mobileActionBtn}`}
+                    type="button"
+                    disabled={isFullyFunded}
+                  >
+                    تبرع مخصص
+                  </button>
+                )}
               </div>
             </div>
           </div>
 
-          {/* شريط المعلومات للدسكتوب */}
+          {/* شريط الدسكتوب */}
           <div className={styles.caseTopInfoBarInsideContainer}>
             <div className={styles.leftSection}>
               <h2 className={styles.schoolName}>{caseItem!.title}</h2>
 
-              <div className={styles.desktopButtons}>
+              <div className={styles.desktopButtons} style={{ display: "flex", gap: "12px", alignItems: "center" }}>
                 <button
                   onClick={handleDonateAllRemainingNeeds}
                   className={`${styles.goldenFillBtn} ${styles.fixedSizeButton}`}
                   type="button"
+                  disabled={isFullyFunded}
                 >
                   تبني المؤسسة <i className="fas fa-heart" />
                 </button>
 
-                <CustomDonationInput isMobile={false} />
+                {/* إذا ضغطت تبرع مخصص -> يظهر الحقل + زر تبرع */}
+                {showCustomInput ? (
+                  <CustomDonationInput isMobile={false} />
+                ) : (
+                  <button
+                    onClick={handleCustomDonationClick}
+                    className={`${styles.goldenStrokeBtn} ${styles.fixedSizeButton}`}
+                    type="button"
+                    disabled={isFullyFunded}
+                  >
+                    تبرع مخصص
+                  </button>
+                )}
               </div>
             </div>
 
@@ -589,10 +582,7 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({ caseItem }) => 
                   const raised = caseItem!.fundRaised || 0;
                   const percentFunded =
                     needed > 0
-                      ? Math.max(
-                          0,
-                          Math.min(100, Math.round((raised / needed) * 100))
-                        )
+                      ? Math.max(0, Math.min(100, Math.round((raised / needed) * 100)))
                       : 0;
                   const percentRemaining = Math.max(0, 100 - percentFunded);
                   return (
@@ -610,18 +600,11 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({ caseItem }) => 
                         aria-valuemax={100}
                         aria-valuenow={percentFunded}
                       >
-                        <div
-                          className={styles.progressBar}
-                          style={{ width: `${percentFunded}%` }}
-                        />
+                        <div className={styles.progressBar} style={{ width: `${percentFunded}%` }} />
                       </div>
                       <div className={styles.progressFooter}>
-                        <span className={styles.amountRaised}>
-                          جمع: {formatCurrencyWestern(raised)}
-                        </span>
-                        <span className={styles.amountNeeded}>
-                          الهدف: {formatCurrencyWestern(needed)}
-                        </span>
+                        <span className={styles.amountRaised}>جمع: {formatCurrencyWestern(raised)}</span>
+                        <span className={styles.amountNeeded}>الهدف: {formatCurrencyWestern(needed)}</span>
                       </div>
                     </>
                   );
@@ -631,29 +614,19 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({ caseItem }) => 
           </div>
 
           {/* تبويبات الصفحة */}
-          <div
-            className={`${styles.caseSubNavSectionTabs} ${styles.stickyTabGroup}`}
-          >
-            <div
-              className={`${styles.subNavContainer} ${styles.scrollRow}`}
-              role="tablist"
-              aria-label="التنقل داخل تفاصيل الحالة"
-            >
+          <div className={`${styles.caseSubNavSectionTabs} ${styles.stickyTabGroup}`}>
+            <div className={`${styles.subNavContainer} ${styles.scrollRow}`} role="tablist" aria-label="التنقل داخل تفاصيل الحالة">
               <button
-                className={`${styles.navItem} ${
-                  mainContentTab === "products" ? styles.active : ""
-                }`}
+                className={`${styles.navItem} ${mainContentTab === "products" ? styles.active : ""}`}
                 onClick={() => setMainContentTab("products")}
                 role="tab"
                 aria-selected={mainContentTab === "products"}
                 type="button"
               >
-               المنتجات
+                المنتجات
               </button>
               <button
-                className={`${styles.navItem} ${
-                  mainContentTab === "about" ? styles.active : ""
-                }`}
+                className={`${styles.navItem} ${mainContentTab === "about" ? styles.active : ""}`}
                 onClick={() => setMainContentTab("about")}
                 role="tab"
                 aria-selected={mainContentTab === "about"}
@@ -662,9 +635,7 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({ caseItem }) => 
                 عن المؤسسة
               </button>
               <button
-                className={`${styles.navItem} ${
-                  mainContentTab === "documentation" ? styles.active : ""
-                }`}
+                className={`${styles.navItem} ${mainContentTab === "documentation" ? styles.active : ""}`}
                 onClick={() => setMainContentTab("documentation")}
                 role="tab"
                 aria-selected={mainContentTab === "documentation"}
@@ -678,9 +649,7 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({ caseItem }) => 
           {/* إشعار عام */}
           {message && (
             <div
-              className={`${styles.infoMessage} ${
-                message.type === "warning" ? styles.warningMessage : ""
-              }`}
+              className={`${styles.infoMessage} ${message.type === "warning" ? styles.warningMessage : ""}`}
               role="status"
             >
               {message.text}
@@ -688,12 +657,8 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({ caseItem }) => 
           )}
 
           {isFullyFunded ? (
-            <div
-              className={`${styles.infoMessage} ${styles.fullyFundedMessage}`}
-              role="status"
-            >
-              تم تمويل جميع الاحتياجات في هذه الحالة بالكامل. شكرًا لمساهمتكم
-              الكريمة.
+            <div className={`${styles.infoMessage} ${styles.fullyFundedMessage}`} role="status">
+              تم تمويل جميع الاحتياجات في هذه الحالة بالكامل. شكرًا لمساهمتكم الكريمة.
             </div>
           ) : (
             <div className={styles.tabContentArea}>
@@ -702,23 +667,15 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({ caseItem }) => 
                 needsByCategory[selectedCategory]?.length > 0 && (
                   <div className={styles.productsNeedsGridTab}>
                     {/* تصنيفات */}
-                    <div
-                      className={`${styles.categoryTabsSticky} ${styles.stickyTabGroup}`}
-                    >
-                      <div
-                        className={`${styles.categoryTabsContainer} ${styles.scrollRow}`}
-                      >
+                    <div className={`${styles.categoryTabsSticky} ${styles.stickyTabGroup}`}>
+                      <div className={`${styles.categoryTabsContainer} ${styles.scrollRow}`}>
                         {categories.map((categoryName) => {
-                          const icon =
-                            needsByCategory[categoryName][0]?.icon ||
-                            "fas fa-box-open";
+                          const icon = needsByCategory[categoryName][0]?.icon || "fas fa-box-open";
                           return (
                             <button
                               key={categoryName}
                               className={`${styles.categoryTabItem} ${
-                                selectedCategory === categoryName
-                                  ? styles.activeTab
-                                  : ""
+                                selectedCategory === categoryName ? styles.activeTab : ""
                               }`}
                               onClick={() => setSelectedCategory(categoryName)}
                               aria-pressed={selectedCategory === categoryName}
@@ -746,10 +703,7 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({ caseItem }) => 
                           const total = unitPrice * q;
 
                           return (
-                            <div
-                              key={need.id}
-                              className={styles.productCardNewDesign}
-                            >
+                            <div key={need.id} className={styles.productCardNewDesign}>
                               <div className={styles.productImageWrapper}>
                                 <Image
                                   src={need.image}
@@ -760,19 +714,16 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({ caseItem }) => 
                                     objectFit: "cover",
                                     width: "100%",
                                     height: "100%",
+                                    borderRadius: "10px",
                                   }}
                                 />
                               </div>
 
-                              <h5 className={styles.productItemNameNew}>
-                                {need.item}
-                              </h5>
+                              <h5 className={styles.productItemNameNew}>{need.item}</h5>
 
                               <div className={styles.remainingInfoTop}>
                                 <span>المتبقي:</span>
-                                <strong>
-                                  {formatNumberWestern(remainingQty)}
-                                </strong>
+                                <strong>{formatNumberWestern(remainingQty)}</strong>
                               </div>
 
                               <div className={styles.productPriceGroup}>
@@ -856,9 +807,7 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({ caseItem }) => 
 
               {/* تبويب: عن المؤسسة */}
               {mainContentTab === "about" && caseItem && (
-                <div
-                  className={`${styles.aboutSchoolTabContent} ${styles.tabPane} py-40`}
-                >
+                <div className={`${styles.aboutSchoolTabContent} ${styles.tabPane} py-40`}>
                   <h2 className="section-title text-center">عن المؤسسة</h2>
                   <InstitutionDetails item={caseItem} />
                 </div>
@@ -866,9 +815,7 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({ caseItem }) => 
 
               {/* تبويب: توثيق وصور */}
               {mainContentTab === "documentation" && caseItem && (
-                <div
-                  className={`${styles.inquiriesTabContent} ${styles.tabPane} py-40`}
-                >
+                <div className={`${styles.inquiriesTabContent} ${styles.tabPane} py-40`}>
                   <h2 className="section-title text-center">توثيق وصور</h2>
 
                   {sliderImages.length === 0 ? (

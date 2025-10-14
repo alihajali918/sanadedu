@@ -40,7 +40,7 @@ const HeroSection: React.FC = () => {
                         className={styles.heroTitleLink} // كلاس جديد للتنسيق
                     >
                         {/* أيقونة الفيديو (يمكنك استبدالها بأيقونة SVG أو React Icon) */}
-                        <span className={styles.videoIcon}>▶️</span>
+                        <i className={`fa-solid fa-play ${styles.videoIcon}`}></i>
                         <h1 className={styles.heroTitle}>
                             سند لدعم التعليم
                         </h1>

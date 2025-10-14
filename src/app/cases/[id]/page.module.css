@@ -1,114 +1,114 @@
 /* ================================================
-   File: /app/cases/[id]/page.module.css
-   (Sticky fixed + mobile header offsets unified)
-   =============================================== */
+    File: /app/cases/[id]/page.module.css
+    (Sticky fixed + mobile header offsets unified)
+    =============================================== */
 
 /* -------- [0] Helpers -------- */
 :where(.caseDetailsPageContent) {
-  --radius-lg: 16px;
-  --radius-md: 12px;
-  --radius-sm: 10px;
-  --radius-pill: 999px;
-  --shadow-1: 0 6px 24px rgba(16, 24, 40, .08);
-  --shadow-2: 0 4px 14px rgba(17, 24, 39, .06);
+    --radius-lg: 16px;
+    --radius-md: 12px;
+    --radius-sm: 10px;
+    --radius-pill: 999px;
+    --shadow-1: 0 6px 24px rgba(16, 24, 40, .08);
+    --shadow-2: 0 4px 14px rgba(17, 24, 39, .06);
 
-  /* ارتفاعات الهيدر/التبويبات */
-  --header-h-desktop: 64px;
-  --header-h-mobile: 50px;
-  /* عدّلها إذا كان ارتفاع الهيدر الفعلي مختلف */
-  --tabs-h: 56px;
-  --categories-h: 56px;
+    /* ارتفاعات الهيدر/التبويبات */
+    --header-h-desktop: 64px;
+    --header-h-mobile: 50px;
+    /* عدّلها إذا كان ارتفاع الهيدر الفعلي مختلف */
+    --tabs-h: 56px;
+    --categories-h: 56px;
 
-  /* الألوان (يجب تعريفها في ملفك الرئيسي أو هنا كافتراض) */
+    /* الألوان (يجب تعريفها في ملفك الرئيسي أو هنا كافتراض) */
 
 }
 
 /* (مهم) منع أي overflow عالمي يكسر sticky داخل صفحات Next.js */
 /* -------- [1] Page wrapper -------- */
 .caseDetailsPageContent {
-  background-color: var(--light-grey);
-  padding: 0;
-  padding-top: 50px;
-  padding-bottom: 40px;
-  direction: rtl;
-  min-height: 100vh;
-  /* تأكيد عدم كسر الـ sticky من أي overflow على الأسلاف */
-  overflow: visible;
+    background-color: var(--light-grey);
+    padding: 0;
+    padding-top: 50px;
+    padding-bottom: 40px;
+    direction: rtl;
+    min-height: 100vh;
+    /* تأكيد عدم كسر الـ sticky من أي overflow على الأسلاف */
+    overflow: visible;
 }
 
 @media (max-width:768px) {
-  .caseDetailsPageContent {
-    padding-top: 60px;
-  }
+    .caseDetailsPageContent {
+        padding-top: 60px;
+    }
 }
 
 .mainContentArea {
-  background: transparent;
-  border-radius: 0;
-  box-shadow: none;
-  padding: 20px 0;
-  width: 100%;
-  /* تأكيد عدم كسر الـ sticky */
-  overflow: visible;
+    background: transparent;
+    border-radius: 0;
+    box-shadow: none;
+    padding: 20px 0;
+    width: 100%;
+    /* تأكيد عدم كسر الـ sticky */
+    overflow: visible;
 }
 
 /* ------------------------------------------------ */
 /* -------- [2] Mobile header bar (مبسط) -------- */
 /* ------------------------------------------------ */
 .mobileHeaderBar {
-  display: none;
-  margin-bottom: 20px;
+    display: none;
+    margin-bottom: 20px;
 }
 
 @media (max-width:768px) {
-  .mobileHeaderBar {
-    display: block;
-  }
+    .mobileHeaderBar {
+        display: block;
+    }
 
-  .caseTopInfoBarInsideContainer {
-    display: none !important;
-  }
+    .caseTopInfoBarInsideContainer {
+        display: none !important;
+    }
 }
 
 .mobileHeaderRow {
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: 12px;
-  background: var(--background-white);
-  border: 1px solid var(--light-grey);
-  border-radius: 12px;
-  padding: 16px;
-  box-shadow: var(--shadow-2);
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    background: var(--background-white);
+    border: 1px solid var(--light-grey);
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: var(--shadow-2);
 }
 
 .mobileTitle {
-  margin: 0;
-  font-size: 18px;
-  font-weight: 900;
-  color: var(--text-black);
-  line-height: 1.3;
-  white-space: normal;
-  font-family: var(--font-changa);
-  text-align: center;
+    margin: 0;
+    font-size: 18px;
+    font-weight: 900;
+    color: var(--text-black);
+    line-height: 1.3;
+    white-space: normal;
+    font-family: var(--font-changa);
+    text-align: center;
 }
 
 /* ⬅️ تم تعديل هذا القسم ليتناسب مع الترتيب الجديد في الجوال */
 @media (max-width: 767px) {
-  .mobileActions {
-    display: flex;
-    flex-direction: row;
-    /* الأزرار والحقل بجانب بعض في الجوال */
-    width: 100%;
-    gap: 10px;
-    /* المسافة بين العناصر */
-  }
+    .mobileActions {
+        display: flex;
+        flex-direction: row;
+        /* الأزرار والحقل بجانب بعض في الجوال */
+        width: 100%;
+        gap: 10px;
+        /* المسافة بين العناصر */
+    }
 
-  .mobileActionBtn {
-    flex: 1;
-    /* اجعل زر "تبني المؤسسة" يملأ نصف العرض */
-    width: auto;
-  }
+    .mobileActionBtn {
+        flex: 1;
+        /* اجعل زر "تبني المؤسسة" يملأ نصف العرض */
+        width: auto;
+    }
 }
 
 /* نهاية تعديل الجوال */
@@ -117,60 +117,60 @@
 /* -------- [3] Desktop top info -------- */
 /* ------------------------------------------------ */
 .caseTopInfoBarInsideContainer {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 30px;
-  padding: 20px;
-  background: var(--background-white);
-  border: 1px solid var(--light-grey);
-  border-radius: 16px;
-  margin-bottom: 20px;
-  box-shadow: var(--shadow-2);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 30px;
+    padding: 20px;
+    background: var(--background-white);
+    border: 1px solid var(--light-grey);
+    border-radius: 16px;
+    margin-bottom: 20px;
+    box-shadow: var(--shadow-2);
 }
 
 @media (max-width:768px) {
-  .caseTopInfoBarInsideContainer {
-    display: none;
-  }
+    .caseTopInfoBarInsideContainer {
+        display: none;
+    }
 }
 
 .leftSection {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 20px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 20px;
 }
 
 .rightSection {
-  flex: 0 0 320px;
-  /* زيادة بسيطة للعرض البصري */
+    flex: 0 0 320px;
+    /* زيادة بسيطة للعرض البصري */
 }
 
 .schoolName {
-  font-size: 32px;
-  line-height: 1.2;
-  margin: 0;
-  font-weight: 900;
-  color: var(--text-black);
-  text-align: right;
-  white-space: normal;
-  font-family: var(--font-changa);
-  margin-right: 12px;
+    font-size: 32px;
+    line-height: 1.2;
+    margin: 0;
+    font-weight: 900;
+    color: var(--text-black);
+    text-align: right;
+    white-space: normal;
+    font-family: var(--font-changa);
+    margin-right: 12px;
 }
 
 /* ⬅️ تم تعديل هذا القسم ليجعل الأزرار بنفس القياس */
 .desktopButtons {
-  display: flex;
-  gap: 12px;
-  width: 100%;
-  max-width: 600px;
+    display: flex;
+    gap: 12px;
+    width: 100%;
+    max-width: 600px;
 }
 
 .desktopButtons>button {
-  flex: 1;
-  /* زر تبني المؤسسة يأخذ مساحة متساوية */
+    flex: 1;
+    /* زر تبني المؤسسة يأخذ مساحة متساوية */
 }
 
 /* نهاية تعديل الديسكتوب */
@@ -180,130 +180,130 @@
 /* ------------------------------------------------ */
 /* توحيد حجم الأزرار في الديسك توب والجوال (Fixed Size Button) */
 .fixedSizeButton {
-  min-width: 150px;
-  padding: 10px 16px;
-  text-align: center;
+    min-width: 150px;
+    padding: 10px 16px;
+    text-align: center;
 }
 
 .mobileActionBtn {
-  flex-grow: 1;
-  font-size: 13px;
+    flex-grow: 1;
+    font-size: 13px;
 }
 
 .goldenFillBtn,
 .goldenStrokeBtn {
-  border-radius: 12px;
-  padding: 12px 20px;
-  font-weight: 800;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  font-family: var(--font-changa);
-  font-size: 14px;
-  min-height: 48px;
-  flex: 1;
-  text-align: center;
+    border-radius: 12px;
+    padding: 12px 20px;
+    font-weight: 800;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-family: var(--font-changa);
+    font-size: 14px;
+    min-height: 48px;
+    flex: 1;
+    text-align: center;
 }
 
 .goldenFillBtn {
-  border: 2px solid var(--highlight-gold);
-  background: var(--highlight-gold);
-  color: var(--text-white);
+    border: 2px solid var(--highlight-gold);
+    background: var(--highlight-gold);
+    color: var(--text-white);
 }
 
 .goldenFillBtn:hover {
-  background: var(--hover-gold);
-  border-color: var(--hover-gold);
-  filter: brightness(1.05);
+    background: var(--hover-gold);
+    border-color: var(--hover-gold);
+    filter: brightness(1.05);
 }
 
 .goldenStrokeBtn {
-  border: 2px solid var(--highlight-gold);
-  background: transparent;
-  color: var(--highlight-gold);
+    border: 2px solid var(--highlight-gold);
+    background: transparent;
+    color: var(--highlight-gold);
 }
 
 .goldenStrokeBtn:hover {
-  background: rgba(205, 163, 73, 0.1);
-  color: var(--hover-gold);
-  border-color: var(--hover-gold);
+    background: rgba(205, 163, 73, 0.1);
+    color: var(--hover-gold);
+    border-color: var(--hover-gold);
 }
 
 /* تنسيق أيقونات الأزرار */
 .goldenFillBtn i,
 .goldenStrokeBtn i {
-  font-size: 14px;
+    font-size: 14px;
 }
 
 /* ------------------------------------------------ */
 /* -------- [4.5] عرض المجموع والمتبقي (الشكل البصري الجديد) -------- */
 /* ------------------------------------------------ */
 .remainingFundsDisplay {
-  background: var(--light-grey);
-  border-radius: 12px;
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+    background: var(--light-grey);
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
 }
 
 .progressHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-family: var(--font-changa);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: var(--font-changa);
 }
 
 .progressHeader span {
-  font-size: 16px;
-  font-weight: 700;
-  color: var(--text-black);
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-black);
 }
 
 .percentNumber {
-  font-size: 24px;
-  font-weight: 900;
-  color: var(--primary-green);
-  /* لون النسبة المتبقية */
+    font-size: 24px;
+    font-weight: 900;
+    color: var(--primary-green);
+    /* لون النسبة المتبقية */
 }
 
 .progressTrack {
-  height: 10px;
-  background: #e5e7eb;
-  /* لون خلفية شريط الاكتمال */
-  border-radius: 999px;
-  overflow: hidden;
-  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
-  direction: ltr;
-  /* مهم لضمان نمو الشريط من اليسار لليمين */
+    height: 10px;
+    background: #e5e7eb;
+    /* لون خلفية شريط الاكتمال */
+    border-radius: 999px;
+    overflow: hidden;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+    direction: ltr;
+    /* مهم لضمان نمو الشريط من اليسار لليمين */
 }
 
 .progressBar {
-  height: 100%;
-  background: var(--primary-green);
-  /* لون الشريط المكتمل */
-  border-radius: 999px;
-  transition: width 0.6s ease-in-out;
+    height: 100%;
+    background: var(--primary-green);
+    /* لون الشريط المكتمل */
+    border-radius: 999px;
+    transition: width 0.6s ease-in-out;
 }
 
 .progressFooter {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 14px;
-  font-weight: 600;
-  color: #6b7280;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 14px;
+    font-weight: 600;
+    color: #6b7280;
 }
 
 .amountRaised {
-  color: var(--text-black);
+    color: var(--text-black);
 }
 
 .amountNeeded {
-  color: var(--primary-green);
-  font-weight: 800;
+    color: var(--primary-green);
+    font-weight: 800;
 }
 
 /* ------------------------------------------------ */
@@ -311,83 +311,89 @@
 /* ------------------------------------------------ */
 /* خلي الحاوية البيضاء نفسها sticky لضمان ثبات موحّد */
 .caseSubNavSectionTabs {
-  margin: 0 0 20px;
-  background: var(--background-white);
-  border-radius: 16px;
-  padding: 8px;
-  border: 1px solid var(--light-grey);
-  box-shadow: var(--shadow-2);
+    margin: 0 0 20px;
+    background: var(--background-white);
+    border-radius: 16px;
+    padding: 8px;
+    border: 1px solid var(--light-grey);
+    box-shadow: var(--shadow-2);
 
-  position: sticky;
-  /* << */
-  top: var(--header-h-desktop);
-  /* << */
-  z-index: 100;
-  isolation: isolate;
+    position: sticky;
+    /* << */
+    top: var(--header-h-desktop);
+    /* << */
+    z-index: 100;
+    isolation: isolate;
 }
 
 @media (max-width:768px) {
-  .caseSubNavSectionTabs {
-    top: var(--header-h-mobile);
-  }
+    .caseSubNavSectionTabs {
+        top: var(--header-h-mobile);
+    }
 }
 
 /* احتفظنا بالكلاس الداخلي كـ fallback (مش ضروري) */
 .stickyTabs {
-  position: -webkit-sticky;
-  position: sticky;
-  top: var(--header-h-desktop);
-  z-index: 100;
+    position: -webkit-sticky;
+    position: sticky;
+    top: var(--header-h-desktop);
+    z-index: 100;
 }
 
 @media (max-width:768px) {
-  .stickyTabs {
-    top: var(--header-h-mobile);
-  }
+    .stickyTabs {
+        top: var(--header-h-mobile);
+    }
 }
 
+/* ✅ تعديل التبويبات لتأخذ العرض بالكامل وتتوزع بالتساوي */
 .subNavContainer {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  justify-content: flex-start;
+    display: flex;
+    /* gap: 8px; ⬅️ يمكنك إزالة الفجوات إذا لم ترغب بها */
+    align-items: stretch;
+    justify-content: space-around; /* توزيع متساوٍ */
+    width: 100%; /* أخذ العرض بالكامل */
 }
 
+/* ✅ تطبيق التوزيع المتساوي على كل زر */
 .navItem {
-  border-radius: 12px;
-  padding: 10px 14px;
-  font-weight: 800;
-  border: 2px solid transparent;
-  background: transparent;
-  color: var(--text-black);
-  cursor: pointer;
-  font-family: var(--font-changa);
-  transition: background-color .2s ease, color .2s ease, border-color .2s ease;
-  white-space: nowrap;
+    flex-grow: 1; /* المفتاح: يتوسع بالتساوي */
+    flex-basis: 0; /* يساعد في التوزيع المتساوي */
+    text-align: center; /* لتركيز النص */
+    border-radius: 12px;
+    padding: 10px 14px;
+    font-weight: 800;
+    border: 2px solid transparent;
+    background: transparent;
+    color: var(--text-black);
+    cursor: pointer;
+    font-family: var(--font-changa);
+    transition: background-color .2s ease, color .2s ease, border-color .2s ease;
+    white-space: nowrap;
 }
 
 .navItem:hover {
-  background-color: rgba(0, 0, 0, .05);
-  color: var(--primary-green);
+    background-color: rgba(0, 0, 0, .05);
+    color: var(--primary-green);
 }
 
 .active {
-  background: var(--primary-green);
-  color: var(--text-white);
-  border-color: var(--primary-green);
+    background: var(--primary-green);
+    color: var(--text-white);
+    border-color: var(--primary-green);
 }
 
+/* إزالة سلوك التمرير الأفقي لتمكين التوزيع المتساوي */
 .scrollRow {
-  overflow-x: auto;
-  overflow-y: visible;
-  /* لا تقفل محور Y داخل الحاوية اللاصقة */
-  flex-wrap: nowrap;
-  scrollbar-width: none;
-  -webkit-overflow-scrolling: touch;
+    overflow-x: hidden; /* ⬅️ تم التعديل */
+    overflow-y: visible;
+    flex-wrap: nowrap;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
 }
 
 .scrollRow::-webkit-scrollbar {
-  display: none;
+    display: none;
 }
 
 /* ------------------------------------------------ */
@@ -395,345 +401,345 @@
 /* ------------------------------------------------ */
 /* عنصر التصنيفات نفسه هو اللاصق */
 .categoryTabsSticky {
-  position: -webkit-sticky;
-  position: sticky;
-  top: calc(var(--header-h-desktop) + var(--tabs-h) + 8px);
-  z-index: 95;
-  /* تحت التبويبات الرئيسية بقليل */
-  padding: 8px 0;
-  margin-bottom: 20px;
-  border-radius: 16px;
-  border: 1px solid var(--light-grey);
-  isolation: isolate;
+    position: -webkit-sticky;
+    position: sticky;
+    top: calc(var(--header-h-desktop) + var(--tabs-h) + 8px);
+    z-index: 95;
+    /* تحت التبويبات الرئيسية بقليل */
+    padding: 8px 0;
+    margin-bottom: 20px;
+    border-radius: 16px;
+    border: 1px solid var(--light-grey);
+    isolation: isolate;
 }
 
 @media (max-width:768px) {
-  .categoryTabsSticky {
-    top: calc(var(--header-h-mobile) + var(--tabs-h) + 8px);
-  }
+    .categoryTabsSticky {
+        top: calc(var(--header-h-mobile) + var(--tabs-h) + 8px);
+    }
 }
 
 .categoryTabsContainer {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  padding: 0 8px;
-  direction: rtl;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    padding: 0 8px;
+    direction: rtl;
 }
 
 .categoryTabItem {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  background: var(--background-white);
-  border: 1px solid var(--light-grey);
-  color: var(--text-black);
-  border-radius: var(--radius-pill);
-  padding: 10px 14px;
-  font-weight: 800;
-  box-shadow: var(--shadow-2);
-  cursor: pointer;
-  font-family: var(--font-changa) !important;
-  transition: transform .2s ease, background-color .2s ease;
-  white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--background-white);
+    border: 1px solid var(--light-grey);
+    color: var(--text-black);
+    border-radius: var(--radius-pill);
+    padding: 10px 14px;
+    font-weight: 800;
+    box-shadow: var(--shadow-2);
+    cursor: pointer;
+    font-family: var(--font-changa) !important;
+    transition: transform .2s ease, background-color .2s ease;
+    white-space: nowrap;
 }
 
 .categoryTabItem:hover {
-  transform: translateY(-1px);
+    transform: translateY(-1px);
 }
 
 .activeTab {
-  background: var(--primary-green);
-  color: var(--text-white);
-  border-color: var(--primary-green);
+    background: var(--primary-green);
+    color: var(--text-white);
+    border-color: var(--primary-green);
 }
 
 /* ------------------------------------------------ */
 /* -------- [8] شبكة المنتجات -------- */
 /* ------------------------------------------------ */
 .productsNeedsGrid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 16px;
-  justify-items: stretch;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+    justify-items: stretch;
 }
 
 @media (min-width:992px) {
-  .productsNeedsGrid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
+    .productsNeedsGrid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
 }
 
 /* ------------------------------------------------ */
 /* -------- [9] كرت المنتج (أفقي دائمًا: صورة يمين) -------- */
 /* ------------------------------------------------ */
 .productCardNewDesign {
-  background: var(--background-white);
-  border: 1px solid var(--light-grey);
-  border-radius: 18px;
-  box-shadow: var(--shadow-1);
-  padding: 12px;
-  display: grid;
-  align-items: start;
-  /* مهم لتنسيق المربعات الجديدة */
-  gap: 10px;
+    background: var(--background-white);
+    border: 1px solid var(--light-grey);
+    border-radius: 18px;
+    box-shadow: var(--shadow-1);
+    padding: 12px;
+    display: grid;
+    align-items: start;
+    /* مهم لتنسيق المربعات الجديدة */
+    gap: 10px;
 
-  /* الترتيب الجديد: العنوان، المتبقي، السعر، التحكم */
-  grid-template-columns: 140px 1fr;
-  grid-template-rows: auto auto auto auto;
-  grid-template-areas:
-    "image title"
-    "image remaining"
-    /* << جديد: خانة المتبقي */
-    "image price"
-    "image controls";
-  /* << صف التحكم في الأسفل */
+    /* الترتيب الجديد: العنوان، المتبقي، السعر، التحكم */
+    grid-template-columns: 140px 1fr;
+    grid-template-rows: auto auto auto auto;
+    grid-template-areas:
+        "image title"
+        "image remaining"
+        /* << جديد: خانة المتبقي */
+        "image price"
+        "image controls";
+    /* << صف التحكم في الأسفل */
 
-  min-height: 120px;
-  overflow: visible;
+    min-height: 120px;
+    overflow: visible;
 }
 
 @media (min-width:768px) {
-  .productCardNewDesign {
-    grid-template-columns: 180px 1fr;
-    min-height: 140px;
-  }
+    .productCardNewDesign {
+        grid-template-columns: 180px 1fr;
+        min-height: 140px;
+    }
 }
 
 /* الصورة يمين */
 .productImageWrapper {
-  grid-area: image;
-  width: 100%;
-  aspect-ratio: 4 / 3;
-  height: auto;
-  border-radius: 12px;
-  overflow: hidden;
-  background: var(--light-grey);
+    grid-area: image;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    height: auto;
+    border-radius: 12px;
+    overflow: hidden;
+    background: var(--light-grey);
 }
 
 /* العنوان + السعر */
 .productItemNameNew {
-  grid-area: title;
-  color: var(--text-black);
-  font-weight: 800;
-  font-size: 18px;
-  line-height: 1.35;
-  margin: 0;
-  text-align: right;
-  font-family: var(--font-changa);
+    grid-area: title;
+    color: var(--text-black);
+    font-weight: 800;
+    font-size: 18px;
+    line-height: 1.35;
+    margin: 0;
+    text-align: right;
+    font-family: var(--font-changa);
 }
 
 /* ------------------------------------------------ */
 /* -------- [9.1] كلاس جديد لعرض الكمية المتبقية (فوق السعر) -------- */
 /* ------------------------------------------------ */
 .remainingInfoTop {
-  grid-area: remaining;
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  /* لجعله في أقصى اليمين في RTL */
-  gap: 8px;
-  margin-bottom: 4px;
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--primary-green);
+    grid-area: remaining;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    /* لجعله في أقصى اليمين في RTL */
+    gap: 8px;
+    margin-bottom: 4px;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--primary-green);
 }
 
 .remainingInfoTop span {
-  font-weight: 600;
-  color: var(--text-black);
+    font-weight: 600;
+    color: var(--text-black);
 }
 
 .remainingInfoTop strong {
-  font-size: 16px;
-  font-weight: 900;
-  color: var(--primary-green);
+    font-size: 16px;
+    font-weight: 900;
+    color: var(--primary-green);
 }
 
 /* ------------------------------------------------ */
 
 .productPriceGroup {
-  grid-area: price;
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-  margin-top: 4px;
-  /* فصل بسيط عن المتبقي */
+    grid-area: price;
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-top: 4px;
+    /* فصل بسيط عن المتبقي */
 }
 
 .productPriceValue {
-  color: var(--primary-green);
-  font-size: 20px;
-  font-weight: 900;
-  white-space: nowrap;
+    color: var(--primary-green);
+    font-size: 20px;
+    font-weight: 900;
+    white-space: nowrap;
 }
 
 .unitPriceNote {
-  font-size: 12px;
-  opacity: .7;
-  white-space: nowrap;
+    font-size: 12px;
+    opacity: .7;
+    white-space: nowrap;
 }
 
 /* صف التحكّم */
 /* تعديل صف التحكم: زر التبرع يملأ، والعداد بجواره */
 .controlsRow {
-  grid-area: controls;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: nowrap;
-  /* لا تكسر السطر */
-  min-width: 0;
-  /* نعكس الاتجاه ليكون العداد على اليمين في تخطيط RTL */
-  flex-direction: row-reverse;
+    grid-area: controls;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: nowrap;
+    /* لا تكسر السطر */
+    min-width: 0;
+    /* نعكس الاتجاه ليكون العداد على اليمين في تخطيط RTL */
+    flex-direction: row-reverse;
 }
 
 .controlsRow>* {
-  flex: 0 0 auto;
+    flex: 0 0 auto;
 }
 
 /* زر التبرع (يملأ المساحة) */
 .btnDonateNew {
-  background: var(--highlight-gold);
-  color: var(--text-white);
-  font-weight: 900;
-  border-radius: 14px;
-  padding: 8px 12px;
-  border: 1px solid var(--highlight-gold);
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  justify-content: center;
-  transition: filter .2s ease;
-  box-shadow: none;
-  font-family: var(--font-changa);
-  /* التعديلات الهامة */
-  flex-grow: 1;
-  /* ليأخذ المساحة كاملة (لليسار في RTL) */
-  width: auto;
-  order: 1;
-  /* لتحديد الترتيب بجانب العداد (على اليسار) */
-  font-size: 14px;
-  padding: 12px 16px;
+    background: var(--highlight-gold);
+    color: var(--text-white);
+    font-weight: 900;
+    border-radius: 14px;
+    padding: 8px 12px;
+    border: 1px solid var(--highlight-gold);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    justify-content: center;
+    transition: filter .2s ease;
+    box-shadow: none;
+    font-family: var(--font-changa);
+    /* التعديلات الهامة */
+    flex-grow: 1;
+    /* ليأخذ المساحة كاملة (لليسار في RTL) */
+    width: auto;
+    order: 1;
+    /* لتحديد الترتيب بجانب العداد (على اليسار) */
+    font-size: 14px;
+    padding: 12px 16px;
 }
 
 .btnDonateNew:hover {
-  filter: brightness(.95);
-  cursor: pointer;
-  background-color: var(--primary-green);
+    filter: brightness(.95);
+    cursor: pointer;
+    background-color: var(--primary-green);
 }
 
 /* إخفاء الشارة القديمة للمتبقي */
 .remainingBadge {
-  display: none !important;
+    display: none !important;
 }
 
 /* عداد الكمية */
 .quantityControlNew {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: var(--background-white);
-  border: 1px solid var(--light-grey);
-  border-radius: 999px;
-  padding: 4px 6px;
-  box-shadow: var(--shadow-2);
-  margin-inline-start: 0;
-  /* إلغاء الـ auto margin */
-  order: 2;
-  /* لتحديد الترتيب (على اليمين) */
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--background-white);
+    border: 1px solid var(--light-grey);
+    border-radius: 999px;
+    padding: 4px 6px;
+    box-shadow: var(--shadow-2);
+    margin-inline-start: 0;
+    /* إلغاء الـ auto margin */
+    order: 2;
+    /* لتحديد الترتيب (على اليمين) */
 }
 
 .quantityBtn {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  border: 1px solid var(--light-grey);
-  background: var(--background-white);
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 900;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--text-black);
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 1px solid var(--light-grey);
+    background: var(--background-white);
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 900;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-black);
 }
 
 .quantityBtn:disabled {
-  opacity: .45;
-  cursor: not-allowed;
+    opacity: .45;
+    cursor: not-allowed;
 }
 
 .quantityInputNew {
-  width: 36px;
-  text-align: center;
-  border: 0;
-  background: transparent;
-  font-weight: 800;
-  font-size: 14px;
-  outline: none;
-  color: var(--text-black);
+    width: 36px;
+    text-align: center;
+    border: 0;
+    background: transparent;
+    font-weight: 800;
+    font-size: 14px;
+    outline: none;
+    color: var(--text-black);
 }
 
 .quantityInputNew::-webkit-outer-spin-button,
 .quantityInputNew::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
+    -webkit-appearance: none;
+    margin: 0;
 }
 
 /* إخفاء السطر النصي القديم للمتبقي إن وُجد */
 .remainingUnitsInfo {
-  display: none !important;
+    display: none !important;
 }
 
 /* ------------------------------------------------ */
 /* -------- [10] تبويبات/معرض/نصوص عامة -------- */
 /* ------------------------------------------------ */
 .tabPane {
-  background: var(--background-white);
-  border: 1px solid var(--light-grey);
-  border-radius: 16px;
-  box-shadow: var(--shadow-2);
-  padding: 16px;
+    background: var(--background-white);
+    border: 1px solid var(--light-grey);
+    border-radius: 16px;
+    box-shadow: var(--shadow-2);
+    padding: 16px;
 }
 
 .caseDescriptionBlock p {
-  margin: 0 0 10px;
-  color: var(--text-black);
+    margin: 0 0 10px;
+    color: var(--text-black);
 }
 
 .inquiriesBlock p {
-  margin: 0 0 10px;
+    margin: 0 0 10px;
 }
 
 .noDataMessage {
-  background: var(--background-white);
-  border: 1px solid var(--light-grey);
-  border-radius: 12px;
-  padding: 16px;
-  box-shadow: var(--shadow-2);
-  color: var(--text-black);
-  font-weight: 600;
-  margin-bottom: 12px;
+    background: var(--background-white);
+    border: 1px solid var(--light-grey);
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: var(--shadow-2);
+    color: var(--text-black);
+    font-weight: 600;
+    margin-bottom: 12px;
 }
 
 .backLinkWrapper {
-  text-align: center;
-  margin-top: 12px;
+    text-align: center;
+    margin-top: 12px;
 }
 
 .backLink {
-  display: inline-block;
-  padding: 10px 14px;
-  border-radius: 12px;
-  border: 2px solid var(--primary-green);
-  color: var(--primary-green);
-  font-weight: 800;
-  text-decoration: none;
+    display: inline-block;
+    padding: 10px 14px;
+    border-radius: 12px;
+    border: 2px solid var(--primary-green);
+    color: var(--primary-green);
+    font-weight: 800;
+    text-decoration: none;
 }
 
 .backLink:hover {
-  background: var(--light-grey);
+    background: var(--light-grey);
 }
 
 /* ========================================================== */
@@ -744,94 +750,94 @@
 /* تخصيص السلايدر العام */
 /* -------------------------------------- */
 .documentation-slider-container {
-  max-width: 900px;
-  /* يمكن تعديل هذا العرض الأقصى حسب التصميم */
-  margin: 0 auto;
-  position: relative;
-  padding: 0 60px;
-  /* مسافة للأسهم لتكون خارج الصورة */
+    max-width: 900px;
+    /* يمكن تعديل هذا العرض الأقصى حسب التصميم */
+    margin: 0 auto;
+    position: relative;
+    padding: 0 60px;
+    /* مسافة للأسهم لتكون خارج الصورة */
 }
 
 /* -------------------------------------- */
 /* تخصيص النقاط (Dots) */
 /* -------------------------------------- */
 .slick-dots {
-  bottom: -45px !important;
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  text-align: center;
+    bottom: -45px !important;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    text-align: center;
 }
 
 .slick-dots li {
-  margin: 0 5px;
-  display: inline-block;
+    margin: 0 5px;
+    display: inline-block;
 }
 
 .slick-dots li button {
-  font-size: 0;
-  line-height: 0;
-  display: block;
-  width: 10px;
-  height: 10px;
-  cursor: pointer;
-  color: transparent;
-  border: 1px solid #ccc;
-  border-radius: 50%;
-  background: transparent;
-  transition: all 0.3s ease;
-  padding: 0;
+    font-size: 0;
+    line-height: 0;
+    display: block;
+    width: 10px;
+    height: 10px;
+    cursor: pointer;
+    color: transparent;
+    border: 1px solid #ccc;
+    border-radius: 50%;
+    background: transparent;
+    transition: all 0.3s ease;
+    padding: 0;
 }
 
 .slick-dots li.slick-active button {
-  background: #C49B5A;
-  /* اللون الذهبي الخاص بك */
-  border-color: #C49B5A;
-  width: 12px;
-  height: 12px;
+    background: #C49B5A;
+    /* اللون الذهبي الخاص بك */
+    border-color: #C49B5A;
+    width: 12px;
+    height: 12px;
 }
 
 /* -------------------------------------- */
 /* تخصيص الأسهم المخصصة (Custom Arrows) */
 /* -------------------------------------- */
 .custom-slick-arrow {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 10;
-  width: 40px;
-  height: 40px;
-  display: flex !important;
-  /* مهم جداً لجعلها تظهر */
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  background-color: rgba(0, 0, 0, 0.5);
-  color: #fff;
-  cursor: pointer;
-  transition: background-color 0.3s ease, color 0.3s ease;
-  font-size: 0;
-  /* لإخفاء أي نص افتراضي */
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 10;
+    width: 40px;
+    height: 40px;
+    display: flex !important;
+    /* مهم جداً لجعلها تظهر */
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background-color: rgba(0, 0, 0, 0.5);
+    color: #fff;
+    cursor: pointer;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    font-size: 0;
+    /* لإخفاء أي نص افتراضي */
 }
 
 .custom-slick-arrow:hover {
-  background-color: #C49B5A;
-  color: #fff;
+    background-color: #C49B5A;
+    color: #fff;
 }
 
 .custom-slick-arrow.prev-arrow {
-  left: 0px;
-  /* لتكون داخل حاوية السلايدر */
+    left: 0px;
+    /* لتكون داخل حاوية السلايدر */
 }
 
 .custom-slick-arrow.next-arrow {
-  right: 0px;
-  /* لتكون داخل حاوية السلايدر */
+    right: 0px;
+    /* لتكون داخل حاوية السلايدر */
 }
 
 .custom-slick-arrow i {
-  font-size: 18px;
-  color: #fff;
+    font-size: 18px;
+    color: #fff;
 }
 
 /* -------------------------------------- */
@@ -841,42 +847,42 @@
 /* الصورة المعروضة (المركزية) */
 /* .slick-center هو الكلاس الذي يضيفه react-slick للشريحة المركزية */
 .slick-slide.slick-center img {
-  transform: scale(1);
-  opacity: 1;
-  filter: blur(0px);
-  /* الصورة المركزية واضحة جداً */
-  transition: all 0.5s ease-in-out;
+    transform: scale(1);
+    opacity: 1;
+    filter: blur(0px);
+    /* الصورة المركزية واضحة جداً */
+    transition: all 0.5s ease-in-out;
 }
 
 /* الصور غير المعروضة (الجانبية) */
 .slick-slide:not(.slick-center) img {
-  transform: scale(0.9);
-  /* تصغير بسيط للصورة الجانبية */
-  opacity: 0.6;
-  /* جعلها أقل وضوحاً */
-  filter: blur(3px);
-  /* تطبيق البلور */
-  transition: all 0.5s ease-in-out;
+    transform: scale(0.9);
+    /* تصغير بسيط للصورة الجانبية */
+    opacity: 0.6;
+    /* جعلها أقل وضوحاً */
+    filter: blur(3px);
+    /* تطبيق البلور */
+    transition: all 0.5s ease-in-out;
 }
 
 /* تحديد ارتفاع ثابت لكل شريحة لضمان نفس "الكروما" */
 .slick-list .slick-track .slick-slide>div {
-  height: 450px;
-  /* نفس الارتفاع الذي حددته في Image component */
-  display: flex;
-  /* لضمان توسيط الصورة داخل div الشريحة */
-  align-items: center;
-  justify-content: center;
+    height: 450px;
+    /* نفس الارتفاع الذي حددته في Image component */
+    display: flex;
+    /* لضمان توسيط الصورة داخل div الشريحة */
+    align-items: center;
+    justify-content: center;
 }
 
 .slick-list .slick-track .slick-slide img {
-  /* هذه الخصائص مهمة لتطبيق الكروما بشكل موحد */
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  /* يضمن ملء الصورة للمساحة مع الحفاظ على الأبعاد */
-  border-radius: 10px;
-  /* زوايا دائرية لكل الصور */
+    /* هذه الخصائص مهمة لتطبيق الكروما بشكل موحد */
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    /* يضمن ملء الصورة للمساحة مع الحفاظ على الأبعاد */
+    border-radius: 10px;
+    /* زوايا دائرية لكل الصور */
 }
 
 
@@ -884,209 +890,220 @@
 /* تعديل الموضع لشاشات الجوال */
 /* -------------------------------------- */
 @media (max-width: 768px) {
-  .documentation-slider-container {
-    padding: 0 10px;
-    /* مسافة أقل على الجوال */
-  }
+    .documentation-slider-container {
+        padding: 0 10px;
+        /* مسافة أقل على الجوال */
+    }
 
-  .custom-slick-arrow.prev-arrow {
-    left: -5px;
-  }
+    .custom-slick-arrow.prev-arrow {
+        left: -5px;
+    }
 
-  .custom-slick-arrow.next-arrow {
-    right: -5px;
-  }
+    .custom-slick-arrow.next-arrow {
+        right: -5px;
+    }
 
-  .slick-dots {
-    bottom: -35px !important;
-  }
+    .slick-dots {
+        bottom: -35px !important;
+    }
 
-  /* على الجوال، قد تحتاج لضبط حجم الصور الجانبية أيضاً */
-  .slick-list .slick-track .slick-slide>div {
-    height: 300px;
-    /* ارتفاع أقل للصور على الجوال */
-  }
+    /* على الجوال، قد تحتاج لضبط حجم الصور الجانبية أيضاً */
+    .slick-list .slick-track .slick-slide>div {
+        height: 300px;
+        /* ارتفاع أقل للصور على الجوال */
+    }
 }
 
 /* لإلغاء أي تأثيرات افتراضية غير مرغوبة من slick-theme.css */
 .slick-prev:before,
 .slick-next:before {
-  display: none !important;
+    display: none !important;
 }
 
 .infoMessage {
-  /* يجعل الإشعار يظهر فوق كل العناصر الأخرى */
-  position: fixed;
-  top: calc(var(--header-h-desktop) + 50%);
-  /* يبعد عن الهيدر و مسافة 20px */
-  left: 50%;
-  transform: translateX(-50%);
-  /* يتوسط الشاشة أفقياً */
+    /* يجعل الإشعار يظهر فوق كل العناصر الأخرى */
+    position: fixed;
+    top: calc(var(--header-h-desktop) + 50%);
+    /* يبعد عن الهيدر و مسافة 20px */
+    left: 50%;
+    transform: translateX(-50%);
+    /* يتوسط الشاشة أفقياً */
 
-  /* تنسيق بصري واضح للنجاح */
-  background-color: var(--primary-green);
-  /* استخدام الأخضر الزيتي */
-  color: var(--text-white);
-  /* نص أبيض */
+    /* تنسيق بصري واضح للنجاح */
+    background-color: var(--primary-green);
+    /* استخدام الأخضر الزيتي */
+    color: var(--text-white);
+    /* نص أبيض */
 
-  /* تنسيقات المظهر */
-  padding: 15px 30px;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
-  font-size: 1.1rem;
-  font-weight: bold;
-  text-align: center;
-  max-width: 90%;
-  z-index: 10000;
-  /* قيمة عالية جداً لضمان الظهور فوق الـ sticky tabs */
-  transition: opacity 0.3s ease-in-out, visibility 0.3s;
-  pointer-events: auto;
-  /* يسمح بالتفاعل إذا كان هناك زر إغلاق (غير موجود هنا) */
+    /* تنسيقات المظهر */
+    padding: 15px 30px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+    font-size: 1.1rem;
+    font-weight: bold;
+    text-align: center;
+    max-width: 90%;
+    z-index: 10000;
+    /* قيمة عالية جداً لضمان الظهور فوق الـ sticky tabs */
+    transition: opacity 0.3s ease-in-out, visibility 0.3s;
+    pointer-events: auto;
+    /* يسمح بالتفاعل إذا كان هناك زر إغلاق (غير موجود هنا) */
 }
 
 /* تنسيق خاص برسالة الاكتمال/تحذير (مثل رسائل الخطأ) */
 .fullyFundedMessage {
-  background-color: var(--highlight-gold);
-  /* يمكن استخدام الذهبي أو لون تحذيري آخر */
-  color: var(--text-black);
-  /* نص أسود لتباين أفضل على الذهبي */
+    background-color: var(--highlight-gold);
+    /* يمكن استخدام الذهبي أو لون تحذيري آخر */
+    color: var(--text-black);
+    /* نص أسود لتباين أفضل على الذهبي */
 }
 
 /* في حالة الشاشات الصغيرة (الجوال) */
 @media (max-width: 768px) {
-  .infoMessage {
-    /* يتم تثبيته في الأسفل على الجوال لعدم حجب الشاشة */
-    top: auto;
-    bottom: 20px;
-    width: 90%;
-    max-width: none;
-    /* يتم حساب الموضع بالنسبة لارتفاع الهيدر في الأسفل إذا كان هناك شريط سفلي */
-    /* top: calc(var(--header-h-mobile) + 10px); */
-  }
+    .infoMessage {
+        /* يتم تثبيته في الأسفل على الجوال لعدم حجب الشاشة */
+        top: auto;
+        bottom: 20px;
+        width: 90%;
+        max-width: none;
+        /* يتم حساب الموضع بالنسبة لارتفاع الهيدر في الأسفل إذا كان هناك شريط سفلي */
+        /* top: calc(var(--header-h-mobile) + 10px); */
+    }
 }
 
 /* ⬅️ =======================================================
-                          تعديلات التبرع المخصص الجديدة 
-        ======================================================= */
+         تعديلات التبرع المخصص الجديدة 
+    ======================================================= */
 
 /* إزالة الحاجة لهذا الكلاس، ولكن تم الاحتفاظ به كحاوية لسهولة التمييز */
 .customDonationGroup {
-  display: flex;
-  align-items: stretch;
-  /* لضمان تساوي الارتفاع */
-  gap: 10px;
-  /* المسافة بين الحقل والزر */
-  flex-grow: 1;
+    display: flex;
+    align-items: stretch;
+    /* لضمان تساوي الارتفاع */
+    gap: 10px;
+    /* المسافة بين الحقل والزر */
+    flex-grow: 1;
 }
 
 /* 1. ستايل الديسكتوب: بنفس القياس بجانب زر تبني المؤسسة */
 .desktopCustomDonation {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  /* المسافة بين الحقل وزر "تبرع مخصص" */
-  flex: 1;
-  /* **لجعلها بنفس عرض زر تبني المؤسسة** */
-  width: 100%;
-  max-width: none;
-  /* إزالة الحد الأقصى للعرض */
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    /* المسافة بين الحقل وزر "تبرع مخصص" */
+    flex: 1;
+    /* **لجعلها بنفس عرض زر تبني المؤسسة** */
+    width: 100%;
+    max-width: none;
+    /* إزالة الحد الأقصى للعرض */
 }
 
 /* حاوية حقل الإدخال الجديد */
 .customInputWrapper {
-  flex: 1;
-  /* يجعل حقل الإدخال يملأ المساحة المتبقية داخل حاوية التبرع */
-  display: flex;
-  align-items: center;
-  height: 48px;
-  /* توحيد ارتفاعه مع ارتفاع الأزرار (48px) */
-  border: 2px solid var(--highlight-gold);
-  /* حدود مشابهة للأزرار */
-  border-radius: 12px;
-  padding: 0 10px;
-  background: var(--background-white);
+    flex: 1;
+    /* يجعل حقل الإدخال يملأ المساحة المتبقية داخل حاوية التبرع */
+    display: flex;
+    align-items: center;
+    height: 48px;
+    /* توحيد ارتفاعه مع ارتفاع الأزرار (48px) */
+    border: 2px solid var(--highlight-gold);
+    /* حدود مشابهة للأزرار */
+    border-radius: 12px;
+    padding: 0 10px;
+    background: var(--background-white);
+    position: relative; /* ⬅️ مفتاح وضع علامة الدولار */
 }
 
-.customInputWrapper .inputLabel {
-  font-size: 1.2em;
-  color: var(--highlight-gold);
-  padding-right: 5px;
-  font-weight: 800;
+/* ✅ علامة الدولار داخل الحقل */
+.customInputWrapper::before {
+    content: "$";
+    position: absolute;
+    top: 50%;
+    right: 15px; /* ضع العلامة على اليمين في تخطيط RTL */
+    transform: translateY(-50%);
+    font-size: 1.2em;
+    color: var(--highlight-gold);
+    font-weight: 800;
+    pointer-events: none;
+    z-index: 2; /* لضمان الظهور فوق الإدخال إذا لزم الأمر */
 }
 
 /* حقل الإدخال نفسه (للمبلغ) */
 .customDonationInput {
-  /* تجاوز أي أنماط سابقة لـ styles.quantityInputNew */
-  border: none !important;
-  text-align: right !important;
-  padding: 0 !important;
-  font-size: 16px !important;
-  font-weight: 900;
-  height: 100% !important;
-  width: 100%;
-  flex: 1;
-  outline: none;
+    /* تجاوز أي أنماط سابقة لـ styles.quantityInputNew */
+    border: none !important;
+    text-align: left !important; /* ⬅️ مهم: لتبدأ القيمة يسار العلامة */
+    padding: 0 5px 0 0 !important; /* ⬅️ تعديل: لإزاحة القيمة بعيدًا عن العلامة $ */
+    font-size: 16px !important;
+    font-weight: 900;
+    height: 100% !important;
+    width: 100%;
+    flex: 1;
+    outline: none;
+    /* إزاحة النص عن علامة الدولار الموضوعة في اليمين */
+    padding-left: 0;
+    padding-right: 25px !important; /* مسافة لعلامة $ */
 }
 
 
 /* زر التبرع المخصص في الديسكتوب (لإضافة المبلغ للسلة) */
 .desktopCustomDonation .goldenFillBtn {
-  /* هنا يجب أن يتمدد زر "تبرع مخصص" داخل حاوية التبرع ليتناسب مع قياسه الفعلي */
-  /* ملاحظة: سيتم معالجة التوزيع الداخلي في كود JSX عن طريق زر الإضافة للسلة */
-  flex-grow: 0;
-  /* لا يتمدد في هذا الكلاس ليتم تنسيقه بواسطة الكلاس الداخلي */
-  width: auto;
-  /* يعتمد على محتوى النص */
-  min-width: 150px;
-  height: 48px;
-  /* نفس ارتفاع حقل الإدخال والأزرار الأخرى */
-  padding: 10px 15px;
+    /* هنا يجب أن يتمدد زر "تبرع مخصص" داخل حاوية التبرع ليتناسب مع قياسه الفعلي */
+    /* ملاحظة: سيتم معالجة التوزيع الداخلي في كود JSX عن طريق زر الإضافة للسلة */
+    flex-grow: 0;
+    /* لا يتمدد في هذا الكلاس ليتم تنسيقه بواسطة الكلاس الداخلي */
+    width: auto;
+    /* يعتمد على محتوى النص */
+    min-width: 150px;
+    height: 48px;
+    /* نفس ارتفاع حقل الإدخال والأزرار الأخرى */
+    padding: 10px 15px;
 }
 
 /* 2. ستايل الجوال: بنفس القياس بجانب زر تبني المؤسسة */
 .mobileCustomDonation {
-  flex: 1;
-  /* **لجعلها بنفس عرض زر تبني المؤسسة** */
-  width: 100%;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-top: 0;
-  /* إلغاء أي مسافة علوية سابقة */
+    flex: 1;
+    /* **لجعلها بنفس عرض زر تبني المؤسسة** */
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 0;
+    /* إلغاء أي مسافة علوية سابقة */
 }
 
 /* تطبيق نفس تنسيق حقل الإدخال على الجوال */
 .mobileCustomDonation .customInputWrapper {
-  height: 48px;
-  flex: 1;
+    height: 48px;
+    flex: 1;
 }
 
 /* تطبيق نفس تنسيق زر الإضافة على الجوال */
 .mobileCustomDonation .goldenFillBtn {
-  min-width: 100px;
-  /* حجم أصغر قليلاً للجوال */
-  height: 48px;
-  padding: 8px 10px;
-  font-size: 13px;
+    min-width: 100px;
+    /* حجم أصغر قليلاً للجوال */
+    height: 48px;
+    padding: 8px 10px;
+    font-size: 13px;
 }
 
 /* إزالة الستايلات القديمة التي تتعارض */
 .desktopCustomDonation .quantityControlNew,
 .mobileCustomDonation .quantityControlNew,
 .customDonationInputDesktop {
-  display: none !important;
-  /* إخفاء العداد القديم بالكامل */
+    display: none !important;
+    /* إخفاء العداد القديم بالكامل */
 }
 
 /* تعديل ستايل الأزرار لتكون موحدة في الارتفاع */
 .fixedSizeButton {
-  height: 48px;
-  /* تم توحيد الارتفاع إلى 48px */
-  line-height: 48px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0 20px;
+    height: 48px;
+    /* تم توحيد الارتفاع إلى 48px */
+    line-height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 20px;
 }
 
 /* نهاية تعديلات التبرع المخصص الجديدة */

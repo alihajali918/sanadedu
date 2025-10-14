@@ -174,12 +174,16 @@
 .videoIcon {
     font-size: 2.5rem; /* يمكنك تعديل الحجم ليناسب تصميمك */
     margin-inline-end: 10px; /* مسافة بين الأيقونة والنص (تستخدم للغة العربية/RTL) */
-    /* يمكنك إضافة لون مميز هنا إذا كنت تستخدم أيقونة نصية أو SVG */
-    /* color: var(--primary-color); */
+    color: var(--highlight-gold);
+    background-color: var(--background-white);
+    padding: 0px 30px 0 30px;
+    border-radius: 20%;
 }
 
 /* تأكد من بقاء تنسيق العنوان (h1) كما هو أو بتعديل بسيط إذا لزم الأمر */
 .heroTitle {
     font-size: 3rem; /* مثال، تأكد من مطابقة حجم الخط الأصلي لديك */
     margin: 0; /* مهم للتأكد من عدم وجود مسافات إضافية */
+    margin-top: 20px;
+
 }

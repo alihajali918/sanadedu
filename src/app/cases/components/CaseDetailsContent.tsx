@@ -484,7 +484,7 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({ caseItem }) => 
           autoFocus
           aria-label="مبلغ التبرع المخصص"
           style={{
-            width: isMobile ? "120px" : "140px",
+            width: isMobile ? "50%" : "140px",
             height: "40px",
             border: "1px solid #ccc",
             borderRadius: "6px",

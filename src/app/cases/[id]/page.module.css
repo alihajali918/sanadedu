@@ -1080,7 +1080,7 @@
 
 /* تطبيق نفس تنسيق زر الإضافة على الجوال */
 .mobileCustomDonation .goldenFillBtn {
-    min-width: 100px;
+    min-width: 30%;
     /* حجم أصغر قليلاً للجوال */
     height: 48px;
     padding: 8px 10px;
@@ -1098,12 +1098,11 @@
 /* تعديل ستايل الأزرار لتكون موحدة في الارتفاع */
 .fixedSizeButton {
     height: 48px;
-    /* تم توحيد الارتفاع إلى 48px */
     line-height: 48px;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 0 20px;
+    padding: 0 0px;
 }
 
 /* نهاية تعديلات التبرع المخصص الجديدة */

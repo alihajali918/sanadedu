@@ -30,7 +30,7 @@ interface MessageState {
   type: "success" | "warning";
 }
 
-// أسهم السلايدر
+// أسهم السلايدر (تم الإبقاء عليها كما هي)
 const NextArrow = (props: any) => {
   const { className, style, onClick } = props;
   return (
@@ -64,6 +64,8 @@ const PrevArrow = (props: any) => {
 const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({ caseItem }) => {
   const router = useRouter();
   const { addItem } = useCart();
+
+  // ... [باقي الثوابت وحالات الـ state والـ useMemo] ...
 
   // ===== [A] تحقق وجود احتياجات =====
   const hasNeeds = !!(
@@ -231,11 +233,13 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({ caseItem }) => 
   // 🟡 التبرع المخصص: إظهار الإدخال عند الضغط على "تبرع مخصص"
   // ===============================================
   const [showCustomInput, setShowCustomInput] = useState(false);
-  const [customDonationAmount, setCustomDonationAmount] = useState<number>(5);
+  // ⬅️ تم تعيين القيمة الافتراضية الأولية إلى 1
+  const [customDonationAmount, setCustomDonationAmount] = useState<number>(1);
 
   const handleCustomDonationClick = () => {
     setShowCustomInput(true);
-    setCustomDonationAmount(5);
+    // ⬅️ تعيين القيمة عند الضغط على الزر إلى 1
+    setCustomDonationAmount(1); 
   };
 
   // يسمح بأي قيمة عشرية، ويطبّق حدود منطقية عند التغيير
@@ -244,7 +248,7 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({ caseItem }) => 
       let num = Number(value);
       if (!Number.isFinite(num)) num = 0;
       if (num < 0) num = 0;
-
+      
       const maxAmount = remainingFunds;
       const maxLimit = 999999;
 
@@ -295,10 +299,11 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({ caseItem }) => 
 
     // رجّع العرض إلى زر "تبرع مخصص"
     setShowCustomInput(false);
-    setCustomDonationAmount(5);
+    // ⬅️ تعيين القيمة إلى الافتراضية بعد الإضافة
+    setCustomDonationAmount(1); 
   }, [addItem, caseItem, customDonationAmount, remainingFunds, formatCurrencyWestern]);
 
-  // ===== [K] تبني كل المتبقي =====
+  // ===== [K] تبني كل المتبقي (تم الإبقاء عليها كما هي) =====
   const handleDonateAllRemainingNeeds = useCallback(() => {
     if (!caseItem) return;
     let count = 0,
@@ -340,6 +345,8 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({ caseItem }) => 
       });
     }
   }, [addItem, caseItem, needs, formatCurrencyWestern, formatNumberWestern, router]);
+
+  // ... [باقي المكونات الفرعية والمحتوى] ...
 
   // ==========================================================
   // [M0] الصور
@@ -397,7 +404,7 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({ caseItem }) => 
     );
   }
 
-  // ===== المكون الفرعي: InstitutionDetails =====
+  // ===== المكون الفرعي: InstitutionDetails (تم الإبقاء عليه كما هو) =====
   const InstitutionDetails: React.FC<{ item: CaseItem }> = ({ item }) => {
     const hasValue = (val: any) => {
       if (typeof val === "number") return val != null;
@@ -465,39 +472,34 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({ caseItem }) => 
     );
   };
 
-  // ===== [O] مكوّن التبرع المخصص — يظهر فقط عند الضغط =====
+  // ===== [O] مكوّن التبرع المخصص — يظهر فقط عند الضغط (تم التعديل) =====
   const CustomDonationInput: React.FC<{ isMobile: boolean }> = ({ isMobile }) => {
     return (
       <div
+        // استخدام الكلاسات التي تم تعديلها في CSS
         className={isMobile ? styles.mobileCustomDonation : styles.desktopCustomDonation}
-        style={{ display: "flex", gap: "8px", alignItems: "center" }}
       >
-        <input
-          type="number"
-          step="any"
-          min={0}
-          className={styles.quantityInputNew}
-          value={String(customDonationAmount)}
-          onChange={(e) => handleCustomDonationChange(e.target.value)}
-          placeholder="أدخل المبلغ"
-          inputMode="decimal"
-          autoFocus
-          aria-label="مبلغ التبرع المخصص"
-          style={{
-            width: isMobile ? "50%" : "140px",
-            height: "40px",
-            border: "1px solid #ccc",
-            borderRadius: "6px",
-            padding: "0 8px",
-            fontSize: "16px",
-          }}
-        />
+        <div className={styles.customInputWrapper}>
+          <input
+            type="number"
+            step="any"
+            min={0}
+            // استخدام كلاس الإدخال المخصص
+            className={styles.customDonationInput} 
+            value={String(customDonationAmount)}
+            onChange={(e) => handleCustomDonationChange(e.target.value)}
+            placeholder="أدخل المبلغ"
+            inputMode="decimal"
+            autoFocus
+            aria-label="مبلغ التبرع المخصص"
+          />
+        </div>
 
         <button
           onClick={addCustomDonationToCart}
           className={`${styles.goldenFillBtn} ${styles.fixedSizeButton} ${isMobile ? styles.mobileActionBtn : ""}`}
           type="button"
-          disabled={isFullyFunded}
+          disabled={isFullyFunded || customDonationAmount <= 0}
         >
           تبرع
         </button>
@@ -505,7 +507,7 @@ const CaseDetailsContent: React.FC<CaseDetailsContentProps> = ({ caseItem }) => 
     );
   };
 
-  // ===== [N] العرض =====
+  // ===== [N] العرض (تم تعديل أماكن استدعاء CustomDonationInput) =====
   return (
     <main className={styles.caseDetailsPageContent}>
       <div className="container">

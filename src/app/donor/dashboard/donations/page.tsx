@@ -1,240 +1,195 @@
+// File: src/app/donations/page.tsx
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
-// ------------------------------------------------------------------
-// ملاحظة مهمة: يجب التأكد من فك التعليق عن الأسطر التالية في مشروعك:
-// import { useSession } from "next-auth/react"; 
-// import Link from "next/link"; 
-// ------------------------------------------------------------------
-
-// بدائل (Placeholder) لمنع أخطاء التجميع في البيئة الحالية:
-const useSession = () => ({ status: 'authenticated' });
-const Link = ({ href, children, className }) => <a href={href} className={className}>{children}</a>;
-
-
-// صفحة التحميل
-const LoadingPage = () => (
-  <div className="flex items-center justify-center min-h-screen bg-gray-100">
-    <div className="flex flex-col items-center">
-      <div className="w-16 h-16 border-4 border-t-4 border-gray-200 border-t-blue-500 rounded-full animate-spin" />
-      <p className="mt-4 text-gray-600">جاري التحميل...</p>
-    </div>
-  </div>
-);
+import { useSession } from "next-auth/react";
+import Link from "next/link";
 
 type DonationStatus = "قيد الانتظار" | "مكتمل" | "قيد التنفيذ" | "مسترد" | "ملغي";
 
 interface Donation {
-  id: string;
-  caseId: string;
-  caseName: string;
-  amount: number;
-  status: DonationStatus | string;
-  date: string; // ISO
-  currency: string;
+  id: string;
+  caseId: string;
+  caseName: string;
+  amount: number;
+  status: DonationStatus | string;
+  date: string;
+  currency: string;
 }
 
+// ====== تطبيع الحالة ======
+const normalizeStatus = (s: string): DonationStatus | string => {
+  const map: Record<string, DonationStatus> = {
+    completed: "مكتمل",
+    pending: "قيد الانتظار",
+    processing: "قيد التنفيذ",
+    cancelled: "ملغي",
+    failed: "ملغي",
+    refunded: "مسترد",
+  };
+  return map[s?.toLowerCase()?.trim()] || s || "مكتمل";
+};
 
+// ====== ألوان الشارات ======
+const statusColors: Record<string, string> = {
+  مكتمل: "bg-green-100 text-green-700 border-green-200",
+  "قيد الانتظار": "bg-yellow-50 text-yellow-700 border-yellow-200",
+  "قيد التنفيذ": "bg-blue-50 text-blue-700 border-blue-200",
+  مسترد: "bg-red-50 text-red-700 border-red-200",
+  ملغي: "bg-gray-100 text-gray-600 border-gray-200",
+};
+
+// ====== صفحة التبرعات ======
 const DonationsPage: React.FC = () => {
-  // استخدام useSession الأصلي (أو البديل المعرف أعلاه)
-  const { status: authStatus } = useSession(); 
-  const [donations, setDonations] = useState<Donation[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { status: authStatus } = useSession();
+  const [donations, setDonations] = useState<Donation[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const statusClasses: Record<string, string> = {
-    "قيد الانتظار": "bg-yellow-100 text-yellow-900", 
-    "مكتمل": "bg-green-100 text-green-800",
-    "قيد التنفيذ": "bg-blue-100 text-blue-800",
-    "مسترد": "bg-red-100 text-red-800",
-    "ملغي": "bg-red-100 text-red-800",
-  };
+  // تنسيق التاريخ هجري
+  const dateFmt = useMemo(
+    () =>
+      new Intl.DateTimeFormat("ar-SA-u-ca-islamic", {
+        dateStyle: "long",
+        timeZone: "Asia/Qatar",
+      }),
+    []
+  );
+  const formatDate = (date: string) => `${dateFmt.format(new Date(date))} هـ`;
 
-  const dateFmt = useMemo(
-    () =>
-      new Intl.DateTimeFormat("ar-SA", {
-        dateStyle: "medium",
-        timeZone: "Asia/Qatar",
-      }),
-    []
-  );
+  // تنسيق العملة
+  const formatCurrency = (amount: number, currency: string = "QAR") =>
+    new Intl.NumberFormat("ar-QA", {
+      style: "currency",
+      currency,
+      maximumFractionDigits: 2,
+    }).format(amount);
 
-  const formatDate = (dateString: string) => {
-    const d = new Date(dateString);
-    return Number.isNaN(+d) ? "—" : dateFmt.format(d);
-  };
+  useEffect(() => {
+    (async () => {
+      setLoading(true);
+      const res = await fetch("/api/donations", { cache: "no-store" });
+      const data = await res.json();
+      if (data?.ok && Array.isArray(data.donations)) {
+        setDonations(
+          data.donations
+            .map((d: Donation) => ({
+              ...d,
+              status: normalizeStatus(d.status),
+              caseName: d.caseName?.trim() || "تبرع عام",
+            }))
+            .sort((a, b) => +new Date(b.date) - +new Date(a.date))
+        );
+      }
+      setLoading(false);
+    })();
+  }, []);
 
-  const formatCurrency = (amount: number, currency: string) => {
-    try {
-      return new Intl.NumberFormat("ar-EG", {
-        style: "currency",
-        currency: currency || "QAR",
-        maximumFractionDigits: 2,
-      }).format(amount);
-    } catch {
-      return `${amount.toFixed(2)} ${currency || "QAR"}`;
-    }
-  };
+  if (loading)
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-50 text-gray-600 font-bold">
+        جاري تحميل بياناتك...
+      </div>
+    );
 
-  useEffect(() => {
-    // في بيئة Next.js، يجب أن تتأكد أن status هو 'authenticated' قبل الجلب
-    if (authStatus === "loading" || authStatus === "unauthenticated") return; 
+  return (
+    <div dir="rtl" className="min-h-screen bg-[#faf9f6] py-10 px-6 font-sans">
+      <div className="max-w-6xl mx-auto">
+        <h1
+          className="text-4xl font-black text-center text-gray-900 mb-2"
+          style={{ fontFamily: "var(--font-changa)" }}
+        >
+          سجل تبرعاتي
+        </h1>
+        <p className="text-center text-gray-600 mb-10">
+          يمكنك هنا متابعة جميع تبرعاتك السابقة بشكل منظم وأنيق.
+        </p>
 
-    const ac = new AbortController();
-
-    (async () => {
-      try {
-        setLoading(true);
-        setError(null);
-
-        const res = await fetch("/api/donations", {
-          method: "GET",
-          cache: "no-store",
-          credentials: "include",
-          signal: ac.signal,
-        });
-
-        if (!res.ok) {
-            // تحديث رسالة الخطأ لإظهار حالة HTTP
-          let msg = `فشل جلب التبرعات (الحالة: ${res.status}).`;
-          try {
-            const e = await res.json();
-            msg = e.error || msg;
-          } catch {}
-          throw new Error(msg);
-        }
-
-        const data = await res.json();
-        
-        if (data?.ok && Array.isArray(data.donations)) {
-          setDonations(
-            data.donations.map((d: any) => ({
-              id: String(d.id ?? d.caseId ?? "غير معروف"), 
-              caseId: String(d.caseId ?? d.project_id ?? "غير معروف"), 
-              caseName: String(d.caseName ?? d.project_name ?? "—"), 
-              amount: Number(d.totalAmount ?? d.amount ?? d.donation_amount ?? 0), 
-              status: String(d.status ?? "مكتمل"),
-              date: String(d.date ?? d.donation_date ?? new Date().toISOString()),
-              currency: String(d.currency ?? "QAR"),
-            })) as Donation[]
-          );
-        } else {
-          setDonations([]);
-          console.warn("API returned unexpected data structure or empty list:", data);
-        }
-      } catch (e: any) {
-        if (e?.name === "AbortError") return;
-        console.error("Failed to fetch donations:", e);
-        setError(e?.message || "حدث خطأ أثناء تحميل التبرعات. يرجى المحاولة لاحقاً.");
-      } finally {
-        setLoading(false);
-      }
-    })();
-
-    return () => ac.abort();
-  }, [authStatus]);
-
-  if (loading || authStatus === "loading") return <LoadingPage />;
-
-  // في حال كان المستخدم غير مسجل الدخول، قم بإظهار رسالة مناسبة
-  if (authStatus === 'unauthenticated') {
-      return (
-          <div dir="rtl" className="min-h-screen flex items-center justify-center bg-gray-100 p-8 font-sans">
-              <div className="bg-white shadow-xl rounded-2xl p-8 text-center max-w-sm">
-                  <h2 className="text-2xl font-bold text-red-500 mb-4">وصول غير مصرح به</h2>
-                  <p className="text-gray-700">الرجاء تسجيل الدخول لعرض سجل التبرعات الخاص بك.</p>
-                  <Link 
-                    href="/api/auth/signin"
-                    className="mt-6 inline-block py-2 px-6 rounded-full text-white font-bold bg-blue-600 hover:bg-blue-700 transition-colors duration-200"
+        {/* الشبكة */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+          {donations.map((d) => (
+            <div
+              key={d.id}
+              className="bg-white border-2 border-[rgba(196,155,90,0.3)] rounded-2xl shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 p-6 flex flex-col justify-between"
+            >
+              {/* رأس البطاقة */}
+              <div>
+                <div className="flex items-start justify-between mb-3">
+                  <h3
+                    className="text-xl font-extrabold text-gray-900 leading-tight"
+                    style={{ fontFamily: "var(--font-changa)" }}
                   >
-                      تسجيل الدخول
-                  </Link>
+                    {d.caseName}
+                  </h3>
+                  <span
+                    className={`text-xs font-bold px-3 py-1 rounded-full border ${statusColors[d.status]}`}
+                  >
+                    {d.status}
+                  </span>
+                </div>
+
+                <div className="space-y-2 text-gray-700 text-sm">
+                  <div className="flex items-center gap-2">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      className="opacity-60"
+                    >
+                      <path
+                        fill="currentColor"
+                        d="M7 2h2v2h6V2h2v2h3a1 1 0 0 1 1 1v3H3V5a1 1 0 0 1 1-1h3V2zm14 8H3v11a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1V10z"
+                      />
+                    </svg>
+                    <span>
+                      <span className="font-semibold">التاريخ:</span>{" "}
+                      {formatDate(d.date)}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      className="opacity-60"
+                    >
+                      <path
+                        fill="currentColor"
+                        d="M12 1a1 1 0 0 1 1 1v1.06A6.5 6.5 0 0 1 18.5 9H17a1 1 0 1 1 0-2h1.5A4.5 4.5 0 0 0 14 4.1V6a1 1 0 0 1-2 0V4.1A4.5 4.5 0 0 0 5.5 7H7a1 1 0 1 1 0 2H5.5A6.5 6.5 0 0 1 11 3.06V2a1 1 0 0 1 1-1Zm-7 12h14a2 2 0 1 1 0 4H5a2 2 0 1 1 0-4Z"
+                      />
+                    </svg>
+                    <span>
+                      <span className="font-semibold">المبلغ:</span>{" "}
+                      <span className="font-extrabold text-[var(--primary-green,#1e7a57)]">
+                        {formatCurrency(d.amount, d.currency)}
+                      </span>
+                    </span>
+                  </div>
+                </div>
               </div>
-          </div>
-      );
-  }
 
-  return (
-    <div dir="rtl" className="min-h-screen bg-gray-100 py-10 px-4 sm:px-6 lg:px-8 font-sans">
-      <div className="max-w-4xl mx-auto">
-        <div className="bg-white shadow-xl rounded-2xl p-6 sm:p-8">
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-gray-900 text-center mb-2">تبرعاتي</h1>
-          <p className="text-base sm:text-lg text-gray-500 text-center mb-8">
-            هنا يمكنك مراجعة جميع التبرعات التي قمت بها سابقاً، وتتبع حالتها.
-          </p>
-
-          {error ? (
-            <p className="text-center text-red-500 font-semibold text-lg">{error}</p>
-          ) : donations.length === 0 ? (
-            <div className="text-center p-6 bg-gray-50 rounded-lg">
-              <p className="text-lg text-gray-700 mb-4">
-                لم تقم بأي تبرعات حتى الآن. ابدأ بتصفح الحالات لدعم قضايانا!
-              </p>
-              {/* استخدام Link هنا */}
-              <Link 
-                href="/cases"
-                className="inline-block py-2 px-6 rounded-full text-white font-bold bg-blue-600 hover:bg-blue-700 transition-colors duration-200"
-              >
-                تصفح الحالات
-              </Link>
-            </div>
-          ) : (
-            <div className="space-y-6">
-              {donations.map((donation) => (
-                <div
-                  key={donation.id}
-                  className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden"
-                >
-                  <div className="p-5">
-                    <div className="flex justify-between items-center mb-3">
-                      <h3 className="text-xl font-bold text-gray-900">
-                        {donation.caseName || "تبرع لحالة مجهولة"}
-                      </h3>
-                      <span
-                        className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium ${
-                          statusClasses[donation.status] ?? "bg-gray-100 text-gray-800"
-                        }`}
-                      >
-                        {donation.status}
-                      </span>
-                    </div>
-
-                    <div className="border-t border-gray-200 pt-3 text-sm text-gray-700 space-y-2">
-                      <div className="flex justify-between items-center">
-                        <span className="font-medium">التاريخ:</span>
-                        <span>
-                          {formatDate(donation.date)} 
-                        </span>
-                      </div>
-
-                      <div className="flex justify-between items-center">
-                        <span className="font-medium">المبلغ:</span>
-                        <span className="text-lg font-extrabold text-blue-600">
-                          {formatCurrency(donation.amount, donation.currency)}
-                        </span>
-                      </div>
-                    </div>
-
-                    {donation.caseId !== "غير معروف" && (
-                      <div className="mt-4">
-                        {/* استخدام Link هنا */}
-                        <Link 
-                          href={`/cases/${donation.caseId}`}
-                          className="block text-center py-2 px-4 rounded-lg text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 transition-colors duration-200"
-                        >
-                          عرض تفاصيل الحالة
-                        </Link>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
+              {/* ذيل البطاقة */}
+              <div className="mt-5 flex flex-col sm:flex-row gap-2 justify-between">
+                <Link
+                  href={`/cases/${d.caseId}`}
+                  className="text-sm font-bold text-[var(--highlight-gold,#C49B5A)] hover:underline text-center sm:text-right"
+                >
+                  عرض تفاصيل الحالة
+                </Link>
+                <Link
+                  href={`/cases/${d.caseId}#donate`}
+                  className="bg-[var(--primary-green,#1e7a57)] text-white text-sm font-extrabold px-4 py-2 rounded-xl text-center hover:brightness-110 transition"
+                >
+                  تبرّع مرة أخرى
+                </Link>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
 };
 
 export default DonationsPage;

@@ -160,7 +160,7 @@ const DonationsPage: React.FC = () => {
                       />
                     </svg>
                     <span>
-                      <span className="font-semibold">المبلغ:</span>{" "}
+                      <span className="font-semibold">المبلغ:</span>
                       <span className="font-extrabold text-[var(--primary-green,#1e7a57)]">
                         {formatCurrency(d.amount, d.currency)}
                       </span>

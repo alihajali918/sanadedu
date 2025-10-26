@@ -1,15 +1,48 @@
-// File: src/app/api/donations/route.ts
-
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { authOptions } from "lib/auth";
+import { authOptions } from "lib/auth"; // يجب أن يكون مسار ملف authOptions صحيحاً
 
 export const dynamic = "force-dynamic";
 
-// ✅ بناء أساس WP مرة واحدة
+// --- Type Definitions for API Response ---
+
+// تعريف هيكل العنصر المتبرع به (قد يحتوي على caseId أو case_id)
+interface WpDonatedItem {
+  case_id?: number | string;
+  caseId?: number | string;
+  case_name?: string;
+  caseName?: string;
+}
+
+// تعريف هيكل استجابة التبرع الفردي من WordPress
+interface WpDonationResponse {
+  id: number | string;
+  date: string;
+  donorId: number | string;
+  totalPaidAmount: number | string;
+  currency: string;
+  status: string; // الحالة بالإنجليزية
+  transactionId?: string;
+  paymentMethod?: string;
+  donatedItems: WpDonatedItem[];
+}
+
+// تعريف هيكل البيانات النهائية التي ستُرسل إلى الواجهة الأمامية
+interface FormattedDonation {
+  id: string;
+  caseId: string;
+  caseName: string;
+  amount: number;
+  status: string; // الحالة بالعربية
+  date: string;
+  currency: string;
+}
+
+// --- Configuration ---
+
+// ✅ بناء أساس WP مرة واحدة (مع التأكد من إزالة الشرطة المائلة الأخيرة)
 const WP_API_BASE =
-  process.env.WP_API_BASE?.replace(/\/$/, "") ||
-  process.env.NEXT_PUBLIC_WORDPRESS_API_URL?.replace(/\/$/, "") ||
+  (process.env.WP_API_BASE || process.env.NEXT_PUBLIC_WORDPRESS_API_URL)?.replace(/\/$/, "") ||
   "";
 
 const WP_JSON = WP_API_BASE
@@ -19,7 +52,7 @@ const WP_JSON = WP_API_BASE
 // 🔗 endpoint الصحيح من البلغ-إن
 const SANAD_MY_DONATIONS = WP_JSON ? `${WP_JSON}/sanad/v1/my-donations` : "";
 
-// تحويل حالة إنجليزية إلى عربية (كما في واجهتك)
+// تحويل حالة إنجليزية إلى عربية
 const statusMap: Record<string, string> = {
   completed: "مكتمل",
   pending: "قيد الانتظار",
@@ -27,6 +60,8 @@ const statusMap: Record<string, string> = {
   cancelled: "ملغي",
   failed: "فشل",
 };
+
+// --- API Handler ---
 
 export async function GET() {
   try {
@@ -42,6 +77,7 @@ export async function GET() {
 
     // 2) التحقق من الضبط
     if (!SANAD_MY_DONATIONS) {
+      console.error("Configuration Error: SANAD_MY_DONATIONS endpoint is not set.");
       return NextResponse.json(
         { ok: false, error: "Misconfiguration: WordPress API base is missing." },
         { status: 500 }
@@ -53,8 +89,10 @@ export async function GET() {
     const wpRes = await fetch(url, {
       method: "GET",
       headers: { "Content-Type": "application/json" },
+      // استخدام no-store لضمان عدم تخزين الاستجابة مؤقتاً
       cache: "no-store",
-      signal: AbortSignal.timeout(10000),
+      // تعيين مهلة 10 ثوانٍ لمنع الحظر الدائم
+      signal: AbortSignal.timeout(10000), 
     });
 
     if (!wpRes.ok) {
@@ -62,53 +100,55 @@ export async function GET() {
       let msg = `WP API Error (${wpRes.status}).`;
       try {
         const j = JSON.parse(raw);
+        // محاولة استخراج رسالة خطأ أكثر وضوحاً من استجابة WP
         msg = j?.message || j?.error || msg;
-      } catch {}
+      } catch (e) {
+        // لا شيء، نستخدم رسالة الخطأ الافتراضية
+      }
       return NextResponse.json({ ok: false, error: msg }, { status: wpRes.status });
     }
 
-    const list = await wpRes.json();
+    // افتراض أن الاستجابة هي مصفوفة من WpDonationResponse
+    const list: WpDonationResponse[] = (await wpRes.json()) || [];
     if (!Array.isArray(list)) {
-      return NextResponse.json({ ok: true, donations: [] }, { status: 200 });
+        // إذا لم تكن مصفوفة، نعود بمصفوفة فارغة
+        return NextResponse.json({ ok: true, donations: [] }, { status: 200 });
     }
 
-    // 4) تحويل شكل الاستجابة إلى ما تتوقعه الواجهة (caseName/amount/status/date/currency/ids…)
-    const formatted = list.map((d: any) => {
-      // من sanad_extract_donation_details:
-      // id, date, donorId, donorName, donorEmail, totalPaidAmount, subtotalAmount,
-      // shippingFees, customDonation, donatedItems, currency, status, paymentMethod, transactionId
+    // 4) تحويل شكل الاستجابة إلى ما تتوقعه الواجهة (FormattedDonation)
+    const formatted: FormattedDonation[] = list.map((d) => {
+      // تحويل الحالة الإنجليزية إلى العربية، والافتراض "مكتمل" إذا لم يتم العثور على تطابق
       const arabicStatus =
-        statusMap[(d?.status || "").toLowerCase()] || d?.status || "مكتمل";
+        statusMap[(String(d.status) || "").toLowerCase()] || String(d.status) || "مكتمل";
 
       // نختار اسم/معرّف الحالة من أول عنصر ضمن donatedItems (لو متاح)
-      const firstItem = Array.isArray(d?.donatedItems) && d.donatedItems.length > 0
+      const firstItem: WpDonatedItem | null = Array.isArray(d.donatedItems) && d.donatedItems.length > 0
         ? d.donatedItems[0]
         : null;
 
+      // استخلاص Case ID واسمه
       const caseId =
-        String(firstItem?.case_id ?? firstItem?.caseId ?? "غير معروف");
+        String(firstItem?.case_id ?? firstItem?.caseId ?? "N/A"); // استخدام "N/A" أو ما شابه لـ "غير معروف"
       const caseName =
         String(firstItem?.case_name ?? firstItem?.caseName ?? "تبرع عام");
 
       return {
-        id: String(d?.id ?? ""),
+        id: String(d.id),
         caseId,
         caseName,
-        amount: Number(d?.totalPaidAmount ?? 0),
+        // التأكد من أن المبلغ رقمي
+        amount: Number(d.totalPaidAmount || 0), 
         status: arabicStatus,
-        date: String(d?.date ?? new Date().toISOString()),
-        currency: String(d?.currency ?? "QAR"),
-        // لو احتجت التفاصيل لاحقاً:
-        // transactionId: String(d?.transactionId ?? ""),
-        // paymentMethod: String(d?.paymentMethod ?? ""),
-        // donatedItems: d?.donatedItems ?? [],
+        date: String(d.date),
+        currency: String(d.currency || "QAR"),
       };
     });
 
     return NextResponse.json({ ok: true, donations: formatted }, { status: 200 });
   } catch (err: any) {
+    // التعامل مع الأخطاء العامة وأخطاء المهلة
     const msg =
-      err?.name === "TimeoutError" ? "Timeout." : err?.message || "Server error.";
+      err?.name === "TimeoutError" ? "Timeout: The external API took too long to respond." : err?.message || "Internal Server error.";
     console.error("Donations API (sanad/v1/my-donations) error:", err);
     return NextResponse.json({ ok: false, error: msg }, { status: 500 });
   }

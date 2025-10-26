@@ -125,7 +125,7 @@ const DonorSettingsPage: React.FC = () => {
 
                     if (!response.ok) {
                         let errorData = {};
-                        try { errorData = await response.json(); } catch {}
+                        try { errorData = await response.json(); } catch { }
                         const extractedError = extractErrorMessage(errorData);
                         // رمي خطأ يتضمن رمز الحالة لكي تستطيع الدالة المساعدة handleAuthError التعرف عليه
                         throw new Error(extractedError || `فشل جلب بيانات الإعدادات. رمز الخطأ: ${response.status}`);
@@ -189,9 +189,9 @@ const DonorSettingsPage: React.FC = () => {
 
             if (!response.ok) {
                 let errorData = {};
-                try { errorData = await response.json(); } catch {}
+                try { errorData = await response.json(); } catch { }
                 const extractedError = extractErrorMessage(errorData);
-                 // رمي خطأ يتضمن رمز الحالة لكي تستطيع الدالة المساعدة handleAuthError التعرف عليه
+                // رمي خطأ يتضمن رمز الحالة لكي تستطيع الدالة المساعدة handleAuthError التعرف عليه
                 throw new Error(extractedError || `فشل تغيير كلمة المرور. رمز الخطأ: ${response.status}`);
             }
 
@@ -199,7 +199,7 @@ const DonorSettingsPage: React.FC = () => {
             setCurrentPassword('');
             setNewPassword('');
             setConfirmNewPassword('');
-            
+
             setTimeout(clearMessages, 5000); // إخفاء رسالة النجاح بعد 5 ثوانٍ
         } catch (err: any) {
             handleAuthError(err); // استخدام الدالة المساعدة الجديدة
@@ -240,7 +240,7 @@ const DonorSettingsPage: React.FC = () => {
 
             if (!response.ok) {
                 let errorData = {};
-                try { errorData = await response.json(); } catch {}
+                try { errorData = await response.json(); } catch { }
                 const extractedError = extractErrorMessage(errorData);
                 // رمي خطأ يتضمن رمز الحالة لكي تستطيع الدالة المساعدة handleAuthError التعرف عليه
                 throw new Error(extractedError || `فشل حفظ تفضيلات الإشعارات. رمز الخطأ: ${response.status}`);
@@ -342,7 +342,6 @@ const DonorSettingsPage: React.FC = () => {
                     </div>
                 </form>
             </div>
-
             {/* قسم تفضيلات الإشعارات */}
             <div className={styles.settingsSection}>
                 <h2 className={styles.sectionTitle}>تفضيلات الإشعارات</h2>
@@ -378,8 +377,6 @@ const DonorSettingsPage: React.FC = () => {
                     </div>
                 </form>
             </div>
-
-            {/* يمكن إضافة أقسام أخرى مثل "حذف الحساب" هنا */}
         </div>
     );
 };

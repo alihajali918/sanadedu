@@ -18,7 +18,9 @@ declare module "next-auth" {
       /** The user's WordPress JWT token, used for API calls. */
       wordpressJwt?: string;
       /** The user's numeric WordPress ID. */
-      wordpressUserId?: number; // نستخدم نوع Number لأنه رقمي في الووردبريس
+      wordpressUserId?: number; 
+      /** The user's WordPress locale/language. (جديد/مصحح) */
+      wordpressUserLocale?: string; 
       
       // تبقى الخصائص القياسية: id, name, email, image
       id?: string;
@@ -32,7 +34,7 @@ declare module "next-auth" {
     /** The user's WordPress JWT token. */
     wordpressJwt?: string;
     /** The user's numeric WordPress ID. */
-    wordpressUserId?: number; // نستخدم نوع Number
+    wordpressUserId?: number; 
     /** The user's WordPress display name. */
     wordpressUserName?: string;
     /** The user's WordPress email. */
@@ -52,7 +54,7 @@ declare module "next-auth/jwt" {
     /** The user's WordPress JWT token. */
     wordpressJwt?: string;
     /** The user's numeric WordPress ID. */
-    wordpressUserId?: number; // نستخدم نوع Number
+    wordpressUserId?: number;
     /** The user's WordPress display name. */
     wordpressUserName?: string;
     /** The user's WordPress email. */

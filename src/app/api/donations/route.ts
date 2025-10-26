@@ -1,13 +1,13 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { authOptions } from "lib/auth"; // تأكد من المسار الصحيح
-import { auth } from "lib/auth"; // قد تحتاج لاستخدام دالة auth بدلاً من getServerSession
+import { authOptions } from "lib/auth"; // تأكد من المسار الصحيح لملف authOptions
+import { auth } from "lib/auth";       // تأكد من المسار الصحيح لدالة auth
 
 export const dynamic = "force-dynamic";
 
 // --- Type Definitions ---
 
-// تعريف هيكل العنصر المتبرع به (للتوافق مع كلا المفتاحين)
+// تعريف هيكل العنصر المتبرع به (للتوافق مع كلا المفتاحين في WP Plugin)
 interface WpDonatedItem {
   case_id?: number | string;
   caseId?: number | string;
@@ -18,7 +18,7 @@ interface WpDonatedItem {
   need_id: number;
 }
 
-// تعريف هيكل استجابة التبرع الفردي من WordPress
+// تعريف هيكل استجابة التبرع الفردي من WordPress (لـ GET)
 interface WpDonationResponse {
   id: number | string;
   date: string;
@@ -30,13 +30,13 @@ interface WpDonationResponse {
   donatedItems: WpDonatedItem[];
 }
 
-// تعريف هيكل البيانات النهائية التي ستُرسل إلى الواجهة الأمامية
+// تعريف هيكل البيانات النهائية التي ستُرسل إلى الواجهة الأمامية (لـ GET)
 interface FormattedDonation {
   id: string;
   caseId: string;
   caseName: string;
   amount: number;
-  status: string; // الحالة بالعربية
+  status: string;
   date: string;
   currency: string;
 }
@@ -65,111 +65,121 @@ const statusMap: Record<string, string> = {
 };
 
 // ------------------------------------------------------------
-// 1. POST HANDLER: تسجيل تبرع جديد
+// 1. POST HANDLER: تسجيل تبرع جديد (مصحح وبسجلات مراقبة)
 // ------------------------------------------------------------
 
 export async function POST(req: Request) {
   try {
-    // 1) المصادقة وجلب التوكن
-    // تم التبديل لاستخدام auth لسهولة الوصول إلى JWT
+    console.log("DEBUG 1: Starting POST request.");
+    
+    // 1. المصادقة
     const session = await auth(); 
     const token = session?.user?.wordpressJwt;
     const userId = session?.user?.wordpressUserId;
 
     if (!token || !userId) {
+      console.error("DEBUG ERROR: Not authenticated. Token or User ID missing.");
       return NextResponse.json(
         { error: "Not authenticated or user ID missing" },
         { status: 401 }
       );
     }
+    console.log(`DEBUG 2: Authentication successful for User ID: ${userId}`);
 
-    // 2) جلب البيانات من الطلب
-    const { amount, caseId, stripePaymentIntentId } = await req.json();
+    // 2. تحليل الحمولة
+    const body = await req.json();
+    const { amount, caseId, stripePaymentIntentId } = body;
 
     if (!amount || !caseId || !stripePaymentIntentId) {
+      console.error("DEBUG ERROR: Missing required fields in body.");
       return NextResponse.json(
         { error: "Missing required fields (amount, caseId, stripePaymentIntentId)" },
         { status: 400 }
       );
     }
-
-    // 3) التحقق من الضبط
+    
+    // 3. بناء الـ Endpoint والـ Payload
     if (!SANAD_RECORD_DONATION) {
-       console.error("Configuration Error: SANAD_RECORD_DONATION endpoint is not set.");
+       console.error("DEBUG ERROR: Environment variable NEXT_PUBLIC_WORDPRESS_API_URL is missing.");
        return NextResponse.json({ error: "Misconfiguration: WordPress API base is missing." }, { status: 500 });
     }
+    
+    const endpoint = SANAD_RECORD_DONATION;
+    console.log(`DEBUG 3: Target Endpoint: ${endpoint}`);
 
-    // 4) بناء حمولة البيانات (Payload)
+    // 💡 الحمولة المصححة: بناء مصفوفة donated_items
     const donatedItemsPayload: WpDonatedItem[] = [
       {
-        // استخدام المفتاحين للتوافق مع دالة sanad_get_field و sanad_webhook_update
         case_id: caseId,
-        caseId: caseId,
+        caseId: caseId, 
         line_total: amount,
-        item_quantity: 0, // 0 لأنه تبرع نقدي وليس عيني
-        need_id: 0, // 0 لأنه ليس لاحتياج محدد (نقدي عام)
+        item_quantity: 0,
+        need_id: 0, 
       },
     ];
 
     const payload = {
       amount,
       donor_id: userId,
-      // project_id يُرسل لكي يتمكن الـ Plugin من تحديد الحالة الرئيسية بسهولة
       project_id: caseId,
       status: "completed",
       payment_method: "Stripe",
       transaction_id: stripePaymentIntentId,
-      // إرسال المصفوفة للتوافق مع هيكل WordPress
-      donated_items: donatedItemsPayload, 
-      // يمكن إضافة donor_name و donor_email إذا كانت متاحة
+      donation_date: new Date().toISOString().slice(0, 10).replace(/-/g, ""),
+      donated_items: donatedItemsPayload, // العنصر الحاسم للنجاح في WP
     };
+    
+    console.log("DEBUG 4: Sending Payload. Size:", JSON.stringify(payload).length);
 
-    // 5) إرسال الطلب إلى WordPress
-    const wpRes = await fetch(SANAD_RECORD_DONATION, {
+    // 4. إرسال طلب Fetch
+    const wpRes = await fetch(endpoint, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        // استخدام التوكن للمصادقة على دالة sanad_record_donation
         Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify(payload),
     });
+    
+    console.log(`DEBUG 5: Received WP Status: ${wpRes.status}`);
 
+    // 5. معالجة الاستجابة
     const text = await wpRes.text();
     let json: any;
-    try { 
-        json = JSON.parse(text); 
-    } catch { 
-        json = { raw: text }; 
-    }
+    try { json = JSON.parse(text); } catch { json = { raw: text, message: "Non-JSON response received" }; }
     
-    // 6) معالجة الاستجابة
+    console.log("DEBUG 6: WP Response Text (Snippet):", text.substring(0, 200));
+
     if (!wpRes.ok) {
       const message =
         json?.message ||
         json?.error ||
-        `WordPress error ${wpRes.status}: Failed to record donation.`;
+        `WordPress error ${wpRes.status}: ${text}`;
       
-      console.error("WP POST Error:", message, json);
-      // إرجاع رسالة الخطأ وحالة الاستجابة من WP
-      return NextResponse.json({ success: false, error: message }, { status: wpRes.status });
+      console.error("DEBUG ERROR: WP returned non-OK status. Error:", message);
+      // إرجاع حالة الخطأ الأصلية من WP (400, 401, 500)
+      return NextResponse.json({ error: message }, { status: wpRes.status });
     }
 
-    return NextResponse.json({ success: true, ...json }, { status: 200 });
+    console.log("DEBUG 7: Success. Returning 200.");
+    return NextResponse.json(json, { status: 200 });
 
   } catch (err: any) {
-    console.error("Donations POST API error:", err);
-    return NextResponse.json({ error: err?.message || "Internal Server error." }, { status: 500 });
+    // ⚠️ يحدث خطأ 500 هنا إذا كان هناك استثناء غير مُعالَج (مثل فشل req.json())
+    console.error("CRITICAL API ERROR: Uncaught exception in /api/donations:", err);
+    return NextResponse.json(
+      { error: err?.message || "Internal Server Error. Check Server Logs." },
+      { status: 500 }
+    );
   }
 }
 
 // ------------------------------------------------------------
-// 2. GET HANDLER: جلب التبرعات (الكود الذي أرفقته سابقاً)
+// 2. GET HANDLER: جلب التبرعات
 // ------------------------------------------------------------
 
 export async function GET() {
   try {
-    // 1) التأكد من المصادقة (باستخدام getServerSession كما في الكود الأصلي)
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
       return NextResponse.json(
@@ -179,7 +189,6 @@ export async function GET() {
     }
     const userId = String(session.user.id);
 
-    // 2) التحقق من الضبط
     if (!SANAD_MY_DONATIONS) {
       console.error("Configuration Error: SANAD_MY_DONATIONS endpoint is not set.");
       return NextResponse.json(
@@ -188,7 +197,6 @@ export async function GET() {
       );
     }
 
-    // 3) جلب تبرعات المستخدم من البلغ-إن
     const url = `${SANAD_MY_DONATIONS}?userId=${encodeURIComponent(userId)}`;
     const wpRes = await fetch(url, {
       method: "GET",
@@ -214,7 +222,6 @@ export async function GET() {
         return NextResponse.json({ ok: true, donations: [] }, { status: 200 });
     }
 
-    // 4) تحويل شكل الاستجابة
     const formatted: FormattedDonation[] = list.map((d) => {
       const arabicStatus =
         statusMap[(String(d.status) || "").toLowerCase()] || String(d.status) || "مكتمل";

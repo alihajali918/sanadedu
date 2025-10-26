@@ -26,8 +26,8 @@ const cairo = Cairo({
 
 // يمكن إضافة Metadata هنا إذا أردت
 export const metadata = {
-  title: "Sanad - Your Project Title",
-  description: "Sanad project description.",
+  title: "سند لدعم التعليم",
+  description: "جمعية سند لدعم التعليم هي منصة إنسانية تهدف إلى ربط المتبرعين بالمؤسسات التعليمية والدينية المحتاجة في سوريا، لضمان مستقبل أفضل لأجيالنا.",
 };
 
 // التصدير الافتراضي (Default Export) لـ RootLayout هو مطلوب

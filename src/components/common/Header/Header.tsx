@@ -195,11 +195,11 @@ const Header = () => {
                   </Link>
 
                 </li>
-
-                {/* <li>
-                  <Link href="/about/founder" className={getLinkClassName("/about/founder")}>
+ <Link href="/about/founder" className={getLinkClassName("/about/founder")}>
                     عن المؤسس
                   </Link>
+                {/* <li>
+                 
 
                 </li> */}
 

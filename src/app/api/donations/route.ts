@@ -1,17 +1,21 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { authOptions } from "lib/auth"; // يجب أن يكون مسار ملف authOptions صحيحاً
+import { authOptions } from "lib/auth"; // تأكد من المسار الصحيح
+import { auth } from "lib/auth"; // قد تحتاج لاستخدام دالة auth بدلاً من getServerSession
 
 export const dynamic = "force-dynamic";
 
-// --- Type Definitions for API Response ---
+// --- Type Definitions ---
 
-// تعريف هيكل العنصر المتبرع به (قد يحتوي على caseId أو case_id)
+// تعريف هيكل العنصر المتبرع به (للتوافق مع كلا المفتاحين)
 interface WpDonatedItem {
   case_id?: number | string;
   caseId?: number | string;
   case_name?: string;
   caseName?: string;
+  line_total: number;
+  item_quantity: number;
+  need_id: number;
 }
 
 // تعريف هيكل استجابة التبرع الفردي من WordPress
@@ -21,9 +25,8 @@ interface WpDonationResponse {
   donorId: number | string;
   totalPaidAmount: number | string;
   currency: string;
-  status: string; // الحالة بالإنجليزية
+  status: string;
   transactionId?: string;
-  paymentMethod?: string;
   donatedItems: WpDonatedItem[];
 }
 
@@ -40,7 +43,6 @@ interface FormattedDonation {
 
 // --- Configuration ---
 
-// ✅ بناء أساس WP مرة واحدة (مع التأكد من إزالة الشرطة المائلة الأخيرة)
 const WP_API_BASE =
   (process.env.WP_API_BASE || process.env.NEXT_PUBLIC_WORDPRESS_API_URL)?.replace(/\/$/, "") ||
   "";
@@ -49,8 +51,9 @@ const WP_JSON = WP_API_BASE
   ? (WP_API_BASE.endsWith("/wp-json") ? WP_API_BASE : `${WP_API_BASE}/wp-json`)
   : "";
 
-// 🔗 endpoint الصحيح من البلغ-إن
 const SANAD_MY_DONATIONS = WP_JSON ? `${WP_JSON}/sanad/v1/my-donations` : "";
+const SANAD_RECORD_DONATION = WP_JSON ? `${WP_JSON}/sanad/v1/record-donation` : "";
+
 
 // تحويل حالة إنجليزية إلى عربية
 const statusMap: Record<string, string> = {
@@ -61,11 +64,112 @@ const statusMap: Record<string, string> = {
   failed: "فشل",
 };
 
-// --- API Handler ---
+// ------------------------------------------------------------
+// 1. POST HANDLER: تسجيل تبرع جديد
+// ------------------------------------------------------------
+
+export async function POST(req: Request) {
+  try {
+    // 1) المصادقة وجلب التوكن
+    // تم التبديل لاستخدام auth لسهولة الوصول إلى JWT
+    const session = await auth(); 
+    const token = session?.user?.wordpressJwt;
+    const userId = session?.user?.wordpressUserId;
+
+    if (!token || !userId) {
+      return NextResponse.json(
+        { error: "Not authenticated or user ID missing" },
+        { status: 401 }
+      );
+    }
+
+    // 2) جلب البيانات من الطلب
+    const { amount, caseId, stripePaymentIntentId } = await req.json();
+
+    if (!amount || !caseId || !stripePaymentIntentId) {
+      return NextResponse.json(
+        { error: "Missing required fields (amount, caseId, stripePaymentIntentId)" },
+        { status: 400 }
+      );
+    }
+
+    // 3) التحقق من الضبط
+    if (!SANAD_RECORD_DONATION) {
+       console.error("Configuration Error: SANAD_RECORD_DONATION endpoint is not set.");
+       return NextResponse.json({ error: "Misconfiguration: WordPress API base is missing." }, { status: 500 });
+    }
+
+    // 4) بناء حمولة البيانات (Payload)
+    const donatedItemsPayload: WpDonatedItem[] = [
+      {
+        // استخدام المفتاحين للتوافق مع دالة sanad_get_field و sanad_webhook_update
+        case_id: caseId,
+        caseId: caseId,
+        line_total: amount,
+        item_quantity: 0, // 0 لأنه تبرع نقدي وليس عيني
+        need_id: 0, // 0 لأنه ليس لاحتياج محدد (نقدي عام)
+      },
+    ];
+
+    const payload = {
+      amount,
+      donor_id: userId,
+      // project_id يُرسل لكي يتمكن الـ Plugin من تحديد الحالة الرئيسية بسهولة
+      project_id: caseId,
+      status: "completed",
+      payment_method: "Stripe",
+      transaction_id: stripePaymentIntentId,
+      // إرسال المصفوفة للتوافق مع هيكل WordPress
+      donated_items: donatedItemsPayload, 
+      // يمكن إضافة donor_name و donor_email إذا كانت متاحة
+    };
+
+    // 5) إرسال الطلب إلى WordPress
+    const wpRes = await fetch(SANAD_RECORD_DONATION, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        // استخدام التوكن للمصادقة على دالة sanad_record_donation
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(payload),
+    });
+
+    const text = await wpRes.text();
+    let json: any;
+    try { 
+        json = JSON.parse(text); 
+    } catch { 
+        json = { raw: text }; 
+    }
+    
+    // 6) معالجة الاستجابة
+    if (!wpRes.ok) {
+      const message =
+        json?.message ||
+        json?.error ||
+        `WordPress error ${wpRes.status}: Failed to record donation.`;
+      
+      console.error("WP POST Error:", message, json);
+      // إرجاع رسالة الخطأ وحالة الاستجابة من WP
+      return NextResponse.json({ success: false, error: message }, { status: wpRes.status });
+    }
+
+    return NextResponse.json({ success: true, ...json }, { status: 200 });
+
+  } catch (err: any) {
+    console.error("Donations POST API error:", err);
+    return NextResponse.json({ error: err?.message || "Internal Server error." }, { status: 500 });
+  }
+}
+
+// ------------------------------------------------------------
+// 2. GET HANDLER: جلب التبرعات (الكود الذي أرفقته سابقاً)
+// ------------------------------------------------------------
 
 export async function GET() {
   try {
-    // 1) التأكد من المصادقة
+    // 1) التأكد من المصادقة (باستخدام getServerSession كما في الكود الأصلي)
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
       return NextResponse.json(
@@ -89,9 +193,7 @@ export async function GET() {
     const wpRes = await fetch(url, {
       method: "GET",
       headers: { "Content-Type": "application/json" },
-      // استخدام no-store لضمان عدم تخزين الاستجابة مؤقتاً
       cache: "no-store",
-      // تعيين مهلة 10 ثوانٍ لمنع الحظر الدائم
       signal: AbortSignal.timeout(10000), 
     });
 
@@ -100,35 +202,29 @@ export async function GET() {
       let msg = `WP API Error (${wpRes.status}).`;
       try {
         const j = JSON.parse(raw);
-        // محاولة استخراج رسالة خطأ أكثر وضوحاً من استجابة WP
         msg = j?.message || j?.error || msg;
       } catch (e) {
-        // لا شيء، نستخدم رسالة الخطأ الافتراضية
+        // ...
       }
       return NextResponse.json({ ok: false, error: msg }, { status: wpRes.status });
     }
 
-    // افتراض أن الاستجابة هي مصفوفة من WpDonationResponse
     const list: WpDonationResponse[] = (await wpRes.json()) || [];
     if (!Array.isArray(list)) {
-        // إذا لم تكن مصفوفة، نعود بمصفوفة فارغة
         return NextResponse.json({ ok: true, donations: [] }, { status: 200 });
     }
 
-    // 4) تحويل شكل الاستجابة إلى ما تتوقعه الواجهة (FormattedDonation)
+    // 4) تحويل شكل الاستجابة
     const formatted: FormattedDonation[] = list.map((d) => {
-      // تحويل الحالة الإنجليزية إلى العربية، والافتراض "مكتمل" إذا لم يتم العثور على تطابق
       const arabicStatus =
         statusMap[(String(d.status) || "").toLowerCase()] || String(d.status) || "مكتمل";
 
-      // نختار اسم/معرّف الحالة من أول عنصر ضمن donatedItems (لو متاح)
       const firstItem: WpDonatedItem | null = Array.isArray(d.donatedItems) && d.donatedItems.length > 0
         ? d.donatedItems[0]
         : null;
 
-      // استخلاص Case ID واسمه
       const caseId =
-        String(firstItem?.case_id ?? firstItem?.caseId ?? "N/A"); // استخدام "N/A" أو ما شابه لـ "غير معروف"
+        String(firstItem?.case_id ?? firstItem?.caseId ?? "N/A");
       const caseName =
         String(firstItem?.case_name ?? firstItem?.caseName ?? "تبرع عام");
 
@@ -136,7 +232,6 @@ export async function GET() {
         id: String(d.id),
         caseId,
         caseName,
-        // التأكد من أن المبلغ رقمي
         amount: Number(d.totalPaidAmount || 0), 
         status: arabicStatus,
         date: String(d.date),
@@ -146,7 +241,6 @@ export async function GET() {
 
     return NextResponse.json({ ok: true, donations: formatted }, { status: 200 });
   } catch (err: any) {
-    // التعامل مع الأخطاء العامة وأخطاء المهلة
     const msg =
       err?.name === "TimeoutError" ? "Timeout: The external API took too long to respond." : err?.message || "Internal Server error.";
     console.error("Donations API (sanad/v1/my-donations) error:", err);

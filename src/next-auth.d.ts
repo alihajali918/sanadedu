@@ -1,45 +1,63 @@
-// src/types/next-auth.d.ts (or types/next-auth.d.ts)
-import NextAuth from "next-auth";
-import { JWT } from "next-auth/jwt"; // Import JWT type
+import NextAuth, { DefaultSession } from "next-auth";
+import { JWT } from "next-auth/jwt";
 
-// Declare module augmentation for 'next-auth'
+/**
+ * هذا الملف يقوم بـ "Module Augmentation" (توسيع الوحدة)
+ * لكائنات NextAuth (Session, User, JWT) لإضافة حقول WordPress المخصصة.
+ * يجب وضعه في مسار معروف لـ TypeScript، مثل: src/types/next-auth.d.ts
+ */
+
+// 1. توسيع وحدة 'next-auth'
 declare module "next-auth" {
-  // Extend the default Session object
+  /**
+   * كائن الجلسة (Session Object) - يمكن الوصول إليه عبر useSession أو auth()
+   */
   interface Session {
     user: {
-      /** The user's WordPress JWT token. */
+      // ✅ الحقول المضافة من WordPress
+      /** The user's WordPress JWT token, used for API calls. */
       wordpressJwt?: string;
-      /** The user's WordPress ID. */
-      wordpressUserId?: string;
-      // You can add other WordPress-specific user data here if needed
-      // e.g., role, capabilities, etc.
-    } & DefaultSession["user"]; // Keep existing properties of DefaultSession user
+      /** The user's numeric WordPress ID. */
+      wordpressUserId?: number; // نستخدم نوع Number لأنه رقمي في الووردبريس
+      
+      // تبقى الخصائص القياسية: id, name, email, image
+      id?: string;
+    } & DefaultSession["user"];
   }
 
-  // Extend the default User object (used in signIn, jwt callbacks)
+  /**
+   * كائن المستخدم (User Object) - يُستخدم عند تسجيل الدخول (signIn)
+   */
   interface User {
     /** The user's WordPress JWT token. */
     wordpressJwt?: string;
-    /** The user's WordPress ID. */
-    wordpressUserId?: string;
+    /** The user's numeric WordPress ID. */
+    wordpressUserId?: number; // نستخدم نوع Number
     /** The user's WordPress display name. */
     wordpressUserName?: string;
     /** The user's WordPress email. */
     wordpressUserEmail?: string;
+    /** The user's WordPress locale/language. */
+    wordpressUserLocale?: string;
   }
 }
 
-// Declare module augmentation for 'next-auth/jwt'
+// 2. توسيع وحدة 'next-auth/jwt'
 declare module "next-auth/jwt" {
-  // Extend the default JWT token
+  /**
+   * كائن التوكن (JWT Token) - يُستخدم لتخزين البيانات بين الـ JWT والـ Session
+   */
   interface JWT {
+    // ✅ الحقول المضافة من WordPress
     /** The user's WordPress JWT token. */
     wordpressJwt?: string;
-    /** The user's WordPress ID. */
-    wordpressUserId?: string;
+    /** The user's numeric WordPress ID. */
+    wordpressUserId?: number; // نستخدم نوع Number
     /** The user's WordPress display name. */
     wordpressUserName?: string;
     /** The user's WordPress email. */
     wordpressUserEmail?: string;
+    /** The user's WordPress locale/language. */
+    wordpressUserLocale?: string;
   }
 }

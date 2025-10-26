@@ -203,12 +203,12 @@ const Header = () => {
 
                 </li>
 
-                <li>
+                {/* <li>
                   <Link href="/about/team" className={getLinkClassName("/about/team")}>
                     فريقنا
                   </Link>
 
-                </li>
+                </li> */}
 
               </ul>
             </li>
@@ -367,7 +367,7 @@ const Header = () => {
 
                 </li>
 
-                <li>
+                {/* <li>
                   <Link
                     href="/about/team"
                     onClick={toggleMobileMenu}
@@ -376,7 +376,7 @@ const Header = () => {
                     فريقنا
                   </Link>
 
-                </li>
+                </li> */}
 
               </ul>
             )}

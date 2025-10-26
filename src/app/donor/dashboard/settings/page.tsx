@@ -7,8 +7,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useSession, signOut } from 'next-auth/react'; // <--- تم التعديل: استخدام useSession و signOut من NextAuth
-import styles from './settings.module.css'; // تأكد من إنشاء هذا الملف
+import { useSession, signOut } from 'next-auth/react';
+import styles from './settings.module.css';
 
 // تعريف واجهة لبيانات الإعدادات (تفضيلات الإشعارات فقط)
 interface UserSettingsData {
@@ -20,47 +20,99 @@ interface UserSettingsData {
 // تأكد من أن NEXT_PUBLIC_WORDPRESS_API_ROOT مضبوط في ملف .env أو .env.local
 const WORDPRESS_API_BASE_URL = process.env.NEXT_PUBLIC_WORDPRESS_API_ROOT || 'https://cms.sanadedu.org/wp-json';
 
+/**
+ * دالة مساعدة لاستخراج رسالة خطأ واضحة من استجابة API.
+ * تعالج أخطاء REST API الشائعة (مثل 400 Bad Request وأخطاء التحقق).
+ */
+const extractErrorMessage = (errorData: any): string => {
+    if (errorData?.message) {
+        return errorData.message;
+    }
+    if (errorData?.code === 'rest_no_route') {
+        return 'خطأ في نقطة النهاية: لا يمكن العثور على مسار API. تحقق من إعدادات الخادم.';
+    }
+    if (errorData?.data?.status === 403) {
+        return 'غير مصرح لك: يرجى تسجيل الدخول مرة أخرى.';
+    }
+    // معالجة أخطاء التحقق من صحة البيانات في WordPress
+    if (errorData?.data?.params && Object.keys(errorData.data.params).length > 0) {
+        const fieldErrors = Object.entries(errorData.data.params)
+            .map(([key, value]) => `[${key}]: ${Array.isArray(value) ? value.join(', ') : value}`)
+            .join(' | ');
+        return `فشل التحقق: ${fieldErrors}`;
+    }
+    return 'حدث خطأ غير معروف أثناء الاتصال بالخادم.';
+};
+
 
 const DonorSettingsPage: React.FC = () => {
     const router = useRouter();
-    // const { isAuthenticated, isLoadingAuth, logout } = useAuth(); // <--- تم الإزالة: لم نعد نستخدم useAuth
-    const { data: session, status } = useSession(); // <--- جديد: استخدام useSession
+    const { data: session, status } = useSession();
 
     const [settingsData, setSettingsData] = useState<UserSettingsData | null>(null);
     const [currentPassword, setCurrentPassword] = useState('');
     const [newPassword, setNewPassword] = useState('');
     const [confirmNewPassword, setConfirmNewPassword] = useState('');
 
-    const [isLoading, setIsLoading] = useState(true); // للتحميل الأولي لبيانات الإعدادات
-    const [isChangingPassword, setIsChangingPassword] = useState(false); // لحالة تغيير كلمة المرور
-    const [isSavingNotifications, setIsSavingNotifications] = useState(false); // لحالة حفظ تفضيلات الإشعارات
+    const [isLoading, setIsLoading] = useState(true);
+    const [isChangingPassword, setIsChangingPassword] = useState(false);
+    const [isSavingNotifications, setIsSavingNotifications] = useState(false);
 
     const [error, setError] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
 
-    const isAuthenticated = status === "authenticated"; // تعريف isAuthenticated بناءً على status
-    const isLoadingAuth = status === "loading"; // تعريف isLoadingAuth بناءً على status
+    const isAuthenticated = status === "authenticated";
+    const isLoadingAuth = status === "loading";
+
+    // ✅ دالة لمسح رسائل الحالة بعد فترة زمنية
+    const clearMessages = () => {
+        setError('');
+        setSuccessMessage('');
+    };
+
+    /**
+     * دالة مساعدة للتحقق من المصادقة بعد فشل API.
+     * إذا كان الخطأ يدل على مشكلة مصادقة (401/403)، فسيتم إجبار تسجيل الخروج.
+     */
+    const handleAuthError = (err: any) => {
+        const errorMsg = err.message || 'حدث خطأ أثناء الاتصال بالخادم.';
+        setError(errorMsg);
+        console.error('API Error:', err);
+
+        // إذا كان الخطأ يدل على انتهاء صلاحية الجلسة أو عدم المصادقة، قم بتسجيل الخروج.
+        if (errorMsg.includes('لا يوجد توكن مصادقة') || errorMsg.includes('غير مصرح لك') || errorMsg.includes('403') || errorMsg.includes('401')) {
+            // توجيه المستخدم لصفحة تسجيل الدخول
+            signOut({ redirect: true, callbackUrl: '/auth/login' });
+        }
+    }
+
 
     // useEffect لجلب تفضيلات الإشعارات عند تحميل الصفحة
     useEffect(() => {
+        // 1. التحقق من إعدادات API
+        if (!WORDPRESS_API_BASE_URL || !WORDPRESS_API_BASE_URL.startsWith('http')) {
+            setError('خطأ في إعدادات البيئة: NEXT_PUBLIC_WORDPRESS_API_ROOT غير محدد أو غير صحيح.');
+            setIsLoading(false);
+            return;
+        }
+
+        // 2. التحقق من المصادقة والتوجيه
         if (!isLoadingAuth && !isAuthenticated) {
             router.push('/auth/login');
             return;
         }
 
-        if (isAuthenticated && session?.user) { // <--- استخدام session.user للتحقق من وجود بيانات المستخدم
+        // 3. جلب بيانات الإعدادات
+        if (isAuthenticated && session?.user) {
             const fetchUserSettings = async () => {
                 setIsLoading(true);
-                setError('');
+                clearMessages(); // مسح الرسائل القديمة قبل طلب جديد
                 try {
-                    const authToken = session.user.wordpressJwt; // <--- استخدام wordpressJwt من جلسة NextAuth
+                    const authToken = session.user.wordpressJwt;
                     if (!authToken) {
                         throw new Error('لا يوجد توكن مصادقة في الجلسة. يرجى تسجيل الدخول.');
                     }
 
-                    // 🚀 تم تحديث نقطة API لجلب بيانات الملف الشخصي والإعدادات
-                    // هذه النقطة نهاية قد لا تعيد emailNotifications و smsNotifications مباشرة.
-                    // ستحتاج إلى التأكد من أن الـ backend الخاص بك يرسلها، أو جلبها من نقطة نهاية مخصصة للإعدادات.
                     const apiUrl = `${WORDPRESS_API_BASE_URL}/sanad/v1/user/full-profile`;
 
                     const response = await fetch(apiUrl, {
@@ -72,20 +124,20 @@ const DonorSettingsPage: React.FC = () => {
                     });
 
                     if (!response.ok) {
-                        const errorData = await response.json();
-                        throw new Error(errorData.message || 'فشل جلب بيانات الإعدادات.');
+                        let errorData = {};
+                        try { errorData = await response.json(); } catch {}
+                        const extractedError = extractErrorMessage(errorData);
+                        // رمي خطأ يتضمن رمز الحالة لكي تستطيع الدالة المساعدة handleAuthError التعرف عليه
+                        throw new Error(extractedError || `فشل جلب بيانات الإعدادات. رمز الخطأ: ${response.status}`);
                     }
 
                     const data = await response.json();
                     setSettingsData({
-                        // <--- تأكد من أن الـ backend يعيد هذه الحقول
-                        emailNotifications: data.emailNotifications ?? false, // استخدام nullish coalescing لتجنب undefined
-                        smsNotifications: data.smsNotifications ?? false,    // افتراضي false إذا لم يتم إرجاعها
+                        emailNotifications: data.emailNotifications ?? false,
+                        smsNotifications: data.smsNotifications ?? false,
                     });
-                } catch (err: any) { // تم إضافة "any" لتجنب خطأ TypeScript
-                    setError(err.message || 'حدث خطأ أثناء جلب بيانات الإعدادات.');
-                    console.error('Error fetching user settings:', err);
-                    signOut({ redirect: true, callbackUrl: '/auth/login' }); // <--- استخدام signOut من NextAuth
+                } catch (err: any) {
+                    handleAuthError(err); // استخدام الدالة المساعدة الجديدة
                 } finally {
                     setIsLoading(false);
                 }
@@ -93,28 +145,29 @@ const DonorSettingsPage: React.FC = () => {
 
             fetchUserSettings();
         }
-    }, [isAuthenticated, isLoadingAuth, session, router]); // <--- تم تعديل التبعيات
+    }, [isAuthenticated, isLoadingAuth, session, router]);
 
     // دالة لتغيير كلمة المرور
     const handleChangePassword = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsChangingPassword(true);
-        setError('');
-        setSuccessMessage('');
+        clearMessages(); // مسح الرسائل القديمة عند بدء العملية
 
         if (newPassword !== confirmNewPassword) {
             setError('كلمة المرور الجديدة وتأكيدها غير متطابقين!');
             setIsChangingPassword(false);
+            setTimeout(clearMessages, 5000); // إخفاء الخطأ بعد 5 ثوانٍ
             return;
         }
         if (!currentPassword || !newPassword) {
             setError('يرجى ملء جميع حقول كلمة المرور.');
             setIsChangingPassword(false);
+            setTimeout(clearMessages, 5000); // إخفاء الخطأ بعد 5 ثوانٍ
             return;
         }
 
         try {
-            const authToken = session?.user?.wordpressJwt; // <--- استخدام wordpressJwt من جلسة NextAuth
+            const authToken = session?.user?.wordpressJwt;
             if (!authToken) {
                 throw new Error('لا يوجد توكن مصادقة في الجلسة. يرجى تسجيل الدخول.');
             }
@@ -135,17 +188,22 @@ const DonorSettingsPage: React.FC = () => {
             });
 
             if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || 'فشل تغيير كلمة المرور. يرجى التحقق من كلمة المرور الحالية.');
+                let errorData = {};
+                try { errorData = await response.json(); } catch {}
+                const extractedError = extractErrorMessage(errorData);
+                 // رمي خطأ يتضمن رمز الحالة لكي تستطيع الدالة المساعدة handleAuthError التعرف عليه
+                throw new Error(extractedError || `فشل تغيير كلمة المرور. رمز الخطأ: ${response.status}`);
             }
 
             setSuccessMessage('تم تغيير كلمة المرور بنجاح!');
             setCurrentPassword('');
             setNewPassword('');
             setConfirmNewPassword('');
-        } catch (err: any) { // تم إضافة "any" لتجنب خطأ TypeScript
-            setError(err.message || 'حدث خطأ أثناء تغيير كلمة المرور.');
-            console.error('Error changing password:', err);
+            
+            setTimeout(clearMessages, 5000); // إخفاء رسالة النجاح بعد 5 ثوانٍ
+        } catch (err: any) {
+            handleAuthError(err); // استخدام الدالة المساعدة الجديدة
+            setTimeout(clearMessages, 5000); // إخفاء رسالة الخطأ بعد 5 ثوانٍ
         } finally {
             setIsChangingPassword(false);
         }
@@ -155,20 +213,17 @@ const DonorSettingsPage: React.FC = () => {
     const handleSaveNotifications = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsSavingNotifications(true);
-        setError('');
-        setSuccessMessage('');
+        clearMessages(); // مسح الرسائل القديمة عند بدء العملية
 
         if (!settingsData) return;
 
         try {
-            const authToken = session?.user?.wordpressJwt; // <--- استخدام wordpressJwt من جلسة NextAuth
+            const authToken = session?.user?.wordpressJwt;
             if (!authToken) {
                 throw new Error('لا يوجد توكن مصادقة في الجلسة. يرجى تسجيل الدخول.');
             }
 
             // 🚀 تم تحديث نقطة API لتحديث الملف الشخصي
-            // تأكد من أن نقطة النهاية هذه (user/update-profile) تدعم تحديث تفضيلات الإشعارات.
-            // إذا لم يكن الأمر كذلك، ستحتاج إلى نقطة نهاية API مخصصة في WordPress لذلك.
             const apiUrl = `${WORDPRESS_API_BASE_URL}/sanad/v1/user/update-profile`;
 
             const response = await fetch(apiUrl, {
@@ -184,14 +239,18 @@ const DonorSettingsPage: React.FC = () => {
             });
 
             if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || 'فشل حفظ تفضيلات الإشعارات.');
+                let errorData = {};
+                try { errorData = await response.json(); } catch {}
+                const extractedError = extractErrorMessage(errorData);
+                // رمي خطأ يتضمن رمز الحالة لكي تستطيع الدالة المساعدة handleAuthError التعرف عليه
+                throw new Error(extractedError || `فشل حفظ تفضيلات الإشعارات. رمز الخطأ: ${response.status}`);
             }
 
             setSuccessMessage('تم حفظ تفضيلات الإشعارات بنجاح!');
-        } catch (err: any) { // تم إضافة "any" لتجنب خطأ TypeScript
-            setError(err.message || 'حدث خطأ أثناء حفظ تفضيلات الإشعارات.');
-            console.error('Error saving notifications:', err);
+            setTimeout(clearMessages, 5000); // إخفاء رسالة النجاح بعد 5 ثوانٍ
+        } catch (err: any) {
+            handleAuthError(err); // استخدام الدالة المساعدة الجديدة
+            setTimeout(clearMessages, 5000); // إخفاء رسالة الخطأ بعد 5 ثوانٍ
         } finally {
             setIsSavingNotifications(false);
         }
@@ -235,6 +294,7 @@ const DonorSettingsPage: React.FC = () => {
             </p>
 
             {/* رسائل النجاح أو الخطأ العامة */}
+            {/* الرسائل ستختفي الآن بعد 5 ثوانٍ */}
             {successMessage && <div className={styles.successMessage}>{successMessage}</div>}
             {error && <div className={styles.errorMessage}>{error}</div>}
 

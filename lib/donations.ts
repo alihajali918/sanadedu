@@ -1,6 +1,6 @@
 // src/app/api/donations/route.ts
 import { NextResponse } from "next/server";
-import { auth } from "@/auth";
+import { auth } from "lib/auth";
 
 export async function POST(req: Request) {
   try {

@@ -59,9 +59,9 @@ const Footer = () => {
             <li>
               <Link href="/cases">الحالات</Link>
             </li>
-            <li>
+            {/* <li>
               <Link href="/success-stories">آخر المتبرعين</Link>
-            </li>
+            </li> */}
             <li>
               <Link href="/request-documentation">طلب توثيق مؤسسة</Link>
             </li>

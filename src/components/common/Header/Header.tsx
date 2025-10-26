@@ -196,12 +196,12 @@ const Header = () => {
 
                 </li>
 
-                <li>
+                {/* <li>
                   <Link href="/about/founder" className={getLinkClassName("/about/founder")}>
                     عن المؤسس
                   </Link>
 
-                </li>
+                </li> */}
 
                 {/* <li>
                   <Link href="/about/team" className={getLinkClassName("/about/team")}>
@@ -274,12 +274,12 @@ const Header = () => {
                 طلب توثيق المؤسسة
               </Link>
             </li>
-            <li>
+            {/* <li>
 
               <Link href="/latest-donors" className={getLinkClassName("/latest-donors")}>
                 آخر المتبرعين
               </Link>
-            </li>
+            </li> */}
           </ul>
         </div>
       </nav>
@@ -466,7 +466,7 @@ const Header = () => {
               طلب توثيق المؤسسة
             </Link>
           </li>
-          <li>
+          {/* <li>
             <Link
               href="/latest-donors"
               onClick={toggleMobileMenu}
@@ -474,7 +474,7 @@ const Header = () => {
             >
               آخر المتبرعين
             </Link>
-          </li>{" "}
+          </li> */}
 
           <li>
             <Link

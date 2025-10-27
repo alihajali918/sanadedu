@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { authOptions } from "lib/auth"; // تأكد من المسار الصحيح لملف authOptions
-import { auth } from "lib/auth";       // تأكد من المسار الصحيح لدالة auth
+// 🚨 تأكد من صحة مسارات الاستيراد لدوال المصادقة
+import { authOptions } from "lib/auth"; 
+import { auth } from "lib/auth";       
 
 export const dynamic = "force-dynamic";
 
@@ -43,14 +44,17 @@ interface FormattedDonation {
 
 // --- Configuration ---
 
+// قراءة متغيرات البيئة والتأكد من إزالة الشرطة المائلة الأخيرة
 const WP_API_BASE =
   (process.env.WP_API_BASE || process.env.NEXT_PUBLIC_WORDPRESS_API_URL)?.replace(/\/$/, "") ||
   "";
 
+// بناء WP-JSON Base
 const WP_JSON = WP_API_BASE
   ? (WP_API_BASE.endsWith("/wp-json") ? WP_API_BASE : `${WP_API_BASE}/wp-json`)
   : "";
 
+// تعريف Endpoints
 const SANAD_MY_DONATIONS = WP_JSON ? `${WP_JSON}/sanad/v1/my-donations` : "";
 const SANAD_RECORD_DONATION = WP_JSON ? `${WP_JSON}/sanad/v1/record-donation` : "";
 
@@ -64,18 +68,22 @@ const statusMap: Record<string, string> = {
   failed: "فشل",
 };
 
-// ------------------------------------------------------------
+// ============================================================
 // 1. POST HANDLER: تسجيل تبرع جديد (مصحح وبسجلات مراقبة)
-// ------------------------------------------------------------
+// ============================================================
 
 export async function POST(req: Request) {
   try {
     console.log("DEBUG 1: Starting POST request.");
     
-    // 1. المصادقة
+    // 1. المصادقة واستخلاص بيانات المستخدم
     const session = await auth(); 
     const token = session?.user?.wordpressJwt;
     const userId = session?.user?.wordpressUserId;
+    // ✅ استخلاص الاسم والبريد الإلكتروني لزيادة التوافق مع WP
+    const donorEmail = session?.user?.email ?? '';
+    const donorName = session?.user?.name ?? 'فاعل خير';
+
 
     if (!token || !userId) {
       console.error("DEBUG ERROR: Not authenticated. Token or User ID missing.");
@@ -107,7 +115,7 @@ export async function POST(req: Request) {
     const endpoint = SANAD_RECORD_DONATION;
     console.log(`DEBUG 3: Target Endpoint: ${endpoint}`);
 
-    // 💡 الحمولة المصححة: بناء مصفوفة donated_items
+    // 💡 الحمولة المصححة: بناء مصفوفة donated_items (ضرورية لـ WP Plugin)
     const donatedItemsPayload: WpDonatedItem[] = [
       {
         case_id: caseId,
@@ -127,6 +135,10 @@ export async function POST(req: Request) {
       transaction_id: stripePaymentIntentId,
       donation_date: new Date().toISOString().slice(0, 10).replace(/-/g, ""),
       donated_items: donatedItemsPayload, // العنصر الحاسم للنجاح في WP
+      
+      // ✅ الإضافة الجديدة: إرسال بيانات المتبرع لضمان التوافق الكامل مع دالة PHP
+      donor_email: donorEmail, 
+      donor_name: donorName,
     };
     
     console.log("DEBUG 4: Sending Payload. Size:", JSON.stringify(payload).length);
@@ -165,7 +177,7 @@ export async function POST(req: Request) {
     return NextResponse.json(json, { status: 200 });
 
   } catch (err: any) {
-    // ⚠️ يحدث خطأ 500 هنا إذا كان هناك استثناء غير مُعالَج (مثل فشل req.json())
+    // ⚠️ هذا هو المكان الذي يُصدر خطأ 500 إذا حدث انهيار في Next.js نفسه (نادراً)
     console.error("CRITICAL API ERROR: Uncaught exception in /api/donations:", err);
     return NextResponse.json(
       { error: err?.message || "Internal Server Error. Check Server Logs." },
@@ -174,9 +186,9 @@ export async function POST(req: Request) {
   }
 }
 
-// ------------------------------------------------------------
+// ============================================================
 // 2. GET HANDLER: جلب التبرعات
-// ------------------------------------------------------------
+// ============================================================
 
 export async function GET() {
   try {

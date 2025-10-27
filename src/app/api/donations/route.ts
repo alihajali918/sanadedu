@@ -87,7 +87,7 @@ export async function POST(req: Request) {
       );
     }
     
-    // 🛑 الجديد: تحويل المبلغ إلى العملة الرئيسية (12000 -> 120.00)
+    // 🛑 تحويل المبلغ إلى العملة الرئيسية (12000 -> 120.00)
     const majorAmount = Number(minorAmount) / 100;
     if (majorAmount <= 0) {
         return NextResponse.json({ error: "Invalid donation amount (must be positive)." }, { status: 400 });
@@ -100,13 +100,13 @@ export async function POST(req: Request) {
     
     const endpoint = SANAD_RECORD_DONATION;
 
-    // 💡 بناء مصفوفة donated_items (كلها تستخدم العملة الرئيسية)
+    // 💡 بناء مصفوفة donated_items (تستخدم العملة الرئيسية و item_quantity = 1)
     const donatedItemsPayload: WpDonatedItem[] = [
       {
         case_id: caseId,
         caseId: caseId, 
         line_total: majorAmount, // ✅ المبلغ الرئيسي (120.00)
-        item_quantity: majorAmount, // ✅ الكمية = المبلغ (120.00)
+        item_quantity: 1, // 🛑 التصحيح الحاسم: القيمة 1 لتجنب خطأ 500
         need_id: needId || 0,
       },
     ];

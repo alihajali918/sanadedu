@@ -58,11 +58,11 @@ const DonorDashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
           <h3 className={styles.sidebarTitle}>لوحة تحكم المتبرع</h3>
           <nav className={styles.sidebarNav}>
             <ul>
-              <li>
+              {/* <li>
                 <Link href="/donor/dashboard" className={styles.navLink}>
                   نظرة عامة
                 </Link>
-              </li>
+              </li> */}
               <li>
                 <Link
                   href="/donor/dashboard/profile"

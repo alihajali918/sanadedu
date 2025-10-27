@@ -19,6 +19,10 @@ const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET as string;
 // قم بتعديل هذا الثابت ليناسب إعدادات المكون الإضافي JWT في ووردبريس لديك.
 const JWT_EXPIRY_SECONDS = 3600; // 1 hour
 
+// 💡 ثابت رسالة الخطأ عند فشل التجديد
+const REFRESH_ERROR = "RefreshAccessTokenError";
+
+
 // الدالة المساعدة لجمع ID المستخدم من ووردبريس باستخدام JWT
 export async function fetchWpCurrentUserId(jwt: string): Promise<number | null> {
     try {
@@ -44,12 +48,19 @@ async function refreshAccessToken(token: JWT): Promise<JWT> {
     // 💡 ملاحظة: نفترض وجود نقطة نهاية للتجديد مثل 'jwt-auth/v1/token/refresh'
     const refreshUrl = `${WORDPRESS_BASE_URL}/jwt-auth/v1/token/refresh`;
 
+    // ⛔️ التحقق من وجود التوكن القديم قبل المحاولة
+    const oldWpToken = (token as any).wordpressJwt;
+    if (!oldWpToken) {
+         console.error("Cannot refresh: wordpressJwt is missing in NextAuth token.");
+         return { ...token, error: REFRESH_ERROR };
+    }
+
     try {
         const response = await fetch(refreshUrl, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             // نستخدم التوكن القديم (الموجود في JWT) للحصول على توكن جديد
-            body: JSON.stringify({ token: (token as any).wordpressJwt }), 
+            body: JSON.stringify({ token: oldWpToken }), 
         });
 
         const refreshedData = await response.json();
@@ -57,7 +68,7 @@ async function refreshAccessToken(token: JWT): Promise<JWT> {
         if (!response.ok || !refreshedData?.token) {
             console.error("Token refresh failed. Response:", refreshedData);
             // إذا فشل التجديد، نضيف خطأ إلى التوكن لإجبار تسجيل الخروج
-            return { ...token, error: "RefreshAccessTokenError" };
+            return { ...token, error: REFRESH_ERROR };
         }
         
         // تم التجديد بنجاح، نقوم بتحديث التوكن ووقت الانتهاء
@@ -69,7 +80,7 @@ async function refreshAccessToken(token: JWT): Promise<JWT> {
         };
     } catch (error) {
         console.error("Error during token refresh API call:", error);
-        return { ...token, error: "RefreshAccessTokenError" };
+        return { ...token, error: REFRESH_ERROR };
     }
 }
 
@@ -151,13 +162,19 @@ const authOptions: NextAuthOptions = {
             // 2. أثناء الجلسة (user غير موجود) - تطبيق منطق التجديد
 
             // إذا كان هناك خطأ في التجديد، لا نعد التوكن، مما يجبر تسجيل الخروج
-            if ((token as any).error === "RefreshAccessTokenError") {
+            if ((token as any).error === REFRESH_ERROR) {
                 return token;
             }
             
             // 🕒 التحقق: إذا كان التوكن ينتهي صلاحيته في أقل من 5 دقائق (300000 مللي ثانية)
             const FIVE_MINUTES_MS = 5 * 60 * 1000;
             const expiresAt = (token as any).wordpressJwtExpires || 0;
+            const currentWpJwt = (token as any).wordpressJwt;
+
+            // ⛔️ إذا لم يكن هناك توكن ووردبريس أصلاً (مثلاً: جلسة Google)، نتجاهل التجديد
+            if (!currentWpJwt) {
+                 return token;
+            }
 
             if (Date.now() < expiresAt - FIVE_MINUTES_MS) {
                 // التوكن لا يزال صالحاً، لا حاجة للتجديد بعد

@@ -54,7 +54,7 @@ const SANAD_RECORD_DONATION = WP_JSON ? `${WP_JSON}/sanad/v1/record-donation` : 
 
 
 // ============================================================
-// 1. POST HANDLER: تسجيل تبرع جديد (مُصحَّح لعملية التسجيل)
+// 1. POST HANDLER: تسجيل تبرع جديد (مُصحَّح نهائياً للتوافق المحاسبي)
 // ============================================================
 
 export async function POST(req: Request) {
@@ -77,14 +77,20 @@ export async function POST(req: Request) {
 
     // 2. تحليل الحمولة
     const body = await req.json();
-    // ✅ استخلاص needId (إذا كان متوفراً في حمولة الواجهة الأمامية)
-    const { amount, caseId, stripePaymentIntentId, needId } = body; 
+    // ✅ استخدام اسم جديد للمبلغ القادم (minorAmount = 12000 سنت)
+    const { amount: minorAmount, caseId, stripePaymentIntentId, needId } = body; 
 
-    if (!amount || !caseId || !stripePaymentIntentId) {
+    if (!minorAmount || !caseId || !stripePaymentIntentId) {
       return NextResponse.json(
         { error: "Missing required fields (amount, caseId, stripePaymentIntentId)" },
         { status: 400 }
       );
+    }
+    
+    // 🛑 الجديد: تحويل المبلغ إلى العملة الرئيسية (12000 -> 120.00)
+    const majorAmount = Number(minorAmount) / 100;
+    if (majorAmount <= 0) {
+        return NextResponse.json({ error: "Invalid donation amount (must be positive)." }, { status: 400 });
     }
     
     // 3. بناء الـ Endpoint والـ Payload
@@ -94,28 +100,28 @@ export async function POST(req: Request) {
     
     const endpoint = SANAD_RECORD_DONATION;
 
-    // 💡 بناء مصفوفة donated_items (حاسم لنجاح التسجيل)
+    // 💡 بناء مصفوفة donated_items (كلها تستخدم العملة الرئيسية)
     const donatedItemsPayload: WpDonatedItem[] = [
       {
         case_id: caseId,
         caseId: caseId, 
-        line_total: amount,
-        item_quantity: amount, // ✅ تصحيح: تمرير المبلغ ككمية لضمان تسجيل المبلغ بالكامل
-        need_id: needId || 0, // ✅ تصحيح: تمرير needId أو 0
+        line_total: majorAmount, // ✅ المبلغ الرئيسي (120.00)
+        item_quantity: majorAmount, // ✅ الكمية = المبلغ (120.00)
+        need_id: needId || 0,
       },
     ];
 
     const payload = {
-      amount,
+      amount: majorAmount, // ✅ المبلغ الرئيسي (120.00)
       donor_id: userId,
       project_id: caseId,
-      // 🛑 حذف حقل الحالة: يسمح لـ WP بتعيين الحالة الافتراضية "pending"
+      // لا نرسل حقل الحالة ليُسجَّل كـ "pending" تلقائياً
       payment_method: "Stripe",
       transaction_id: stripePaymentIntentId,
       donation_date: new Date().toISOString().slice(0, 10).replace(/-/g, ""),
       donated_items: donatedItemsPayload, // العنصر الحاسم للنجاح في WP
       
-      // ✅ بيانات المتبرع
+      // بيانات المتبرع
       donor_email: donorEmail, 
       donor_name: donorName,
     };

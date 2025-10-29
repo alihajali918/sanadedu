@@ -6,7 +6,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 // --- Types ------------------------------------------------
-
+// ... (الأنواع تبقى كما هي)
 interface WpDonatedItem {
   case_id?: number | string;
   caseId?: number | string;
@@ -40,9 +40,8 @@ interface FormattedDonation {
   needId: string;
   quantity: number;
 }
-
 // --- WP API Setup -----------------------------------------
-// ... (No change in WP API Setup constants)
+// ... (الثوابت تبقى كما هي)
 const WP_API_BASE =
   (process.env.WP_API_BASE || process.env.NEXT_PUBLIC_WORDPRESS_API_URL)?.replace(
     /\/$/,
@@ -65,8 +64,19 @@ const SANAD_RECORD_DONATION = WP_JSON ? `${WP_JSON}/sanad/v1/record-donation` : 
 
 export async function POST(req: Request) {
   try {
-    const session = await auth();
-
+    // ⭐️ عزل خطأ التوثيق (Auth) في كتلة try/catch فرعية
+    let session: any = null;
+    try {
+        session = await auth();
+    } catch (authError: any) {
+        console.error("AUTH ERROR during session loading (H is not a function?):", authError);
+        // نُرجع خطأ 500 إذا فشل الـ Auth تماماً بطريقة غير متوقعة
+        return NextResponse.json(
+            { error: "Authentication system failure.", details: authError?.message || 'Unknown Auth Error' },
+            { status: 500 }
+        );
+    }
+    
     // ⭐️ التصحيح: فحص خطأ التجديد أولاً
     if ((session as any)?.error === "RefreshAccessTokenError") {
       return NextResponse.json(
@@ -87,7 +97,18 @@ export async function POST(req: Request) {
     const donorEmail = session.user.email ?? "";
     const donorName = session.user.name ?? "فاعل خير";
 
-    const body = await req.json();
+    // ⭐️ عزل خطأ قراءة الجسم
+    let body: any;
+    try {
+        body = await req.json();
+    } catch (jsonError: any) {
+        console.error("JSON Parsing Error:", jsonError);
+        return NextResponse.json(
+          { error: "Invalid request body (JSON format)." },
+          { status: 400 }
+        );
+    }
+
     // ✅ الإصلاح: استقبال حقل الكمية (quantity)
     const { amount: minorAmount, caseId, stripePaymentIntentId, needId, quantity } = body; 
 
@@ -106,7 +127,7 @@ export async function POST(req: Request) {
         { status: 400 }
       );
     }
-    
+    
     // ✅ التأكد من أن الكمية رقم موجب، وإلا يتم تعيينها إلى 1
     const itemQuantity = Number(quantity) > 0 ? Number(quantity) : 1;
 
@@ -169,6 +190,9 @@ export async function POST(req: Request) {
     return NextResponse.json(json, { status: 200 });
   } catch (err: any) {
     console.error("CRITICAL API ERROR (POST /donations):", err);
+    // ⭐️ إضافة تفاصيل للخطأ في الـ Logs لتسهيل التتبع
+    console.error("DEBUG CRITICAL DETAILS:", JSON.stringify(err, Object.getOwnPropertyNames(err)));
+    
     return NextResponse.json(
       { error: err?.message || "Internal Server Error" },
       { status: 500 }
@@ -176,8 +200,7 @@ export async function POST(req: Request) {
   }
 }
 // 2. GET: جلب التبرعات وتوحيد الحالة
-// ============================================================
-
+// ... (دالة GET تبقى كما هي)
 export async function GET() {
   try {
     const session = await auth();

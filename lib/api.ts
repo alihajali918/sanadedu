@@ -1,11 +1,12 @@
 // ================================================
-// File: src/lib/api.ts (الكود الكامل والمُحدَّث)
+// File: src/lib/api.ts (الكود النهائي والمُعدَّل)
 // ================================================
 
 import { unstable_cache } from 'next/cache';
 import { z } from 'zod';
-
-// 💡 الأنواع كما هي:
+// 💡 نستخدم الأنواع كما هي معرفة في الكود السابق (يفترض استيرادها من ./types)
+// لتجنب التعارض، نفترض أنهم في ملف types.ts، ولكن ندرجهم هنا للتوثيق الكامل
+// (إذا كانت هذه الأنواع مستوردة، قم بإزالة تعريفاتها من هنا)
 export type Need = {
     id: number;
     item: string;
@@ -27,23 +28,23 @@ export interface AttachmentObject {
     guid: string; 
 }
 
-// ✅ تحديث needLevel ليشمل القيمة الجديدة 'قريباً'
-export type NeedLevel = 'عالي' | 'متوسط' | 'منخفض' | 'قريباً' | string;
+// ✅ [تعديل] يجب تحديث needLevel ليشمل القيمة الجديدة 'قريباً'
+export type NeedLevel = 'عالي' | 'متوسط' | 'منخفض' | 'قريباً' | string; // توسيع النوع ليشمل "قريباً"
 export interface CaseItem {
     id: number;
     title: string;
     description: string;
     governorate: string;
     city: string;
-    type: 'school' | 'mosque';
-    needLevel: NeedLevel; 
+    type: 'school' | 'mosque'; // تبسيط لـ 'school' | 'mosque' فقط هنا
+    needLevel: NeedLevel; // ✅ [تعديل] استخدام النوع الجديد
     isUrgent: boolean;
     needs: Need[];
     fundNeeded: number;
     fundRaised: number;
     progress: number;
     images: string[];
-    gallery_images?: AttachmentObject[]; 
+    gallery_images?: AttachmentObject[]; // 💡 [مُضاف]
     educationLevel?: string;
     numberOfStudents?: number;
     numberOfClassrooms?: number;
@@ -65,26 +66,20 @@ export interface CaseItem {
 
 
 /**
- * جلب بيانات من WordPress REST API
- * 🚀 **تم التحديث لزيادة المهلة وإضافة هيدرات الاتصال للحل في الإنتاج.**
- * @param endpoint نقطة النهاية (مثال: 'posts', 'schools/123')
- * @param params بارامترات URL
- * @returns كائن يحتوي على البيانات ورؤوس الاستجابة، أو null في حالة الفشل
- */
+ * جلب بيانات من WordPress REST API
+ * @param endpoint نقطة النهاية (مثال: 'posts', 'schools/123')
+ * @param params بارامترات URL
+ * @returns كائن يحتوي على البيانات ورؤوس الاستجابة، أو null في حالة الفشل
+ */
 export async function fetchWordPressData(
     endpoint: string,
     params?: URLSearchParams
 ): Promise<{ data: any; headers: Headers } | null> {
-    
-    // 💡 [تعديل 1]: نستخدم متغير الخادم (WORDPRESS_API_URL) أولاً كأفضل ممارسة
-    const RAW = process.env.WORDPRESS_API_URL?.trim()
-        || process.env.NEXT_PUBLIC_WORDPRESS_API_URL?.trim();
-
+    const RAW = process.env.NEXT_PUBLIC_WORDPRESS_API_URL?.trim();
     if (!RAW) {
-        console.error('WORDPRESS_API_URL / NEXT_PUBLIC_WORDPRESS_API_URL غير مُعرَّف في بيئة الخادم.');
+        console.error('NEXT_PUBLIC_WORDPRESS_API_URL غير معرّف.');
         return null;
     }
-    
     const hasWpJson = /\/wp-json\/?$/.test(RAW);
     const apiBase = hasWpJson ? RAW.replace(/\/+$/, '') : `${RAW.replace(/\/+$/, '')}/wp-json`;
     const baseV2 = `${apiBase}/wp/v2`;
@@ -95,20 +90,10 @@ export async function fetchWordPressData(
         : `${baseV2}/${endpoint.replace(/^\/+/, '')}${params ? `?${params.toString()}` : ''}`;
 
     const controller = new AbortController();
-    
-    // 💡 [تعديل 2]: زيادة المهلة إلى 45 ثانية لتجنب Timeout (كانت 10_000 مللي ثانية)
-    const timeout = setTimeout(() => controller.abort(), 45_000);
+    const timeout = setTimeout(() => controller.abort(), 10_000);
 
     try {
-        const res = await fetch(finalUrlStr, { 
-            next: { revalidate: 3600 }, 
-            signal: controller.signal,
-            // 💡 [تعديل 3]: إضافة هيدرات للمساعدة في تجاوز حظر جدار الحماية
-            headers: { 
-                'User-Agent': 'Sanad-NextJS-Client/1.0', 
-                'Accept': 'application/json' 
-            }
-        });
+        const res = await fetch(finalUrlStr, { next: { revalidate: 3600 }, signal: controller.signal });
         clearTimeout(timeout);
 
         if (!res.ok) {

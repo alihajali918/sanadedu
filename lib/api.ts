@@ -1,5 +1,5 @@
 // ================================================
-// File: src/lib/api.ts (الكود فائق الخفة)
+// File: src/lib/api.ts (الكود النهائي والمُعدَّل)
 // ================================================
 
 import { unstable_cache } from 'next/cache';
@@ -72,9 +72,7 @@ export interface CaseItem {
  */
 export async function fetchWordPressData(
     endpoint: string,
-    params?: URLSearchParams,
-    // ✅ NEW: لتجاوز الكاش في حال واجهتنا مشاكل
-    options: { cache?: RequestCache } = {} 
+    params?: URLSearchParams
 ): Promise<{ data: any; headers: Headers } | null> {
     const RAW = process.env.NEXT_PUBLIC_WORDPRESS_API_URL?.trim();
     if (!RAW) {
@@ -94,11 +92,7 @@ export async function fetchWordPressData(
     const timeout = setTimeout(() => controller.abort(), 10_000);
 
     try {
-        const res = await fetch(finalUrlStr, { 
-            next: { revalidate: 3600 }, 
-            signal: controller.signal, 
-            cache: options.cache 
-        }); // 💡 تم إضافة خيار الكاش
+        const res = await fetch(finalUrlStr, { next: { revalidate: 3600 }, signal: controller.signal });
         clearTimeout(timeout);
 
         if (!res.ok) {
@@ -126,8 +120,7 @@ const schoolsSchema = z.object({
     id: z.number(),
     title: z.object({ rendered: z.string() }).optional(),
     acf: z.any().optional().nullable(),
-    // ✅ ملاحظة: لا يمكننا إزالة _embedded هنا لأنه قد نحتاجه في getCaseById
-    _embedded: z.any().optional(), 
+    _embedded: z.any().optional(),
 });
 
 const mosquesSchema = z.object({
@@ -270,19 +263,14 @@ export const formatCaseData = async (
     allNeedsMap: Map<string, Need>
 ): Promise<CaseItem> => {
     const acf = caseItem?.acf || {};
-    // 💡 بما أننا أزلنا _embed في getCases، هذا الحقل لن يكون موجودًا.
-    // يجب أن نعتمد فقط على ACF أو معلومات الحالة الأساسية.
-    const terms = caseItem?._embedded?.['wp:term']?.flat?.() || []; 
+    const terms = caseItem?._embedded?.['wp:term']?.flat?.() || [];
 
     const title =
         type === 'school'
             ? acf?.organization_name || caseItem?.title?.rendered || 'بدون عنوان'
             : acf?.mosque_name || caseItem?.title?.rendered || 'بدون عنوان';
 
-    // ملاحظة: بما أننا أزلنا _embed، فجلب المدينة والمحافظة سيعتمد
-    // على وجود _embedded (أي سيعمل فقط في getCaseById).
-    // في getCases، قد تحتاج لجلب الموقع كـ ACF field إذا كان ضرورياً في البطاقة.
-    const { governorate, city } = extractLocationNames(terms); 
+    const { governorate, city } = extractLocationNames(terms);
 
     const description = acf?.description || '';
     const totalNeeded = Number(acf?.total_needed) || 0;
@@ -300,8 +288,7 @@ export const formatCaseData = async (
     // ✅ [تعديل أساسي] لتخزين كائنات المرفقات الكاملة
     let rawGalleryImages: AttachmentObject[] = []; 
 
-    // 💡 لا يوجد featured media في getCases بسبب _fields، لذا سنعتمد على ACF فقط
-    const featured = caseItem?._embedded?.['wp:featuredmedia']?.[0]?.source_url; 
+    const featured = caseItem?._embedded?.['wp:featuredmedia']?.[0]?.source_url;
     if (featured) images.push(String(featured));
     
     // 💡 [التعديل الرئيسي] استخلاص صور المعرض (gallery_images - Post Object Array)
@@ -328,7 +315,6 @@ export const formatCaseData = async (
     images = dedupeImages(images);
     // -----------------------------------------------------
 
-    // 💡 في getCases، ستكون allNeedsMap فارغة، لذا هذا الجزء لن يضيف حملاً
     const quantitiesMap = parseQuantitiesMap(acf?.project_needs_quantities_text);
     const selectedNeedsRaw = Array.isArray(acf?.selected_project_needs) ? acf.selected_project_needs : [];
 
@@ -337,7 +323,7 @@ export const formatCaseData = async (
         const idNum = Number(idStr);
         const safeId = Number.isFinite(idNum) ? idNum : 0;
 
-        const base = allNeedsMap.get(idStr); // ستكون فارغة في getCases
+        const base = allNeedsMap.get(idStr);
 
         const item =
             (typeof sel === 'object' && sel?.post_title) || base?.item || 'بدون عنوان';
@@ -365,8 +351,7 @@ export const formatCaseData = async (
 
         return { id: safeId, item, unitPrice, quantity, funded: 0, description, image, category, icon } as Need;
     });
-    // ... بقية الـ formatters كما هي
-    
+
     let locationMap: { lat: number, lng: number, address: string } | undefined;
     let officialDocuments: any; 
     
@@ -489,7 +474,6 @@ async function getNeedsList(postType: 'school_needs' | 'mosque_needs') {
     return parsed.data.map(formatNeedItemDetailData);
 }
 
-// 💡 يجب أن تبقى هذه الدوال كما هي لأنها تستخدم في getCaseById
 export const getSchoolNeedsList = unstable_cache(
     () => getNeedsList('school_needs'),
     ['school-needs-list'],
@@ -505,11 +489,9 @@ export const getMosqueNeedsList = unstable_cache(
 /* ============ Case APIs ============ */
 
 export async function getCaseById(id: number): Promise<CaseItem | null> {
-    // ✅ يبقى جلب قوائم الاحتياجات هنا لأنها صفحة تفاصيل تحتاج البيانات كاملة
     const [schoolNeedsList, mosqueNeedsList] = await Promise.all([getSchoolNeedsList(), getMosqueNeedsList()]);
     const allNeedsMap = new Map([...schoolNeedsList, ...mosqueNeedsList].map(n => [String(n.id), n]));
 
-    // ✅ يبقى _embed هنا لضمان جلب التصنيفات والمرفقات لصفحة التفاصيل
     const [schoolsRes, mosquesRes] = await Promise.allSettled([
         fetchWordPressData(`schools/${id}`, new URLSearchParams('_embed')),
         fetchWordPressData(`mosques/${id}`, new URLSearchParams('_embed')),
@@ -538,39 +520,28 @@ export async function getCaseById(id: number): Promise<CaseItem | null> {
     }
 }
 
-
-// =======================================================================
-// 🚀 [التعديل الأهم لحل مشكلة AbortError] دالة getCases فائق الخفة
-// =======================================================================
 export async function getCases(params: URLSearchParams = new URLSearchParams()): Promise<CaseItem[]> {
     const paramsString = params.toString();
     const typeKey = (params.get('type') || 'all').toLowerCase();
     const pageKey = params.get('page') || '1';
     const searchKey = params.get('search') || 'none';
-    // ✅ تقليل عدد العناصر في الصفحة إلى 10 لتقليل الحمل
-    const perPageKey = params.get('per_page') || '10'; 
+    const perPageKey = params.get('per_page') || '10';
 
     const cachedFn = unstable_cache(
         async () => {
             const p = new URLSearchParams(paramsString);
-            
-            // 🛑 NEW: طلب الحقول الأساسية و ACF فقط
-            p.set('_fields', 'id,title,type,acf');
-            // 🛑 REMOVED: p.set('_embed', ''); 
-
+            p.set('_embed', '');
             const fetchSchools = typeKey === 'all' || typeKey === 'schools';
             const fetchMosques = typeKey === 'all' || typeKey === 'mosques';
 
             const schoolsPromise = fetchSchools ? fetchWordPressData('schools', p) : Promise.resolve(null);
             const mosquesPromise = fetchMosques ? fetchWordPressData('mosques', p) : Promise.resolve(null);
 
-            // 🛑 [التعديل الحاسم] حذف استدعاءات قوائم الاحتياجات الثقيلة
-            const [schoolsRes, mosquesRes] = await Promise.all([
-                schoolsPromise, mosquesPromise
+            const [schoolsRes, mosquesRes, schoolNeedsList, mosqueNeedsList] = await Promise.all([
+                schoolsPromise, mosquesPromise, getSchoolNeedsList(), getMosqueNeedsList()
             ]);
 
-            // 💡 استخدام خريطة احتياجات فارغة لأننا لم نقم بجلبها
-            const allNeedsMap = new Map<string, Need>(); 
+            const allNeedsMap = new Map([...schoolNeedsList, ...mosqueNeedsList].map(n => [String(n.id), n]));
             const allCases: CaseItem[] = [];
 
             if (Array.isArray(schoolsRes?.data)) {
@@ -595,8 +566,6 @@ export async function getCases(params: URLSearchParams = new URLSearchParams()):
 
     return cachedFn();
 }
-// ... (بقية الكود)
-
 // واجهة لضمان نوع البيانات
 export interface Donation {
     id: string;

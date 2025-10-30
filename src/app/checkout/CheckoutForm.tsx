@@ -84,51 +84,65 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({
   // ------------------------------------------------------------------
   // ✅ 1. إرسال التبرع إلى ووردبريس بعد نجاح Stripe
   // ------------------------------------------------------------------
-  const submitDonationToWP = useCallback(
-    async (paymentIntentId: string) => {
-      try {
-        const firstItem = donatedItems[0];
-        const caseId = firstItem?.case_id || 0;
-        const needId = firstItem?.need_id || 0;
-        const quantity = firstItem?.item_quantity || 1;
+const submitDonationToWP = useCallback(
+  async (paymentIntentId: string) => {
+    try {
+      const firstItem = donatedItems[0];
+      const caseId = firstItem?.case_id || 0;
+      const needId = firstItem?.need_id || 0;
+      const quantity = firstItem?.item_quantity || 1;
 
-        const payload = {
-          amount: totalAmountInCents,
-          caseId,
-          stripePaymentIntentId: paymentIntentId,
-          needId,
-          quantity,
-        };
+      const payload = {
+        userId: effectiveUserId,
+        donor_name: effectiveDonorName,
+        donor_email: effectiveDonorEmail,
+        amount: totalAmountInCents,
+        case_ids: donatedItems.map((i) => i.case_id),
+        donated_items: donatedItems,
+        transaction_id: paymentIntentId,
+      };
 
-        console.log("📤 Sending donation payload:", payload);
+      console.log("📤 Sending donation payload to WordPress:", payload);
 
-        const response = await fetch("/api/donations", {
+      const response = await fetch(
+        "https://www.sanadedu.org/wp-json/sanad/v1/record-donation",
+        {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include", // ⬅️ ضروري لإرسال كوكي الجلسة
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${process.env.NEXT_PUBLIC_SANAD_API_KEY}`,
+          },
           body: JSON.stringify(payload),
-        });
-
-        const data = await response.json().catch(() => ({}));
-
-        if (!response.ok) {
-          console.error(
-            `⚠️ WP RECORDING WARNING: Stripe succeeded but WP failed (HTTP ${response.status}). Error: ${
-              data?.error || "Failed to submit donation"
-            }`
-          );
-          return { success: false, error: "WP recording failed." };
         }
+      );
 
-        console.log("✅ WP RECORDING SUCCESS: Donation recorded successfully in WordPress.");
-        return { success: true };
-      } catch (err: any) {
-        console.error("❌ WP RECORDING FATAL ERROR:", err);
-        return { success: false, error: err.message };
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        console.error(
+          `⚠️ WP RECORDING WARNING: Stripe succeeded but WP failed (HTTP ${response.status}). Error: ${
+            data?.message || "Failed to record donation"
+          }`
+        );
+        return { success: false, error: "WP recording failed." };
       }
-    },
-    [totalAmountInCents, donatedItems]
-  );
+
+      console.log("✅ WP RECORDING SUCCESS:", data);
+      return { success: true };
+    } catch (err: any) {
+      console.error("❌ WP RECORDING FATAL ERROR:", err);
+      return { success: false, error: err.message };
+    }
+  },
+  [
+    donatedItems,
+    totalAmountInCents,
+    effectiveUserId,
+    effectiveDonorName,
+    effectiveDonorEmail,
+  ]
+);
+
 
   // ------------------------------------------------------------------
   // 2. تهيئة Stripe PaymentIntent + Apple/Google Pay

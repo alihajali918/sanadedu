@@ -103,7 +103,6 @@ const submitDonationToWP = useCallback(
       };
 
       console.log("📤 Sending donation payload to WordPress:", payload);
-
       const response = await fetch(
         "https://cms.sanadedu.org/wp-json/sanad/v1/record-donation",
         {

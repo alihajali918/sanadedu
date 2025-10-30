@@ -41,7 +41,7 @@ interface CheckoutFormProps {
 
 const CURRENCY = "usd";
 
-// 🚨 دالة مساعدة لإضافة تأخير (مهمة لمنع مشاكل سرعة التحميل)
+// دالة تأخير بسيطة (مفيدة لتفادي مشاكل التحميل)
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const CheckoutForm: React.FC<CheckoutFormProps> = ({
@@ -65,6 +65,7 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({
   const [clientSecret, setClientSecret] = useState<string>("");
   const [paymentRequest, setPaymentRequest] = useState<any | null>(null);
 
+  // تحديد اسم وإيميل المستخدم (من الجلسة أو من الإدخال)
   const effectiveDonorName =
     (session?.user?.name && session.user.name.trim()) ||
     (donorName && donorName.trim()) ||
@@ -81,7 +82,7 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({
   const totalAmountInCents = Math.round(totalPaidAmount * 100);
 
   // ------------------------------------------------------------------
-  // ✅ 1. دالة تسجيل التبرع في ووردبريس (تم تصحيحها بالكامل)
+  // ✅ 1. إرسال التبرع إلى ووردبريس بعد نجاح Stripe
   // ------------------------------------------------------------------
   const submitDonationToWP = useCallback(
     async (paymentIntentId: string) => {
@@ -91,7 +92,6 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({
         const needId = firstItem?.need_id || 0;
         const quantity = firstItem?.item_quantity || 1;
 
-        // ✅ payload يتوافق مع /api/donations
         const payload = {
           amount: totalAmountInCents,
           caseId,
@@ -105,6 +105,7 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({
         const response = await fetch("/api/donations", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
+          credentials: "include", // ⬅️ ضروري لإرسال كوكي الجلسة
           body: JSON.stringify(payload),
         });
 
@@ -119,9 +120,7 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({
           return { success: false, error: "WP recording failed." };
         }
 
-        console.log(
-          "✅ WP RECORDING SUCCESS: Donation recorded successfully in WordPress."
-        );
+        console.log("✅ WP RECORDING SUCCESS: Donation recorded successfully in WordPress.");
         return { success: true };
       } catch (err: any) {
         console.error("❌ WP RECORDING FATAL ERROR:", err);
@@ -132,7 +131,7 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({
   );
 
   // ------------------------------------------------------------------
-  // 2. تهيئة الدفع (Card + Express)
+  // 2. تهيئة Stripe PaymentIntent + Apple/Google Pay
   // ------------------------------------------------------------------
   const fetchPaymentIntentAndSetupExpress = useCallback(
     async (): Promise<(() => void) | undefined> => {
@@ -182,7 +181,7 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({
         return;
       }
 
-      // Apple Pay / Google Pay setup
+      // Apple Pay / Google Pay
       const pr = stripe.paymentRequest({
         country: "US",
         currency: CURRENCY,
@@ -204,7 +203,6 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({
 
       const handlePaymentMethod = async (event: any) => {
         if (processing) return;
-
         setProcessing(true);
         setError(null);
 
@@ -221,10 +219,8 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({
           setProcessing(false);
         } else if (paymentIntent && paymentIntent.status === "succeeded") {
           event.complete("success");
-
           setSucceeded(true);
           clearCart();
-
           await submitDonationToWP(paymentIntent.id);
           router.push(`/thank-you?payment_intent=${paymentIntent.id}`);
           setProcessing(false);
@@ -236,9 +232,7 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({
       };
 
       pr.on("paymentmethod", handlePaymentMethod);
-      return () => {
-        pr.off("paymentmethod", handlePaymentMethod);
-      };
+      return () => pr.off("paymentmethod", handlePaymentMethod);
     },
     [
       totalAmountInCents,
@@ -258,26 +252,20 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({
   );
 
   // ------------------------------------------------------------------
-  // 3. useEffect للتنظيف
+  // 3. useEffect — تهيئة الدفع عند التحميل
   // ------------------------------------------------------------------
   useEffect(() => {
-    let cleanupFunction: (() => void) | undefined;
+    let cleanup: (() => void) | undefined;
 
     fetchPaymentIntentAndSetupExpress()
-      .then((cleanup) => {
-        cleanupFunction = cleanup;
-      })
-      .catch((err) => {
-        console.error("Payment setup failed:", err);
-      });
+      .then((c) => (cleanup = c))
+      .catch((err) => console.error("Payment setup failed:", err));
 
-    return () => {
-      if (cleanupFunction) cleanupFunction();
-    };
+    return () => cleanup && cleanup();
   }, [fetchPaymentIntentAndSetupExpress]);
 
   // ------------------------------------------------------------------
-  // 4. إرسال الدفع بالبطاقة التقليدية
+  // 4. الدفع التقليدي بالبطاقة
   // ------------------------------------------------------------------
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -295,6 +283,7 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({
 
     setProcessing(true);
     setError(null);
+
     const cardNumberElement = elements.getElement(CardNumberElement);
     await sleep(50);
 

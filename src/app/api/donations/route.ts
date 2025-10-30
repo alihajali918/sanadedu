@@ -1,6 +1,6 @@
 // ============================================================
 // FILE: src/app/api/donations/route.ts
-// ✅ FINAL VERSION — Supports Anonymous & Authenticated Donors
+// ✅ FINAL VERSION — Supports Anonymous & Authenticated Donors (JWT + API KEY)
 // ============================================================
 import { NextResponse } from "next/server";
 import { auth } from "lib/auth";
@@ -8,7 +8,9 @@ import { auth } from "lib/auth";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-// --- Types ------------------------------------------------
+// ============================================================
+// 🧩 Type Definitions
+// ============================================================
 interface WpDonatedItem {
   case_id?: number | string;
   caseId?: number | string;
@@ -42,7 +44,9 @@ interface FormattedDonation {
   quantity: number;
 }
 
-// --- WP API Setup -----------------------------------------
+// ============================================================
+// 🌍 WordPress API Setup
+// ============================================================
 const WP_API_BASE =
   (process.env.WP_API_BASE || process.env.NEXT_PUBLIC_WORDPRESS_API_URL)?.replace(/\/$/, "") || "";
 
@@ -60,6 +64,7 @@ const SANAD_RECORD_DONATION = WP_JSON ? `${WP_JSON}/sanad/v1/record-donation` : 
 // ============================================================
 export async function POST(req: Request) {
   try {
+    // 🧩 التحقق من الجلسة
     let session: any = null;
     try {
       session = await auth();
@@ -67,14 +72,13 @@ export async function POST(req: Request) {
       console.error("AUTH ERROR:", authError);
     }
 
-    // 🧩 جلب بيانات المستخدم (إن وجد)
     const isAuthenticated = !!session?.user?.wordpressJwt && !!session?.user?.wordpressUserId;
     const token = session?.user?.wordpressJwt ?? null;
     const userId = session?.user?.wordpressUserId ?? 0;
     const donorEmail = session?.user?.email ?? "";
     const donorName = session?.user?.name ?? "فاعل خير";
 
-    // 🧩 قراءة الطلب
+    // 🧩 قراءة البيانات القادمة من الواجهة
     let body: any;
     try {
       body = await req.json();
@@ -91,24 +95,24 @@ export async function POST(req: Request) {
       );
     }
 
-    const majorAmount = Number(minorAmount) / 100;
-    const itemQuantity = Number(quantity) > 0 ? Number(quantity) : 1;
-
     if (!SANAD_RECORD_DONATION) {
       return NextResponse.json({ error: "WordPress API base not configured." }, { status: 500 });
     }
 
+    const majorAmount = Number(minorAmount) / 100;
+    const itemQuantity = Number(quantity) > 0 ? Number(quantity) : 1;
+
     const donatedItemsPayload: WpDonatedItem[] = [
       {
         case_id: caseId,
-        caseId: caseId,
+        caseId,
         line_total: majorAmount,
         item_quantity: itemQuantity,
         need_id: needId || 0,
       },
     ];
 
-    // 🧩 إعداد الحمولة
+    // 🧩 إنشاء حمولة الطلب
     const payload = {
       amount: majorAmount,
       donor_id: userId || undefined,
@@ -119,21 +123,32 @@ export async function POST(req: Request) {
       donated_items: donatedItemsPayload,
       donor_email: donorEmail || undefined,
       donor_name: donorName || "فاعل خير",
-      anonymous: !isAuthenticated, // 🧩 معلومة مفيدة للباك اند
+      anonymous: !isAuthenticated,
     };
 
+    // 🧩 إعداد الهيدرز — دعم JWT + API KEY
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+
+    if (isAuthenticated && token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    } else {
+      const apiKey =
+        process.env.SANAD_API_KEY || process.env.NEXT_PUBLIC_SANAD_API_KEY || "";
+      if (apiKey) headers["Authorization"] = `Bearer ${apiKey}`;
+    }
+
     console.log("📤 Submitting donation to WordPress:", {
-      isAuthenticated,
       endpoint: SANAD_RECORD_DONATION,
-      hasToken: !!token,
+      isAuthenticated,
+      hasJWT: !!token,
+      hasApiKey: !!headers["Authorization"],
     });
 
     const wpRes = await fetch(SANAD_RECORD_DONATION, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...(isAuthenticated && token ? { Authorization: `Bearer ${token}` } : {}),
-      },
+      headers,
       body: JSON.stringify(payload),
     });
 
@@ -146,12 +161,14 @@ export async function POST(req: Request) {
     }
 
     if (!wpRes.ok) {
+      console.error(`❌ WP API Error (${wpRes.status}):`, json);
       return NextResponse.json(
         { error: json?.message || json?.error || raw },
         { status: wpRes.status }
       );
     }
 
+    console.log("✅ Donation recorded successfully:", json);
     return NextResponse.json({ ok: true, data: json }, { status: 200 });
   } catch (err: any) {
     console.error("CRITICAL API ERROR (POST /donations):", err);

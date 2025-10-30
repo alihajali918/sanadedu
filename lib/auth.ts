@@ -15,7 +15,7 @@ import { authConfig } from "./auth.config"; // 👈 تأكد أن الملف م�
  * 
  * مثال:
  *   const session = await auth();
- *   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+ *   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401});
  */
 export async function auth() {
   try {

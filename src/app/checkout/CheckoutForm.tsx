@@ -141,8 +141,6 @@ const submitDonationToWP = useCallback(
     effectiveDonorEmail,
   ]
 );
-
-
   // ------------------------------------------------------------------
   // 2. تهيئة Stripe PaymentIntent + Apple/Google Pay
   // ------------------------------------------------------------------

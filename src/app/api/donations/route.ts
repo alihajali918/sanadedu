@@ -6,7 +6,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { auth } from "lib/auth"; // يجب أن يكون مسار lib/auth صحيحاً
 
 // ✅ الإجراء الحاسم: حل مشكلة 'H is not a function' وإجبار Node Runtime
-export const runtime = "nodejs"; 
+export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 // --- Types ------------------------------------------------

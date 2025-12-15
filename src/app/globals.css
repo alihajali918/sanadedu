@@ -53,7 +53,7 @@ body {
 /* لمنع التمرير عندما تكون قائمة الموبايل مفتوحة */
 body.no-scroll { overflow: hidden; }
 
-:global(body.menu-open) {
+body.menu-open {
   /* منع التمرير الرأسي والأفقي */
   overflow: hidden !important;
   /* تثبيت الموضع لضمان عدم حدوث اهتزاز عند التثبيت */

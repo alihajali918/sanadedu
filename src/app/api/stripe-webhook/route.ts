@@ -1,12 +1,12 @@
 // ============================================================
 // FILE: src/app/api/stripe/webhook/route.ts
-// ✅ FINAL PRODUCTION VERSION — Secure Stripe → WordPress Sync
+// ✅ PRODUCTION VERSION — Secure Stripe → WordPress Sync
 // Supports Authorization + Fallback + Safe Revalidation
 // ============================================================
 
 import Stripe from "stripe";
 import { NextResponse, type NextRequest } from "next/server";
-import { revalidateTag } from "next/cache";
+import { revalidatePath } from "next/cache";
 
 // ============================================================
 // 🔧 Environment Variables
@@ -24,7 +24,6 @@ const WP_WEBHOOK_ENDPOINT = WP_API_BASE
 // ⚙️ Stripe Setup
 // ============================================================
 const stripe = new Stripe(STRIPE_SECRET_KEY, {
-  // ✅ تأكد أن هذا الإصدار متوافق مع حسابك في لوحة Stripe
   apiVersion: "2025-08-27.basil",
 });
 
@@ -86,7 +85,6 @@ export async function POST(req: NextRequest) {
           Authorization: `Bearer ${SANAD_WEBHOOK_API_KEY}`,
         };
 
-        // 🔄 Fallback إضافي (في حال حذف الهيدر من السيرفر)
         const fallbackBody = {
           ...event,
           _auth_key: SANAD_WEBHOOK_API_KEY,
@@ -101,22 +99,22 @@ export async function POST(req: NextRequest) {
         if (!wpUpdateResponse.ok) {
           const errorDetails = await wpUpdateResponse.text();
           console.error("❌ WordPress update failed:", errorDetails);
-          // Stripe سيعيد المحاولة تلقائياً عند رد 500
           return new NextResponse(`Failed to update WordPress: ${errorDetails}`, {
             status: 500,
           });
         }
 
         // ============================================================
-        // 4️⃣ Revalidate cached data (اختياري لكن مهم)
+        // 4️⃣ Revalidate cached data (Next.js 16 compliant)
         // ============================================================
         try {
-          await revalidateTag("cases");
-          await revalidateTag("needs-lists");
-          console.log("🚀 Revalidation completed for 'cases' & 'needs-lists'.");
+          await revalidatePath("/cases");
+          await revalidatePath("/cases/[id]");
+          await revalidatePath("/donation-basket");
+          console.log("🚀 Revalidation completed via paths.");
         } catch (revalidateError) {
           console.error("⚠️ Revalidation failed:", revalidateError);
-          // تجاهل هذا الخطأ لأن الهدف الأساسي (تحديث الحالة) تم بنجاح
+          // الهدف الأساسي (تحديث حالة التبرع) تم بنجاح
         }
 
         console.log("✅ WordPress updated successfully. Donation marked as 'completed'.");

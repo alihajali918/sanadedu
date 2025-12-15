@@ -39,7 +39,7 @@ const Footer = () => {
           <p className={styles.footerDescription}>
             {/* ✅ تم التعديل */}
             جمعية سند لدعم التعليم هي منصة إنسانية تهدف إلى ربط المتبرعين
-            بالمؤسسات التعليمية والدينية المحتاجة في سوريا، لضمان مستقبل أفضل
+            بالمؤسسات التعليمية والدينية المحتاجة، لضمان مستقبل أفضل
             لأجيالنا.
           </p>
         </div>
@@ -77,7 +77,7 @@ const Footer = () => {
           {/* ✅ تم التعديل */}
           <h3>تواصل معنا</h3>
           <p>
-            <i className="fas fa-map-marker-alt"></i> بريطانيا / سوريا
+            <i className="fas fa-map-marker-alt"></i> بريطانيا
           </p>
           <p>
             <i className="fas fa-phone"></i>7340995735 44+{" "}
@@ -95,7 +95,7 @@ const Footer = () => {
           <div className={styles.socialIcons}>
             {/* ✅ تم التعديل */}
             <a
-              href="https://facebook.com/sanadedu.sy"
+              href="https://facebook.com/"
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Facebook"
@@ -103,7 +103,7 @@ const Footer = () => {
               <i className="fab fa-facebook-f"></i>
             </a>
             <a
-              href="https://instagram.com/sanadedu.sy"
+              href="https://instagram.com/"
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Instagram"
@@ -111,7 +111,7 @@ const Footer = () => {
               <i className="fab fa-instagram"></i>
             </a>
             <a
-              href="https://www.tiktok.com/@sanadedu.sy"
+              href="https://www.tiktok.com/"
               target="_blank"
               rel="noopener noreferrer"
               aria-label="TikTok"
